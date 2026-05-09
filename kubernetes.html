@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kubernetes Debugging Toolkit — Cheat Sheet</title>
+<meta name="description" content="Filterable cheat sheet of Kubernetes debugging tools with key commands and use cases.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #0d0f0e;
+    --bg2:     #141715;
+    --bg3:     #1c1f1d;
+    --border:  #2a2e2c;
+    --border2: #3a3f3c;
+    --text:    #c8d5c8;
+    --muted:   #6a7a6a;
+    --accent:  #60a5fa;
+    --cmd:     #7dd3a8;
+    --mono:    'JetBrains Mono', monospace;
+    --display: 'Syne', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+    pointer-events: none; z-index: 999;
+  }
+
+  nav {
+    border-bottom: 1px solid var(--border);
+    padding: .6rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: 11px;
+  }
+  nav a { color: var(--muted); text-decoration: none; transition: color .15s; }
+  nav a:hover { color: var(--accent); }
+  nav .sep { color: var(--border2); }
+  nav .current { color: var(--text); }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 2rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  header::after {
+    content: '';
+    position: absolute; bottom: -1px; left: 0;
+    width: 120px; height: 2px;
+    background: var(--accent);
+  }
+  .header-inner {
+    max-width: 1200px; margin: 0 auto;
+    display: flex; align-items: flex-end;
+    justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  }
+  .prompt { font-size: 11px; color: var(--accent); letter-spacing: .1em; margin-bottom: .5rem; }
+  .prompt::before { content: '$ '; color: var(--muted); }
+  h1 {
+    font-family: var(--display);
+    font-size: clamp(1.6rem, 4vw, 2.6rem);
+    font-weight: 800; color: #e8f0e8;
+    letter-spacing: -.02em; line-height: 1.1;
+  }
+  h1 span { color: var(--accent); }
+  .subtitle { margin-top: .6rem; font-size: 12px; color: var(--muted); max-width: 520px; }
+  .meta { text-align: right; font-size: 11px; color: var(--muted); line-height: 2; }
+  .meta strong { color: var(--text); }
+
+  main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+  .toolbar {
+    display: flex; flex-wrap: wrap;
+    align-items: center; gap: .5rem;
+    margin-bottom: 1.25rem;
+  }
+  .toolbar-label {
+    font-size: 10px; letter-spacing: .12em;
+    color: var(--muted); text-transform: uppercase; margin-right: .25rem;
+  }
+  .f-btn {
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: 3px; padding: 3px 10px;
+    font-family: var(--mono); font-size: 11px;
+    color: var(--muted); cursor: pointer;
+    letter-spacing: .06em;
+    transition: color .15s, border-color .15s, background .15s;
+  }
+  .f-btn:hover { color: var(--text); background: var(--bg3); }
+  .f-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(96,165,250,0.07); }
+  .count { margin-left: auto; font-size: 11px; color: var(--muted); }
+  .count strong { color: var(--accent); }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 6px; }
+
+  table { width: 100%; border-collapse: collapse; min-width: 800px; }
+
+  thead th {
+    background: var(--bg2); padding: 10px 14px;
+    text-align: left; font-size: 10px;
+    letter-spacing: .12em; text-transform: uppercase;
+    color: var(--muted); border-bottom: 1px solid var(--border);
+    white-space: nowrap; font-weight: 400;
+  }
+  thead th:first-child { border-radius: 6px 0 0 0; }
+  thead th:last-child  { border-radius: 0 6px 0 0; }
+
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg2); }
+
+  td { padding: 10px 14px; vertical-align: top; }
+  td.tool-name { font-weight: 700; font-size: 13px; color: #e0ece0; white-space: nowrap; min-width: 130px; }
+  td.phase { min-width: 100px; }
+
+  .badge {
+    display: inline-block; font-size: 10px;
+    padding: 2px 8px; border-radius: 2px;
+    letter-spacing: .06em; font-weight: 500; white-space: nowrap;
+  }
+  .badge-inspect  { background: rgba(96,165,250,.12);  color: #60a5fa; border: 1px solid rgba(96,165,250,.3);  }
+  .badge-network  { background: rgba(45,212,191,.12);  color: #2dd4bf; border: 1px solid rgba(45,212,191,.3);  }
+  .badge-security { background: rgba(255,95,87,.12);   color: #ff7b75; border: 1px solid rgba(255,95,87,.3);   }
+  .badge-health   { background: rgba(57,255,130,.10);  color: #39ff82; border: 1px solid rgba(57,255,130,.25); }
+  .badge-rbac     { background: rgba(240,180,41,.12);  color: #f0b429; border: 1px solid rgba(240,180,41,.3);  }
+  .badge-storage  { background: rgba(192,96,255,.12);  color: #c060ff; border: 1px solid rgba(192,96,255,.3);  }
+
+  td.commands { min-width: 320px; max-width: 440px; }
+  .cmd-block { position: relative; }
+  .cmd-line {
+    display: block; color: var(--cmd);
+    font-size: 11.5px; line-height: 1.9;
+    word-break: break-all;
+  }
+  .cmd-line::before { content: '$ '; color: var(--muted); user-select: none; }
+  .cmd-line.comment { color: var(--muted); }
+  .cmd-line.comment::before { content: ''; }
+
+  .copy-btn {
+    position: absolute; top: 0; right: 0;
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: 3px; color: var(--muted);
+    font-family: var(--mono); font-size: 10px;
+    padding: 1px 7px; cursor: pointer;
+    opacity: 0; transition: opacity .15s, color .15s;
+    letter-spacing: .05em;
+  }
+  .cmd-block:hover .copy-btn { opacity: 1; }
+  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .copy-btn.copied { color: var(--accent); border-color: var(--accent); }
+
+  td.usecase { font-size: 12px; color: var(--muted); min-width: 220px; }
+
+  .no-results { text-align: center; padding: 3rem; color: var(--muted); font-size: 12px; display: none; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    text-align: center; font-size: 11px; color: var(--muted);
+  }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--text); }
+
+  @media (max-width: 640px) {
+    header, main { padding: 1.25rem; }
+    h1 { font-size: 1.5rem; }
+    .meta { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html">&#8592; ops://cheatsheets</a>
+  <span class="sep">/</span>
+  <span class="current">kubernetes</span>
+</nav>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <p class="prompt">kubectl debug --help</p>
+      <h1>Kubernetes<br><span>Debug Toolkit</span></h1>
+      <p class="subtitle">Filterable reference for K8s debugging — from pod inspection to cluster-wide security audits.</p>
+    </div>
+    <div class="meta">
+      <strong>18</strong> tools<br>
+      <strong>6</strong> phases<br>
+      K8s 1.28+ &middot; CRI-O &middot; containerd
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="toolbar">
+    <span class="toolbar-label">Phase</span>
+    <button class="f-btn active" data-cat="all">all</button>
+    <button class="f-btn" data-cat="inspect">inspect</button>
+    <button class="f-btn" data-cat="network">network</button>
+    <button class="f-btn" data-cat="security">security</button>
+    <button class="f-btn" data-cat="health">health</button>
+    <button class="f-btn" data-cat="rbac">rbac</button>
+    <button class="f-btn" data-cat="storage">storage</button>
+    <span class="count" id="count"><strong id="count-n">18</strong> tools shown</span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Tool</th><th>Phase</th><th>Key commands</th><th>Use case</th></tr>
+      </thead>
+      <tbody id="tbody">
+
+        <!-- INSPECT -->
+        <tr data-cat="inspect">
+          <td class="tool-name">kubectl</td>
+          <td class="phase"><span class="badge badge-inspect">inspect</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">kubectl get pods -A -o wide</span>
+            <span class="cmd-line">kubectl describe pod &lt;pod&gt; -n &lt;ns&gt;</span>
+            <span class="cmd-line">kubectl logs &lt;pod&gt; -n &lt;ns&gt; -f --previous</span>
+            <span class="cmd-line">kubectl logs &lt;pod&gt; -c &lt;container&gt; --tail=100</span>
+            <span class="cmd-line">kubectl exec -it &lt;pod&gt; -n &lt;ns&gt; -- /bin/sh</span>
+            <span class="cmd-line">kubectl get events -A --sort-by=.metadata.creationTimestamp</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Pod state, logs, events, exec. First stop for any debugging session. <code>--previous</code> fetches logs from a crashed container.</td>
+        </tr>
+
+        <tr data-cat="inspect">
+          <td class="tool-name">k9s</td>
+          <td class="phase"><span class="badge badge-inspect">inspect</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">k9s</span>
+            <span class="cmd-line">k9s --context prod --namespace default</span>
+            <span class="cmd-line">k9s --kubeconfig ~/.kube/config</span>
+            <span class="cmd-line comment"># :pod → select → l (logs) d (describe) s (shell)</span>
+            <span class="cmd-line comment"># :svc :deploy :ns :node — navigate resources</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Real-time interactive TUI for K8s. Faster than repeated kubectl calls. Port-forward, delete, edit all in-view.</td>
+        </tr>
+
+        <tr data-cat="inspect">
+          <td class="tool-name">stern</td>
+          <td class="phase"><span class="badge badge-inspect">inspect</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">stern &lt;pod-regex&gt; -n &lt;ns&gt;</span>
+            <span class="cmd-line">stern . -n &lt;ns&gt; --since 5m</span>
+            <span class="cmd-line">stern &lt;pod&gt; --container &lt;c&gt; -o json | jq .</span>
+            <span class="cmd-line">stern . -A --include "ERROR|WARN"</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Multi-pod/container log tail with colour-coded prefixes. Replaces juggling multiple <code>kubectl logs</code> sessions.</td>
+        </tr>
+
+        <tr data-cat="inspect">
+          <td class="tool-name">kubectx / kubens</td>
+          <td class="phase"><span class="badge badge-inspect">inspect</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">kubectx</span>
+            <span class="cmd-line">kubectx prod</span>
+            <span class="cmd-line">kubectx -</span>
+            <span class="cmd-line">kubens kube-system</span>
+            <span class="cmd-line">kubens -</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Fast context and namespace switching. <code>-</code> reverts to previous. Eliminates <code>--context</code> and <code>-n</code> flags everywhere.</td>
+        </tr>
+
+        <tr data-cat="inspect">
+          <td class="tool-name">kubectl debug</td>
+          <td class="phase"><span class="badge badge-inspect">inspect</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">kubectl debug -it &lt;pod&gt; --image=nicolaka/netshoot --copy-to=debug-pod</span>
+            <span class="cmd-line">kubectl debug -it &lt;pod&gt; --image=busybox --target=&lt;container&gt;</span>
+            <span class="cmd-line">kubectl debug node/&lt;node&gt; -it --image=ubuntu</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Ephemeral debug containers for distroless or scratch images that have no shell. Node-level debug gets a privileged pod on a specific node.</td>
+        </tr>
+
+        <tr data-cat="inspect">
+          <td class="tool-name">crictl</td>
+          <td class="phase"><span class="badge badge-inspect">inspect</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">crictl ps -a</span>
+            <span class="cmd-line">crictl logs &lt;container-id&gt;</span>
+            <span class="cmd-line">crictl inspect &lt;container-id&gt;</span>
+            <span class="cmd-line">crictl images</span>
+            <span class="cmd-line">crictl pods</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">CRI-level inspection — bypasses the API server. Essential when kubelet is unhealthy or a pod never reaches Running.</td>
+        </tr>
+
+        <!-- NETWORK -->
+        <tr data-cat="network">
+          <td class="tool-name">netshoot</td>
+          <td class="phase"><span class="badge badge-network">network</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">kubectl run tmp --rm -it --image=nicolaka/netshoot -- bash</span>
+            <span class="cmd-line">kubectl run tmp --rm -it --image=nicolaka/netshoot -n &lt;ns&gt; -- curl http://&lt;svc&gt;.&lt;ns&gt;.svc.cluster.local</span>
+            <span class="cmd-line comment"># includes: curl dig nmap tcpdump iperf3 ss ip</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">In-cluster network swiss-army knife. Run alongside a misbehaving pod to test DNS, connectivity, and latency from inside the mesh.</td>
+        </tr>
+
+        <tr data-cat="network">
+          <td class="tool-name">kubectl port-forward</td>
+          <td class="phase"><span class="badge badge-network">network</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">kubectl port-forward svc/&lt;svc&gt; 8080:80 -n &lt;ns&gt;</span>
+            <span class="cmd-line">kubectl port-forward pod/&lt;pod&gt; 9090:9090</span>
+            <span class="cmd-line">kubectl port-forward deployment/&lt;deploy&gt; 5432:5432</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Expose cluster services locally without an Ingress or LoadBalancer. Works for Prometheus, Postgres, internal APIs.</td>
+        </tr>
+
+        <tr data-cat="network">
+          <td class="tool-name">DNS debugging</td>
+          <td class="phase"><span class="badge badge-network">network</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">kubectl run dnstest --rm -it --image=busybox -- nslookup kubernetes</span>
+            <span class="cmd-line">kubectl run dnstest --rm -it --image=busybox -- nslookup &lt;svc&gt;.&lt;ns&gt;.svc.cluster.local</span>
+            <span class="cmd-line">kubectl get configmap coredns -n kube-system -o yaml</span>
+            <span class="cmd-line">kubectl logs -n kube-system -l k8s-app=kube-dns</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Diagnose CoreDNS failures, NDOTS issues, and service discovery misconfigs. Most K8s network bugs start here.</td>
+        </tr>
+
+        <tr data-cat="network">
+          <td class="tool-name">networkpolicy audit</td>
+          <td class="phase"><span class="badge badge-network">network</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">kubectl get networkpolicies -A -o yaml</span>
+            <span class="cmd-line">kubectl describe networkpolicy &lt;name&gt; -n &lt;ns&gt;</span>
+            <span class="cmd-line">nptest --pod &lt;pod&gt; --namespace &lt;ns&gt;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Verify ingress/egress rules, identify overly permissive or blocking policies. Run after unexpected connection refused errors.</td>
+        </tr>
+
+        <!-- SECURITY -->
+        <tr data-cat="security">
+          <td class="tool-name">trivy</td>
+          <td class="phase"><span class="badge badge-security">security</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">trivy image &lt;image&gt;:&lt;tag&gt;</span>
+            <span class="cmd-line">trivy image --severity CRITICAL,HIGH &lt;image&gt;</span>
+            <span class="cmd-line">trivy k8s --report summary cluster</span>
+            <span class="cmd-line">trivy k8s --report all -n &lt;ns&gt;</span>
+            <span class="cmd-line">trivy fs --security-checks vuln,config .</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Image CVE scanning + K8s cluster misconfiguration audit in one tool. The <code>k8s</code> subcommand hits the live cluster via kubeconfig.</td>
+        </tr>
+
+        <tr data-cat="security">
+          <td class="tool-name">kube-bench</td>
+          <td class="phase"><span class="badge badge-security">security</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">kube-bench run --targets node</span>
+            <span class="cmd-line">kube-bench run --targets master</span>
+            <span class="cmd-line">kube-bench run --benchmark eks-1.2.0</span>
+            <span class="cmd-line">kube-bench --json | jq '.Controls[].tests[].results[] | select(.status=="FAIL")'</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">CIS Kubernetes Benchmark checks against control plane and nodes. Supports EKS, GKE, AKS profiles.</td>
+        </tr>
+
+        <tr data-cat="security">
+          <td class="tool-name">kubescape</td>
+          <td class="phase"><span class="badge badge-security">security</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">kubescape scan framework nsa</span>
+            <span class="cmd-line">kubescape scan framework mitre</span>
+            <span class="cmd-line">kubescape scan --severity-threshold high</span>
+            <span class="cmd-line">kubescape scan -n &lt;ns&gt; --format json | jq .</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Multi-framework security posture scanner (NSA, MITRE, CIS). Runs against live cluster or local manifests.</td>
+        </tr>
+
+        <!-- HEALTH -->
+        <tr data-cat="health">
+          <td class="tool-name">kubectl top</td>
+          <td class="phase"><span class="badge badge-health">health</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">kubectl top nodes</span>
+            <span class="cmd-line">kubectl top pods -A --sort-by=cpu</span>
+            <span class="cmd-line">kubectl top pods -A --sort-by=memory</span>
+            <span class="cmd-line">kubectl top pod &lt;pod&gt; --containers</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Live CPU/memory usage from metrics-server. First check for OOMKilled and noisy-neighbour issues.</td>
+        </tr>
+
+        <tr data-cat="health">
+          <td class="tool-name">popeye</td>
+          <td class="phase"><span class="badge badge-health">health</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">popeye</span>
+            <span class="cmd-line">popeye -n &lt;ns&gt;</span>
+            <span class="cmd-line">popeye -o json | jq '.popeye.sections[] | select(.title=="Deployments")'</span>
+            <span class="cmd-line">popeye --save --out html --output-file report.html</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Cluster linter — surfaces unused resources, missing probes, resource limits, deprecated APIs, and misconfigured services.</td>
+        </tr>
+
+        <tr data-cat="health">
+          <td class="tool-name">kube-score</td>
+          <td class="phase"><span class="badge badge-health">health</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">kube-score score manifests/*.yaml</span>
+            <span class="cmd-line">helm template . | kube-score score -</span>
+            <span class="cmd-line">kube-score score deploy.yaml --output-format ci</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Static manifest analysis — checks resource limits, security contexts, probes, anti-affinity before anything hits the cluster.</td>
+        </tr>
+
+        <!-- RBAC -->
+        <tr data-cat="rbac">
+          <td class="tool-name">kubectl auth</td>
+          <td class="phase"><span class="badge badge-rbac">rbac</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">kubectl auth can-i --list</span>
+            <span class="cmd-line">kubectl auth can-i create pods --as=&lt;user&gt;</span>
+            <span class="cmd-line">kubectl auth can-i '*' '*' --all-namespaces</span>
+            <span class="cmd-line">kubectl auth can-i --list --as=system:serviceaccount:&lt;ns&gt;:&lt;sa&gt;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Verify what a user or service account is actually allowed to do. Essential before and after RBAC changes.</td>
+        </tr>
+
+        <tr data-cat="rbac">
+          <td class="tool-name">rakkess</td>
+          <td class="phase"><span class="badge badge-rbac">rbac</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">rakkess</span>
+            <span class="cmd-line">rakkess --as &lt;user&gt;</span>
+            <span class="cmd-line">rakkess --as system:serviceaccount:&lt;ns&gt;:&lt;sa&gt; -n &lt;ns&gt;</span>
+            <span class="cmd-line">rakkess resource pods --verbs get,list,delete</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Full RBAC access matrix for any subject — shows every verb across every resource at a glance. Far clearer than <code>kubectl auth can-i</code> one-by-one.</td>
+        </tr>
+
+        <!-- STORAGE -->
+        <tr data-cat="storage">
+          <td class="tool-name">PV / PVC debug</td>
+          <td class="phase"><span class="badge badge-storage">storage</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">kubectl get pv,pvc -A -o wide</span>
+            <span class="cmd-line">kubectl describe pvc &lt;name&gt; -n &lt;ns&gt;</span>
+            <span class="cmd-line">kubectl get events -n &lt;ns&gt; --field-selector involvedObject.name=&lt;pvc&gt;</span>
+            <span class="cmd-line">kubectl exec -it &lt;pod&gt; -- df -h</span>
+            <span class="cmd-line">kubectl exec -it &lt;pod&gt; -- ls -la /data</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Diagnose Pending PVCs, capacity issues, ReclaimPolicy mistakes, and mount failures inside pods.</td>
+        </tr>
+
+        <tr data-cat="storage">
+          <td class="tool-name">kubectl cp</td>
+          <td class="phase"><span class="badge badge-storage">storage</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">kubectl cp &lt;pod&gt;:/path/to/file ./local -n &lt;ns&gt;</span>
+            <span class="cmd-line">kubectl cp ./local &lt;pod&gt;:/tmp/file -n &lt;ns&gt;</span>
+            <span class="cmd-line">kubectl cp &lt;pod&gt;:/var/log ./logs -c &lt;container&gt;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Extract logs, configs, or crash dumps from pods without exposing a service. Requires <code>tar</code> in the container image.</td>
+        </tr>
+
+      </tbody>
+    </table>
+    <div class="no-results" id="no-results">No tools match this filter.</div>
+  </div>
+</main>
+
+<footer>
+  ops://cheatsheets &mdash;
+  <a href="https://kubernetes.io/docs/tasks/debug/" target="_blank" rel="noopener">K8s Debug Docs</a> &middot;
+  <a href="https://github.com/nicolaka/netshoot" target="_blank" rel="noopener">netshoot</a> &middot;
+  <a href="https://aquasecurity.github.io/trivy/" target="_blank" rel="noopener">trivy</a> &middot;
+  <a href="https://github.com/derailed/k9s" target="_blank" rel="noopener">k9s</a>
+</footer>
+
+<script>
+(function () {
+  const btns    = document.querySelectorAll('.f-btn');
+  const rows    = document.querySelectorAll('#tbody tr[data-cat]');
+  const countEl = document.getElementById('count-n');
+  const noRes   = document.getElementById('no-results');
+
+  function filter(cat) {
+    let shown = 0;
+    rows.forEach(r => {
+      const match = cat === 'all' || r.dataset.cat === cat;
+      r.style.display = match ? '' : 'none';
+      if (match) shown++;
+    });
+    countEl.textContent = shown;
+    noRes.style.display = shown === 0 ? 'block' : 'none';
+  }
+
+  btns.forEach(b => {
+    b.addEventListener('click', () => {
+      btns.forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      filter(b.dataset.cat);
+    });
+  });
+
+  window.copyAll = function (btn) {
+    const block = btn.closest('.cmd-block');
+    const lines = Array.from(block.querySelectorAll('.cmd-line'))
+      .map(l => l.textContent)
+      .join('\n');
+    navigator.clipboard.writeText(lines).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1500);
+    });
+  };
+})();
+</script>
+</body>
+</html>
