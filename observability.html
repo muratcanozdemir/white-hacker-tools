@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Observability &amp; SRE Toolkit — Cheat Sheet</title>
+<meta name="description" content="Filterable cheat sheet for observability and SRE tooling — metrics, logs, traces, profiling, eBPF, and incident response.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #090e0d;
+    --bg2:     #101615;
+    --bg3:     #171e1d;
+    --border:  #1f2e2c;
+    --border2: #2c3f3c;
+    --text:    #b8d5d0;
+    --muted:   #5a7a76;
+    --accent:  #2dd4bf;
+    --cmd:     #7dd3a8;
+    --mono:    'JetBrains Mono', monospace;
+    --display: 'Syne', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+    pointer-events: none; z-index: 999;
+  }
+
+  nav {
+    border-bottom: 1px solid var(--border);
+    padding: .6rem 2rem;
+    display: flex; align-items: center; gap: .5rem;
+    font-size: 11px;
+  }
+  nav a { color: var(--muted); text-decoration: none; transition: color .15s; }
+  nav a:hover { color: var(--accent); }
+  nav .sep { color: var(--border2); }
+  nav .current { color: var(--text); }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 2rem 2rem;
+    position: relative; overflow: hidden;
+  }
+  header::after {
+    content: '';
+    position: absolute; bottom: -1px; left: 0;
+    width: 120px; height: 2px;
+    background: var(--accent);
+  }
+  .header-inner {
+    max-width: 1200px; margin: 0 auto;
+    display: flex; align-items: flex-end;
+    justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  }
+  .prompt { font-size: 11px; color: var(--accent); letter-spacing: .1em; margin-bottom: .5rem; }
+  .prompt::before { content: '$ '; color: var(--muted); }
+  h1 {
+    font-family: var(--display);
+    font-size: clamp(1.6rem, 4vw, 2.6rem);
+    font-weight: 800; color: #d0f0ec;
+    letter-spacing: -.02em; line-height: 1.1;
+  }
+  h1 span { color: var(--accent); }
+  .subtitle { margin-top: .6rem; font-size: 12px; color: var(--muted); max-width: 520px; }
+  .meta { text-align: right; font-size: 11px; color: var(--muted); line-height: 2; }
+  .meta strong { color: var(--text); }
+
+  main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+  .toolbar {
+    display: flex; flex-wrap: wrap;
+    align-items: center; gap: .5rem;
+    margin-bottom: 1.25rem;
+  }
+  .toolbar-label { font-size: 10px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; margin-right: .25rem; }
+  .f-btn {
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: 3px; padding: 3px 10px;
+    font-family: var(--mono); font-size: 11px;
+    color: var(--muted); cursor: pointer;
+    letter-spacing: .06em;
+    transition: color .15s, border-color .15s, background .15s;
+  }
+  .f-btn:hover { color: var(--text); background: var(--bg3); }
+  .f-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(45,212,191,0.07); }
+  .count { margin-left: auto; font-size: 11px; color: var(--muted); }
+  .count strong { color: var(--accent); }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 6px; }
+  table { width: 100%; border-collapse: collapse; min-width: 800px; }
+  thead th {
+    background: var(--bg2); padding: 10px 14px;
+    text-align: left; font-size: 10px;
+    letter-spacing: .12em; text-transform: uppercase;
+    color: var(--muted); border-bottom: 1px solid var(--border);
+    white-space: nowrap; font-weight: 400;
+  }
+  thead th:first-child { border-radius: 6px 0 0 0; }
+  thead th:last-child  { border-radius: 0 6px 0 0; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg2); }
+  td { padding: 10px 14px; vertical-align: top; }
+  td.tool-name { font-weight: 700; font-size: 13px; color: #d0f0ec; white-space: nowrap; min-width: 130px; }
+  td.phase { min-width: 105px; }
+
+  .badge {
+    display: inline-block; font-size: 10px;
+    padding: 2px 8px; border-radius: 2px;
+    letter-spacing: .06em; font-weight: 500; white-space: nowrap;
+  }
+  .badge-metrics  { background: rgba(240,180,41,.12);  color: #f0b429; border: 1px solid rgba(240,180,41,.3);  }
+  .badge-logs     { background: rgba(57,255,130,.10);  color: #39ff82; border: 1px solid rgba(57,255,130,.25); }
+  .badge-traces   { background: rgba(96,165,250,.12);  color: #60a5fa; border: 1px solid rgba(96,165,250,.3);  }
+  .badge-profiling{ background: rgba(192,96,255,.12);  color: #c060ff; border: 1px solid rgba(192,96,255,.3);  }
+  .badge-ebpf     { background: rgba(255,95,87,.12);   color: #ff7b75; border: 1px solid rgba(255,95,87,.3);   }
+  .badge-incident { background: rgba(45,212,191,.12);  color: #2dd4bf; border: 1px solid rgba(45,212,191,.3);  }
+
+  td.commands { min-width: 320px; max-width: 440px; }
+  .cmd-block { position: relative; }
+  .cmd-line {
+    display: block; color: var(--cmd);
+    font-size: 11.5px; line-height: 1.9;
+    word-break: break-all;
+  }
+  .cmd-line::before { content: '$ '; color: var(--muted); user-select: none; }
+  .cmd-line.comment { color: var(--muted); }
+  .cmd-line.comment::before { content: ''; }
+  .copy-btn {
+    position: absolute; top: 0; right: 0;
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: 3px; color: var(--muted);
+    font-family: var(--mono); font-size: 10px;
+    padding: 1px 7px; cursor: pointer;
+    opacity: 0; transition: opacity .15s, color .15s;
+    letter-spacing: .05em;
+  }
+  .cmd-block:hover .copy-btn { opacity: 1; }
+  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .copy-btn.copied { color: var(--accent); border-color: var(--accent); }
+
+  td.usecase { font-size: 12px; color: var(--muted); min-width: 220px; }
+  .no-results { text-align: center; padding: 3rem; color: var(--muted); font-size: 12px; display: none; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    text-align: center; font-size: 11px; color: var(--muted);
+  }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--text); }
+
+  @media (max-width: 640px) {
+    header, main { padding: 1.25rem; }
+    h1 { font-size: 1.5rem; }
+    .meta { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html">&#8592; ops://cheatsheets</a>
+  <span class="sep">/</span>
+  <span class="current">observability</span>
+</nav>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <p class="prompt">watch -n1 'curl -s localhost:9090/metrics | grep up'</p>
+      <h1>Observability &amp;<br><span>SRE Toolkit</span></h1>
+      <p class="subtitle">Filterable reference for the full observability stack — metrics, logs, traces, profiling, eBPF system analysis, and incident response.</p>
+    </div>
+    <div class="meta">
+      <strong>17</strong> tools<br>
+      <strong>6</strong> phases<br>
+      Prometheus &middot; Loki &middot; OpenTelemetry
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="toolbar">
+    <span class="toolbar-label">Phase</span>
+    <button class="f-btn active" data-cat="all">all</button>
+    <button class="f-btn" data-cat="metrics">metrics</button>
+    <button class="f-btn" data-cat="logs">logs</button>
+    <button class="f-btn" data-cat="traces">traces</button>
+    <button class="f-btn" data-cat="profiling">profiling</button>
+    <button class="f-btn" data-cat="ebpf">ebpf / system</button>
+    <button class="f-btn" data-cat="incident">incident</button>
+    <span class="count" id="count"><strong id="count-n">17</strong> tools shown</span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Tool</th><th>Phase</th><th>Key commands</th><th>Use case</th></tr>
+      </thead>
+      <tbody id="tbody">
+
+        <!-- METRICS -->
+        <tr data-cat="metrics">
+          <td class="tool-name">promtool</td>
+          <td class="phase"><span class="badge badge-metrics">metrics</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">promtool check config prometheus.yml</span>
+            <span class="cmd-line">promtool check rules rules/*.yml</span>
+            <span class="cmd-line">promtool query instant http://localhost:9090 'up == 0'</span>
+            <span class="cmd-line">promtool query range --start=2h --end=now --step=5m http://localhost:9090 'rate(http_requests_total[5m])'</span>
+            <span class="cmd-line">promtool test rules tests/alert_tests.yml</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Validate Prometheus config and alerting rules before reload. Unit-test alert expressions with <code>test rules</code> — catches false positives/negatives without a live cluster.</td>
+        </tr>
+
+        <tr data-cat="metrics">
+          <td class="tool-name">amtool</td>
+          <td class="phase"><span class="badge badge-metrics">metrics</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">amtool alert --alertmanager.url=http://localhost:9093</span>
+            <span class="cmd-line">amtool alert query alertname=HighLatency</span>
+            <span class="cmd-line">amtool silence add alertname=~".*" --duration=2h --comment "planned maintenance"</span>
+            <span class="cmd-line">amtool silence expire &lt;id&gt;</span>
+            <span class="cmd-line">amtool config check</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Alertmanager CLI — query firing alerts, manage silences during incidents, validate config. Faster than the UI for bulk silence operations.</td>
+        </tr>
+
+        <tr data-cat="metrics">
+          <td class="tool-name">mimirtool</td>
+          <td class="phase"><span class="badge badge-metrics">metrics</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">mimirtool rules lint rules/</span>
+            <span class="cmd-line">mimirtool rules push --address=http://mimir:8080 --id=tenant1 rules/</span>
+            <span class="cmd-line">mimirtool analyze prometheus --address=http://localhost:9090</span>
+            <span class="cmd-line">mimirtool analyze rule-file rules/*.yml</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Grafana Mimir / Cortex rule management and cardinality analysis. <code>analyze</code> identifies unused metrics and high-cardinality labels — critical for controlling Prometheus scale costs.</td>
+        </tr>
+
+        <tr data-cat="metrics">
+          <td class="tool-name">vector</td>
+          <td class="phase"><span class="badge badge-metrics">metrics</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">vector validate --config vector.toml</span>
+            <span class="cmd-line">vector tap --config vector.toml --component-id my_transform</span>
+            <span class="cmd-line">vector top</span>
+            <span class="cmd-line">vector generate --schema</span>
+            <span class="cmd-line comment"># test a transform against sample events:</span>
+            <span class="cmd-line">vector test --config vector.toml</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">High-performance observability pipeline — collect, transform, route logs/metrics/traces. <code>tap</code> lets you observe live events through any component. Replaces Logstash with lower overhead.</td>
+        </tr>
+
+        <!-- LOGS -->
+        <tr data-cat="logs">
+          <td class="tool-name">logcli</td>
+          <td class="phase"><span class="badge badge-logs">logs</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">logcli query '{app="api"} |= "error"'</span>
+            <span class="cmd-line">logcli query '{app="api"} | json | status >= 500' --limit=100</span>
+            <span class="cmd-line">logcli query '{namespace="prod"}' --from=2h --to=now --follow</span>
+            <span class="cmd-line">logcli labels</span>
+            <span class="cmd-line">logcli series '{app=~".+"}'</span>
+            <span class="cmd-line">logcli stats '{app="api"}' --range=1h</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Loki CLI — query, tail, and explore logs using LogQL without the Grafana UI. <code>labels</code> and <code>series</code> reveal what's actually indexed before writing queries.</td>
+        </tr>
+
+        <tr data-cat="logs">
+          <td class="tool-name">lnav</td>
+          <td class="phase"><span class="badge badge-logs">logs</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">lnav /var/log/syslog</span>
+            <span class="cmd-line">lnav /var/log/*.log</span>
+            <span class="cmd-line">kubectl logs &lt;pod&gt; | lnav</span>
+            <span class="cmd-line comment"># inside lnav: / search, ; SQL query, i index, TAB next file</span>
+            <span class="cmd-line comment"># :filter-in ERROR | :filter-out healthcheck</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Terminal log file navigator with SQL querying, filtering, and multi-file merging by timestamp. Underused — handles mixed-format log files better than <code>grep | less</code> chains.</td>
+        </tr>
+
+        <tr data-cat="logs">
+          <td class="tool-name">jq (log parsing)</td>
+          <td class="phase"><span class="badge badge-logs">logs</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">kubectl logs &lt;pod&gt; | jq 'select(.level=="error")'</span>
+            <span class="cmd-line">cat app.log | jq -r 'select(.latency_ms > 500) | [.timestamp, .path, .latency_ms] | @tsv'</span>
+            <span class="cmd-line">cat app.log | jq -s 'group_by(.status) | map({status: .[0].status, count: length})'</span>
+            <span class="cmd-line">cat app.log | jq '[.timestamp, .level, .message] | @csv' -r | sort -t, -k2</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Structured log triage without a log aggregator. <code>select</code> filters, <code>group_by</code> aggregates, <code>@tsv/@csv</code> pipes to <code>awk</code> or spreadsheets. No additional tooling needed.</td>
+        </tr>
+
+        <!-- TRACES -->
+        <tr data-cat="traces">
+          <td class="tool-name">otel-cli</td>
+          <td class="phase"><span class="badge badge-traces">traces</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">otel-cli exec --service my-script --name "run backup" -- ./backup.sh</span>
+            <span class="cmd-line">otel-cli span --service deploy --name "terraform apply" --start $(date -u +%s%N)</span>
+            <span class="cmd-line">otel-cli exec --endpoint http://otel-collector:4317 --name "db migration" -- flyway migrate</span>
+            <span class="cmd-line comment"># propagate trace context across shell steps:</span>
+            <span class="cmd-line">eval $(otel-cli span background --service ci --name pipeline)</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Emit OpenTelemetry spans from shell scripts and CI pipelines. Wraps any command in a trace — makes deploy pipelines, cron jobs, and migrations visible in your tracing backend.</td>
+        </tr>
+
+        <tr data-cat="traces">
+          <td class="tool-name">jaeger (query CLI)</td>
+          <td class="phase"><span class="badge badge-traces">traces</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">curl "http://jaeger:16686/api/services" | jq '.data[]'</span>
+            <span class="cmd-line">curl "http://jaeger:16686/api/traces?service=api&limit=20&lookback=1h" | jq '.data[].traceID'</span>
+            <span class="cmd-line">curl "http://jaeger:16686/api/traces/&lt;traceID&gt;" | jq '.data[0].spans[] | {op: .operationName, dur: .duration}'</span>
+            <span class="cmd-line comment"># find slow spans: duration in microseconds</span>
+            <span class="cmd-line">curl "http://jaeger:16686/api/traces?service=api&minDuration=1s" | jq '.'</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Query Jaeger over its HTTP API without the UI. Useful in CI for asserting trace presence, or in automated root-cause pipelines where the UI isn't accessible.</td>
+        </tr>
+
+        <!-- PROFILING -->
+        <tr data-cat="profiling">
+          <td class="tool-name">pprof (Go)</td>
+          <td class="phase"><span class="badge badge-profiling">profiling</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">go tool pprof http://localhost:6060/debug/pprof/profile?seconds=30</span>
+            <span class="cmd-line">go tool pprof http://localhost:6060/debug/pprof/heap</span>
+            <span class="cmd-line">go tool pprof -http=:8080 profile.pb.gz</span>
+            <span class="cmd-line comment"># inside pprof: top10, web, list &lt;func&gt;, peek &lt;func&gt;</span>
+            <span class="cmd-line">curl -s http://localhost:6060/debug/pprof/goroutine?debug=2 | head -50</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">CPU, heap, goroutine, and block profiling for Go services. <code>-http</code> opens an interactive flame graph browser. Exposes <code>/debug/pprof</code> in your app with <code>import _ "net/http/pprof"</code>.</td>
+        </tr>
+
+        <tr data-cat="profiling">
+          <td class="tool-name">py-spy</td>
+          <td class="phase"><span class="badge badge-profiling">profiling</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">py-spy top --pid &lt;pid&gt;</span>
+            <span class="cmd-line">py-spy record -o profile.svg --pid &lt;pid&gt; --duration 30</span>
+            <span class="cmd-line">py-spy dump --pid &lt;pid&gt;</span>
+            <span class="cmd-line">py-spy record -o profile.svg -- python myscript.py</span>
+            <span class="cmd-line comment"># inside container (needs --privileged or SYS_PTRACE):</span>
+            <span class="cmd-line">py-spy top --pid &lt;pid&gt; --nonblocking</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Sampling profiler for Python — zero instrumentation, attaches to a running process. <code>record</code> produces a flame graph SVG. Works inside Docker with <code>SYS_PTRACE</code> capability.</td>
+        </tr>
+
+        <tr data-cat="profiling">
+          <td class="tool-name">async-profiler</td>
+          <td class="phase"><span class="badge badge-profiling">profiling</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">./asprof -d 30 -f profile.html &lt;pid&gt;</span>
+            <span class="cmd-line">./asprof -d 30 -e alloc -f alloc.html &lt;pid&gt;</span>
+            <span class="cmd-line">./asprof -d 30 -e lock -f lock.html &lt;pid&gt;</span>
+            <span class="cmd-line">./asprof start &lt;pid&gt; &amp;&amp; sleep 30 &amp;&amp; ./asprof stop -f out.jfr &lt;pid&gt;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Low-overhead JVM profiler (CPU, allocation, lock) without safepoint bias. Produces interactive HTML flame graphs. Outputs JFR for IntelliJ/JMC analysis.</td>
+        </tr>
+
+        <!-- EBPF / SYSTEM -->
+        <tr data-cat="ebpf">
+          <td class="tool-name">bpftrace</td>
+          <td class="phase"><span class="badge badge-ebpf">ebpf / system</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">bpftrace -e 'tracepoint:syscalls:sys_enter_openat { printf("%s %s\n", comm, str(args->filename)); }'</span>
+            <span class="cmd-line">bpftrace -e 'kprobe:tcp_connect { printf("connect: %s\n", comm); }'</span>
+            <span class="cmd-line">bpftrace -e 'profile:hz:99 /pid == &lt;pid&gt;/ { @[ustack] = count(); }'</span>
+            <span class="cmd-line">bpftrace -l 'tracepoint:syscalls:*'</span>
+            <span class="cmd-line">bpftrace /usr/share/bpftrace/tools/biolatency.bt</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">High-level eBPF tracing language — trace syscalls, kernel functions, network events with minimal overhead. No kernel recompile needed. Essential for diagnosing production issues that don't reproduce in dev.</td>
+        </tr>
+
+        <tr data-cat="ebpf">
+          <td class="tool-name">bcc tools</td>
+          <td class="phase"><span class="badge badge-ebpf">ebpf / system</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">execsnoop-bpfcc</span>
+            <span class="cmd-line">opensnoop-bpfcc -p &lt;pid&gt;</span>
+            <span class="cmd-line">tcplife-bpfcc</span>
+            <span class="cmd-line">biolatency-bpfcc -D</span>
+            <span class="cmd-line">runqlat-bpfcc</span>
+            <span class="cmd-line">funccount-bpfcc 'tcp_*'</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Pre-built eBPF tools: process exec tracing, file open tracing, TCP connection lifecycle, disk I/O latency histograms, run-queue latency. Each answers a specific production question immediately.</td>
+        </tr>
+
+        <tr data-cat="ebpf">
+          <td class="tool-name">strace</td>
+          <td class="phase"><span class="badge badge-ebpf">ebpf / system</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">strace -p &lt;pid&gt;</span>
+            <span class="cmd-line">strace -p &lt;pid&gt; -e trace=network</span>
+            <span class="cmd-line">strace -p &lt;pid&gt; -e trace=openat,read,write -T</span>
+            <span class="cmd-line">strace -c -p &lt;pid&gt;</span>
+            <span class="cmd-line">strace -f -o strace.log ./myapp</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Syscall-level process tracing. <code>-c</code> gives a syscall frequency/time summary. <code>-T</code> adds per-call latency. Higher overhead than bpftrace — use for targeted short captures only.</td>
+        </tr>
+
+        <tr data-cat="ebpf">
+          <td class="tool-name">perf</td>
+          <td class="phase"><span class="badge badge-ebpf">ebpf / system</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">perf stat -p &lt;pid&gt; sleep 10</span>
+            <span class="cmd-line">perf record -F 99 -p &lt;pid&gt; -g -- sleep 30</span>
+            <span class="cmd-line">perf report --stdio</span>
+            <span class="cmd-line">perf script | stackcollapse-perf.pl | flamegraph.pl > flame.svg</span>
+            <span class="cmd-line">perf top -p &lt;pid&gt;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Linux hardware and software performance counters — CPU cycles, cache misses, branch mispredictions. <code>record</code> + <code>script</code> pipeline into Brendan Gregg's flamegraph.pl for CPU flame graphs.</td>
+        </tr>
+
+        <!-- INCIDENT -->
+        <tr data-cat="incident">
+          <td class="tool-name">vegeta</td>
+          <td class="phase"><span class="badge badge-incident">incident</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">echo "GET http://localhost:8080/health" | vegeta attack -rate=100 -duration=30s | vegeta report</span>
+            <span class="cmd-line">echo "GET http://localhost:8080/" | vegeta attack -rate=500 -duration=60s | vegeta report -type=hist[0,5ms,10ms,50ms,100ms]</span>
+            <span class="cmd-line">echo "GET http://localhost:8080/" | vegeta attack -rate=200 -duration=60s | vegeta plot > plot.html</span>
+            <span class="cmd-line">vegeta attack -targets=targets.txt -rate=100 -duration=30s | vegeta encode | vegeta report</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Constant-rate HTTP load testing with latency histograms and time-series plots. Composable via pipes — attack → encode → report. More rigorous than <code>hey</code> for SLO validation.</td>
+        </tr>
+
+        <tr data-cat="incident">
+          <td class="tool-name">hey</td>
+          <td class="phase"><span class="badge badge-incident">incident</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">hey -n 10000 -c 100 http://localhost:8080/</span>
+            <span class="cmd-line">hey -z 30s -c 50 -m POST -H "Content-Type: application/json" -d '{"key":"val"}' http://localhost:8080/api</span>
+            <span class="cmd-line">hey -n 1000 -c 10 -o csv http://localhost:8080/ | awk -F, '{print $8}' | sort -n | tail -20</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Quick HTTP benchmarking — simpler than vegeta for ad-hoc load checks. Good for smoke-testing a new deployment or confirming a latency regression before a full load test.</td>
+        </tr>
+
+      </tbody>
+    </table>
+    <div class="no-results" id="no-results">No tools match this filter.</div>
+  </div>
+</main>
+
+<footer>
+  ops://cheatsheets &mdash;
+  <a href="https://prometheus.io/docs/prometheus/latest/querying/api/" target="_blank" rel="noopener">Prometheus API</a> &middot;
+  <a href="https://grafana.com/docs/loki/latest/reference/loki-http-api/" target="_blank" rel="noopener">Loki API</a> &middot;
+  <a href="https://github.com/iovisor/bpftrace/blob/master/docs/reference_guide.md" target="_blank" rel="noopener">bpftrace ref</a> &middot;
+  <a href="https://www.brendangregg.com/flamegraphs.html" target="_blank" rel="noopener">Flame Graphs</a>
+</footer>
+
+<script>
+(function () {
+  const btns    = document.querySelectorAll('.f-btn');
+  const rows    = document.querySelectorAll('#tbody tr[data-cat]');
+  const countEl = document.getElementById('count-n');
+  const noRes   = document.getElementById('no-results');
+
+  function filter(cat) {
+    let shown = 0;
+    rows.forEach(r => {
+      const match = cat === 'all' || r.dataset.cat === cat;
+      r.style.display = match ? '' : 'none';
+      if (match) shown++;
+    });
+    countEl.textContent = shown;
+    noRes.style.display = shown === 0 ? 'block' : 'none';
+  }
+
+  btns.forEach(b => {
+    b.addEventListener('click', () => {
+      btns.forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      filter(b.dataset.cat);
+    });
+  });
+
+  window.copyAll = function (btn) {
+    const block = btn.closest('.cmd-block');
+    const lines = Array.from(block.querySelectorAll('.cmd-line'))
+      .map(l => l.textContent)
+      .join('\n');
+    navigator.clipboard.writeText(lines).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1500);
+    });
+  };
+})();
+</script>
+</body>
+</html>
