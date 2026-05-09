@@ -107,8 +107,10 @@
     font-size: 10px; padding: 1px 7px; border-radius: 2px;
     letter-spacing: .05em; font-weight: 500;
   }
-  .tag-red  { background: rgba(255,95,87,.12);  color: #ff7b75; border: 1px solid rgba(255,95,87,.3);  }
-  .tag-blue { background: rgba(96,165,250,.12); color: #60a5fa; border: 1px solid rgba(96,165,250,.3); }
+  .tag-red   { background: rgba(255,95,87,.12);  color: #ff7b75; border: 1px solid rgba(255,95,87,.3);  }
+  .tag-blue  { background: rgba(96,165,250,.12); color: #60a5fa; border: 1px solid rgba(96,165,250,.3); }
+  .tag-amber { background: rgba(240,180,41,.12); color: #f0b429; border: 1px solid rgba(240,180,41,.3); }
+  .post-card.terraform:hover { border-left-color: #f0b429; }
   .post-date { font-size: 10px; color: var(--muted); }
   .post-title {
     font-family: var(--display);
@@ -201,13 +203,25 @@
       <span class="post-arrow">&#8594;</span>
     </a>
 
+    <a href="terraform.html" class="post-card terraform">
+      <div>
+        <div class="post-meta">
+          <span class="tag tag-amber">iac</span>
+          <span class="post-date">2026-05-09</span>
+        </div>
+        <p class="post-title">IaC &amp; Terraform Ecosystem</p>
+        <p class="post-desc">Filterable reference for the Terraform toolchain — validate, plan, security scanning, cost estimation, state surgery, and docs.</p>
+        <p class="tool-count"><strong>14</strong> tools &middot; 6 phases</p>
+      </div>
+      <span class="post-arrow">&#8594;</span>
+    </a>
+
   </div>
 
   <p class="section-label">up next</p>
 
   <div class="coming-soon">
     <p class="coming-soon-title">on the roadmap</p>
-    <div class="coming-item">IaC &amp; Terraform Ecosystem — tflint, tfsec, checkov, infracost, conftest, terraform-docs</div>
     <div class="coming-item">Observability &amp; SRE — promtool, logcli, bpftrace, pprof, pyspy, strace, perf</div>
     <div class="coming-item">Container Security — trivy, grype, syft, cosign, hadolint, docker bench</div>
     <div class="coming-item">Go Developer Toolkit — dlv, pprof, golangci-lint, govulncheck, benchstat</div>
