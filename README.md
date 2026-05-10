@@ -22,27 +22,13 @@ Live at: `https://<you>.github.io/<repo>/`
 | `network.html` | Network Diagnostics | 18 | dns · tcp/udp · http · grpc · tls · load |
 | `slurm.html` | SLURM & HPC Toolkit | 17 | submit · monitor · debug · arrays · dependencies · resources |
 | `postgres.html` | PostgreSQL Operations | 18 | psql · backup · performance · maintenance · security · replication |
+| `aws.html` | AWS CLI — Production Surface | 28 | auth · compute · storage · networking · secrets · observability · data/platform |
 
 ---
 
 ## Up next
 
-**AWS CLI — Production Surface**  
-Not a full reference. Distilled to ~30 services grouped by concern. Only what engineers with
-production scars use daily — and honest about what nobody actually reaches for from the CLI.
-
-Planned groups:
-
-| Group | Services |
-|---|---|
-| Compute | ec2 · autoscaling · ecs · lambda |
-| Storage | s3 · s3api · ebs snapshots |
-| Networking | vpc · elbv2 · route53 · cloudfront |
-| Identity | iam · sts · sso |
-| Data | rds · dynamodb · elasticache |
-| Messaging | sqs · sns · eventbridge |
-| Observability | cloudwatch · logs · xray |
-| Platform | ssm · secretsmanager · cloudformation · ecr |
+Open roadmap. Suggestions welcome.
 
 ---
 
