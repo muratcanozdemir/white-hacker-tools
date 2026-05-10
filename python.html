@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Packaging &amp; CI — Cheat Sheet</title>
+<meta name="description" content="Filterable cheat sheet for Python packaging and CI — env management, packaging, quality, mixed Rust/Python, publishing, and CI patterns.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #0e0b08;
+    --bg2:     #16110c;
+    --bg3:     #1e1810;
+    --border:  #2c2018;
+    --border2: #3c2e20;
+    --text:    #d4c4a8;
+    --muted:   #7a6448;
+    --accent:  #fb923c;
+    --cmd:     #7dd3a8;
+    --mono:    'JetBrains Mono', monospace;
+    --display: 'Syne', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+    pointer-events: none; z-index: 999;
+  }
+
+  nav {
+    border-bottom: 1px solid var(--border);
+    padding: .6rem 2rem;
+    display: flex; align-items: center; gap: .5rem;
+    font-size: 11px;
+  }
+  nav a { color: var(--muted); text-decoration: none; transition: color .15s; }
+  nav a:hover { color: var(--accent); }
+  nav .sep { color: var(--border2); }
+  nav .current { color: var(--text); }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 2rem 2rem;
+    position: relative; overflow: hidden;
+  }
+  header::after {
+    content: '';
+    position: absolute; bottom: -1px; left: 0;
+    width: 120px; height: 2px;
+    background: var(--accent);
+  }
+  .header-inner {
+    max-width: 1200px; margin: 0 auto;
+    display: flex; align-items: flex-end;
+    justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  }
+  .prompt { font-size: 11px; color: var(--accent); letter-spacing: .1em; margin-bottom: .5rem; }
+  .prompt::before { content: '$ '; color: var(--muted); }
+  h1 {
+    font-family: var(--display);
+    font-size: clamp(1.6rem, 4vw, 2.6rem);
+    font-weight: 800; color: #f0dfc0;
+    letter-spacing: -.02em; line-height: 1.1;
+  }
+  h1 span { color: var(--accent); }
+  .subtitle { margin-top: .6rem; font-size: 12px; color: var(--muted); max-width: 520px; }
+  .meta { text-align: right; font-size: 11px; color: var(--muted); line-height: 2; }
+  .meta strong { color: var(--text); }
+
+  main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+  .toolbar {
+    display: flex; flex-wrap: wrap;
+    align-items: center; gap: .5rem;
+    margin-bottom: 1.25rem;
+  }
+  .toolbar-label { font-size: 10px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; margin-right: .25rem; }
+  .f-btn {
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: 3px; padding: 3px 10px;
+    font-family: var(--mono); font-size: 11px;
+    color: var(--muted); cursor: pointer;
+    letter-spacing: .06em;
+    transition: color .15s, border-color .15s, background .15s;
+  }
+  .f-btn:hover { color: var(--text); background: var(--bg3); }
+  .f-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(251,146,60,0.07); }
+  .count { margin-left: auto; font-size: 11px; color: var(--muted); }
+  .count strong { color: var(--accent); }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 6px; }
+  table { width: 100%; border-collapse: collapse; min-width: 800px; }
+  thead th {
+    background: var(--bg2); padding: 10px 14px;
+    text-align: left; font-size: 10px;
+    letter-spacing: .12em; text-transform: uppercase;
+    color: var(--muted); border-bottom: 1px solid var(--border);
+    white-space: nowrap; font-weight: 400;
+  }
+  thead th:first-child { border-radius: 6px 0 0 0; }
+  thead th:last-child  { border-radius: 0 6px 0 0; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg2); }
+  td { padding: 10px 14px; vertical-align: top; }
+  td.tool-name { font-weight: 700; font-size: 13px; color: #f0dfc0; white-space: nowrap; min-width: 140px; }
+  td.phase { min-width: 100px; }
+
+  .badge {
+    display: inline-block; font-size: 10px;
+    padding: 2px 8px; border-radius: 2px;
+    letter-spacing: .06em; font-weight: 500; white-space: nowrap;
+  }
+  .badge-env     { background: rgba(96,165,250,.12);  color: #60a5fa; border: 1px solid rgba(96,165,250,.3);  }
+  .badge-pkg     { background: rgba(251,146,60,.12);  color: #fb923c; border: 1px solid rgba(251,146,60,.3);  }
+  .badge-quality { background: rgba(45,212,191,.12);  color: #2dd4bf; border: 1px solid rgba(45,212,191,.3);  }
+  .badge-ffi     { background: rgba(192,96,255,.12);  color: #c060ff; border: 1px solid rgba(192,96,255,.3);  }
+  .badge-publish { background: rgba(57,255,130,.10);  color: #39ff82; border: 1px solid rgba(57,255,130,.25); }
+  .badge-ci      { background: rgba(244,114,182,.12); color: #f472b6; border: 1px solid rgba(244,114,182,.3); }
+
+  td.commands { min-width: 320px; max-width: 440px; }
+  .cmd-block { position: relative; }
+  .cmd-line {
+    display: block; color: var(--cmd);
+    font-size: 11.5px; line-height: 1.9;
+    word-break: break-all;
+  }
+  .cmd-line::before { content: '$ '; color: var(--muted); user-select: none; }
+  .cmd-line.comment { color: var(--muted); }
+  .cmd-line.comment::before { content: ''; }
+  .copy-btn {
+    position: absolute; top: 0; right: 0;
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: 3px; color: var(--muted);
+    font-family: var(--mono); font-size: 10px;
+    padding: 1px 7px; cursor: pointer;
+    opacity: 0; transition: opacity .15s, color .15s;
+    letter-spacing: .05em;
+  }
+  .cmd-block:hover .copy-btn { opacity: 1; }
+  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .copy-btn.copied { color: var(--accent); border-color: var(--accent); }
+
+  td.usecase { font-size: 12px; color: var(--muted); min-width: 220px; }
+  .no-results { text-align: center; padding: 3rem; color: var(--muted); font-size: 12px; display: none; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    text-align: center; font-size: 11px; color: var(--muted);
+  }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--text); }
+
+  @media (max-width: 640px) {
+    header, main { padding: 1.25rem; }
+    h1 { font-size: 1.5rem; }
+    .meta { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html">&#8592; ops://cheatsheets</a>
+  <span class="sep">/</span>
+  <span class="current">python</span>
+</nav>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <p class="prompt">uv run --frozen pytest -x</p>
+      <h1>Python Packaging<br><span>&amp; CI Toolkit</span></h1>
+      <p class="subtitle">Modern Python toolchain — environment management, packaging standards, quality gates, Rust/Python FFI, publishing, and reproducible CI patterns.</p>
+    </div>
+    <div class="meta">
+      <strong>16</strong> tools<br>
+      <strong>6</strong> phases<br>
+      Python 3.12+ &middot; PEP 517/660/723
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="toolbar">
+    <span class="toolbar-label">Phase</span>
+    <button class="f-btn active" data-cat="all">all</button>
+    <button class="f-btn" data-cat="env">env</button>
+    <button class="f-btn" data-cat="pkg">packaging</button>
+    <button class="f-btn" data-cat="quality">quality</button>
+    <button class="f-btn" data-cat="ffi">rust / ffi</button>
+    <button class="f-btn" data-cat="publish">publish</button>
+    <button class="f-btn" data-cat="ci">ci patterns</button>
+    <span class="count" id="count"><strong id="count-n">16</strong> tools shown</span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Tool</th><th>Phase</th><th>Key commands</th><th>Use case</th></tr>
+      </thead>
+      <tbody id="tbody">
+
+        <!-- ENV -->
+        <tr data-cat="env">
+          <td class="tool-name">uv</td>
+          <td class="phase"><span class="badge badge-env">env</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">uv python install 3.12</span>
+            <span class="cmd-line">uv init myproject && cd myproject</span>
+            <span class="cmd-line">uv add httpx pytest ruff</span>
+            <span class="cmd-line">uv add --dev pytest-cov mypy</span>
+            <span class="cmd-line">uv sync --frozen</span>
+            <span class="cmd-line">uv run --frozen pytest -x</span>
+            <span class="cmd-line">uv lock --upgrade-package httpx</span>
+            <span class="cmd-line">uv tool install ruff</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Replaces pip, pip-tools, virtualenv, and pyenv in one binary. <code>--frozen</code> enforces the lockfile — use in CI always. <code>uv tool install</code> installs CLI tools in isolated envs without polluting the project. Written in Rust; installs in &lt;1s.</td>
+        </tr>
+
+        <tr data-cat="env">
+          <td class="tool-name">pyenv</td>
+          <td class="phase"><span class="badge badge-env">env</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">pyenv install 3.12.4</span>
+            <span class="cmd-line">pyenv global 3.12.4</span>
+            <span class="cmd-line">pyenv local 3.11.9</span>
+            <span class="cmd-line">pyenv versions</span>
+            <span class="cmd-line">pyenv which python</span>
+            <span class="cmd-line comment"># .python-version committed to repo locks CI and local</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">System-level Python version management when uv's bundled interpreter doesn't fit (e.g. specific CPython patch versions, PyPy, GraalPy). <code>.python-version</code> file pins the version per-repo, analogous to <code>.terraform-version</code>.</td>
+        </tr>
+
+        <!-- PACKAGING -->
+        <tr data-cat="pkg">
+          <td class="tool-name">pyproject.toml</td>
+          <td class="phase"><span class="badge badge-pkg">packaging</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment"># minimal PEP 517 layout:</span>
+            <span class="cmd-line comment"># [build-system]</span>
+            <span class="cmd-line comment"># requires = ["hatchling"]</span>
+            <span class="cmd-line comment"># build-backend = "hatchling.build"</span>
+            <span class="cmd-line comment">#</span>
+            <span class="cmd-line comment"># [project]</span>
+            <span class="cmd-line comment"># name = "mypackage"</span>
+            <span class="cmd-line comment"># version = "0.1.0"</span>
+            <span class="cmd-line comment"># requires-python = ">=3.12"</span>
+            <span class="cmd-line comment"># dependencies = ["httpx>=0.27"]</span>
+            <span class="cmd-line">python -c "import tomllib; import sys; tomllib.loads(open('pyproject.toml').read())"</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Single source of truth for project metadata, dependencies, tool config (<code>[tool.ruff]</code>, <code>[tool.mypy]</code>, <code>[tool.pytest]</code>). Avoid <code>setup.py</code> and <code>setup.cfg</code> entirely — they're legacy. <code>tomllib</code> is stdlib since 3.11; no extra dep to validate.</td>
+        </tr>
+
+        <tr data-cat="pkg">
+          <td class="tool-name">hatch</td>
+          <td class="phase"><span class="badge badge-pkg">packaging</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">hatch version</span>
+            <span class="cmd-line">hatch version minor</span>
+            <span class="cmd-line">hatch build</span>
+            <span class="cmd-line">hatch build --target wheel</span>
+            <span class="cmd-line">hatch env show</span>
+            <span class="cmd-line">hatch run test:pytest</span>
+            <span class="cmd-line">hatch run lint:ruff check .</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">PEP 517 build backend + version management + multi-env runner. <code>hatch version minor</code> bumps and writes back to <code>pyproject.toml</code> without sed hacks. Environments defined declaratively — reproducible across machines. Pairs naturally with uv for dep resolution.</td>
+        </tr>
+
+        <tr data-cat="pkg">
+          <td class="tool-name">pip-audit</td>
+          <td class="phase"><span class="badge badge-pkg">packaging</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">pip-audit</span>
+            <span class="cmd-line">pip-audit -r requirements.txt</span>
+            <span class="cmd-line">pip-audit --fix</span>
+            <span class="cmd-line">pip-audit -f json | jq '.dependencies[] | select(.vulns | length > 0)'</span>
+            <span class="cmd-line">pip-audit --ignore-vuln GHSA-xxxx-xxxx-xxxx</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">PyPA-maintained vulnerability scanner against the Python Packaging Advisory Database and OSV. <code>--fix</code> upgrades vulnerable packages in-place. Analogous to <code>govulncheck</code> for Python — only reports exploitable paths, not all transitive deps.</td>
+        </tr>
+
+        <!-- QUALITY -->
+        <tr data-cat="quality">
+          <td class="tool-name">ruff</td>
+          <td class="phase"><span class="badge badge-quality">quality</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">ruff check .</span>
+            <span class="cmd-line">ruff check --fix .</span>
+            <span class="cmd-line">ruff check --select ALL --ignore D,ANN .</span>
+            <span class="cmd-line">ruff format .</span>
+            <span class="cmd-line">ruff format --check .</span>
+            <span class="cmd-line">ruff check --output-format github .</span>
+            <span class="cmd-line comment"># replaces: flake8, isort, pyupgrade, pydocstyle, bandit subsets</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Replaces flake8 + isort + pyupgrade + pydocstyle in one Rust-native binary. 10–100× faster than equivalents. <code>--select ALL</code> then ignore selectively is more maintainable than allowlisting. <code>ruff format</code> replaces black with compatible output.</td>
+        </tr>
+
+        <tr data-cat="quality">
+          <td class="tool-name">mypy</td>
+          <td class="phase"><span class="badge badge-quality">quality</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">mypy src/ --strict</span>
+            <span class="cmd-line">mypy src/ --ignore-missing-imports</span>
+            <span class="cmd-line">mypy src/ --show-error-codes --pretty</span>
+            <span class="cmd-line">mypy src/ --html-report mypy-report/</span>
+            <span class="cmd-line">mypy src/ --incremental</span>
+            <span class="cmd-line comment"># dmypy for daemon mode (fast re-checks):</span>
+            <span class="cmd-line">dmypy run -- src/</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Static type checking. <code>--strict</code> enables all optional checks — use on new projects; too noisy to retrofit all at once on legacy code. <code>dmypy</code> daemon maintains incremental state — re-checks in milliseconds vs seconds for large codebases.</td>
+        </tr>
+
+        <tr data-cat="quality">
+          <td class="tool-name">pytest</td>
+          <td class="phase"><span class="badge badge-quality">quality</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">pytest -x -q</span>
+            <span class="cmd-line">pytest -x --tb=short -q --no-header</span>
+            <span class="cmd-line">pytest -k "test_parse and not slow" -v</span>
+            <span class="cmd-line">pytest --cov=src --cov-report=term-missing --cov-fail-under=80</span>
+            <span class="cmd-line">pytest -n auto</span>
+            <span class="cmd-line">pytest --co -q</span>
+            <span class="cmd-line comment"># --co: collect-only, lists tests without running</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>-n auto</code> (pytest-xdist) parallelises across CPUs — essential for large test suites. <code>--co</code> validates test collection without running; catch import errors in CI fast. <code>--cov-fail-under</code> gates the build on coverage thresholds.</td>
+        </tr>
+
+        <tr data-cat="quality">
+          <td class="tool-name">hypothesis</td>
+          <td class="phase"><span class="badge badge-quality">quality</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment"># in test file:</span>
+            <span class="cmd-line comment">from hypothesis import given, settings, strategies as st</span>
+            <span class="cmd-line comment">@given(st.text(), st.integers(min_value=0))</span>
+            <span class="cmd-line comment">def test_parse_never_crashes(s, n): parse(s, n)</span>
+            <span class="cmd-line">pytest --hypothesis-show-statistics</span>
+            <span class="cmd-line">pytest --hypothesis-seed=0</span>
+            <span class="cmd-line comment"># replay a failure:</span>
+            <span class="cmd-line">pytest --hypothesis-seed=&lt;reported-seed&gt;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Property-based testing — generates adversarial inputs automatically. Finds edge cases unit tests never cover. <code>--hypothesis-seed</code> makes failures reproducible. Integrates with pytest; no separate runner needed. Particularly effective on parsers, serialisers, and data pipelines.</td>
+        </tr>
+
+        <!-- FFI / RUST -->
+        <tr data-cat="ffi">
+          <td class="tool-name">maturin</td>
+          <td class="phase"><span class="badge badge-ffi">rust / ffi</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">maturin init --bindings pyo3</span>
+            <span class="cmd-line">maturin develop --release</span>
+            <span class="cmd-line">maturin develop --extras dev</span>
+            <span class="cmd-line">maturin build --release --strip -i python3.12</span>
+            <span class="cmd-line">maturin build --release --target x86_64-unknown-linux-musl</span>
+            <span class="cmd-line">maturin publish</span>
+            <span class="cmd-line comment"># produces a .whl with embedded Rust extension</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Build and publish PyO3/CFFI Rust extensions as Python wheels. <code>maturin develop</code> installs the extension in-place for interactive development — no full rebuild cycle. <code>--strip</code> reduces wheel size significantly. Handles cross-compilation and manylinux compliance.</td>
+        </tr>
+
+        <tr data-cat="ffi">
+          <td class="tool-name">pyo3</td>
+          <td class="phase"><span class="badge badge-ffi">rust / ffi</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment"># Cargo.toml:</span>
+            <span class="cmd-line comment"># [lib]</span>
+            <span class="cmd-line comment"># name = "myext"</span>
+            <span class="cmd-line comment"># crate-type = ["cdylib"]</span>
+            <span class="cmd-line comment"># [dependencies]</span>
+            <span class="cmd-line comment"># pyo3 = { version = "0.21", features = ["extension-module"] }</span>
+            <span class="cmd-line comment"># src/lib.rs:</span>
+            <span class="cmd-line comment"># #[pyfunction] fn sum_as_string(a: usize, b: usize) -> String { (a+b).to_string() }</span>
+            <span class="cmd-line comment"># #[pymodule] fn myext(m: &Bound&lt;'_, PyModule&gt;) -> PyResult&lt;()&gt; { m.add_function(wrap_pyfunction!(sum_as_string, m)?)?; Ok(()) }</span>
+            <span class="cmd-line">maturin develop --release</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Rust bindings for CPython — write performance-critical code in Rust, call it from Python with zero marshalling overhead on primitive types. GIL-aware; supports <code>py.allow_threads()</code> for true parallelism. Pairs with maturin for the build/publish pipeline.</td>
+        </tr>
+
+        <tr data-cat="ffi">
+          <td class="tool-name">cffi / ctypes</td>
+          <td class="phase"><span class="badge badge-ffi">rust / ffi</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment"># build a C-compatible shared lib from Rust:</span>
+            <span class="cmd-line">cargo build --release --lib</span>
+            <span class="cmd-line comment"># then in Python (ctypes — stdlib):</span>
+            <span class="cmd-line comment">import ctypes</span>
+            <span class="cmd-line comment">lib = ctypes.CDLL("./target/release/libmylib.so")</span>
+            <span class="cmd-line comment">lib.my_func.restype = ctypes.c_uint64</span>
+            <span class="cmd-line comment">result = lib.my_func(42)</span>
+            <span class="cmd-line comment"># cffi for more complex ABI, struct layouts:</span>
+            <span class="cmd-line">python -c "import cffi; ffi = cffi.FFI(); ffi.cdef('uint64_t my_func(int);')"</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">When PyO3 is overkill — call any C-ABI shared library directly. <code>ctypes</code> is stdlib; <code>cffi</code> handles complex struct layouts and is faster at runtime. Use for integrating existing C/Rust libs without rewriting them as Python extensions.</td>
+        </tr>
+
+        <!-- PUBLISH -->
+        <tr data-cat="publish">
+          <td class="tool-name">build</td>
+          <td class="phase"><span class="badge badge-publish">publish</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">python -m build</span>
+            <span class="cmd-line">python -m build --wheel</span>
+            <span class="cmd-line">python -m build --sdist</span>
+            <span class="cmd-line">python -m build --outdir dist/</span>
+            <span class="cmd-line comment"># verify wheel contents before publishing:</span>
+            <span class="cmd-line">python -m zipfile -l dist/mypackage-0.1.0-py3-none-any.whl</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">PyPA's PEP 517 frontend — the correct way to build sdist and wheels. Runs in an isolated build env; never pollutes your dev env. Always build both sdist and wheel; sdist is required for PyPI and enables source installs on unsupported platforms.</td>
+        </tr>
+
+        <tr data-cat="publish">
+          <td class="tool-name">twine</td>
+          <td class="phase"><span class="badge badge-publish">publish</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">twine check dist/*</span>
+            <span class="cmd-line">twine upload --repository testpypi dist/*</span>
+            <span class="cmd-line">twine upload dist/*</span>
+            <span class="cmd-line">twine upload --skip-existing dist/*</span>
+            <span class="cmd-line comment"># use TWINE_USERNAME=__token__ TWINE_PASSWORD=pypi-... in CI</span>
+            <span class="cmd-line comment"># never embed tokens in config files</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>twine check</code> validates dist files before upload — catches malformed metadata and README rendering issues. Always upload to TestPyPI first. Use API tokens via env vars, never username/password. <code>--skip-existing</code> makes reruns idempotent in CI.</td>
+        </tr>
+
+        <!-- CI PATTERNS -->
+        <tr data-cat="ci">
+          <td class="tool-name">uv in GitHub Actions</td>
+          <td class="phase"><span class="badge badge-ci">ci patterns</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment"># .github/workflows/ci.yml</span>
+            <span class="cmd-line comment">- uses: astral-sh/setup-uv@v5</span>
+            <span class="cmd-line comment">  with:</span>
+            <span class="cmd-line comment">    enable-cache: true</span>
+            <span class="cmd-line comment">- run: uv sync --frozen --all-extras</span>
+            <span class="cmd-line comment">- run: uv run --frozen ruff check .</span>
+            <span class="cmd-line comment">- run: uv run --frozen mypy src/ --strict</span>
+            <span class="cmd-line comment">- run: uv run --frozen pytest -x --cov=src --cov-fail-under=80</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Full CI pipeline in ~30s. <code>enable-cache: true</code> caches the uv package cache across runs. <code>--frozen</code> everywhere ensures CI uses the committed lockfile exactly. No virtualenv activation needed — <code>uv run</code> resolves the env automatically.</td>
+        </tr>
+
+        <tr data-cat="ci">
+          <td class="tool-name">maturin in GitHub Actions</td>
+          <td class="phase"><span class="badge badge-ci">ci patterns</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment"># build wheels for all platforms:</span>
+            <span class="cmd-line comment">- uses: PyO3/maturin-action@v1</span>
+            <span class="cmd-line comment">  with:</span>
+            <span class="cmd-line comment">    command: build</span>
+            <span class="cmd-line comment">    args: --release --strip --interpreter python3.12</span>
+            <span class="cmd-line comment">    manylinux: auto</span>
+            <span class="cmd-line comment"># cross-compile for multiple targets:</span>
+            <span class="cmd-line comment">    target: x86_64,aarch64,armv7</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Official maturin GitHub Action handles manylinux Docker setup, cross-compilation toolchains, and Rust caching automatically. <code>manylinux: auto</code> picks the right manylinux image for broad Linux compatibility. Upload resulting wheels as artifacts, then publish with twine.</td>
+        </tr>
+
+        <tr data-cat="ci">
+          <td class="tool-name">pre-commit</td>
+          <td class="phase"><span class="badge badge-ci">ci patterns</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">pre-commit install</span>
+            <span class="cmd-line">pre-commit run --all-files</span>
+            <span class="cmd-line">pre-commit run ruff --all-files</span>
+            <span class="cmd-line">pre-commit autoupdate</span>
+            <span class="cmd-line">pre-commit run --from-ref origin/main --to-ref HEAD</span>
+            <span class="cmd-line comment"># in CI without installing hooks:</span>
+            <span class="cmd-line">pre-commit run --all-files --show-diff-on-failure</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Runs hooks (ruff, mypy, gitleaks, hadolint, terraform fmt) on staged files before commit. <code>--from-ref</code>/<code>--to-ref</code> runs only on changed files in CI — fast. <code>pre-commit autoupdate</code> bumps hook versions; run it periodically and commit the result.</td>
+        </tr>
+
+      </tbody>
+    </table>
+    <div class="no-results" id="no-results">No tools match this filter.</div>
+  </div>
+</main>
+
+<footer>
+  ops://cheatsheets &mdash;
+  <a href="https://docs.astral.sh/uv/" target="_blank" rel="noopener">uv docs</a> &middot;
+  <a href="https://docs.astral.sh/ruff/" target="_blank" rel="noopener">ruff docs</a> &middot;
+  <a href="https://www.maturin.rs" target="_blank" rel="noopener">maturin</a> &middot;
+  <a href="https://pyo3.rs" target="_blank" rel="noopener">pyo3</a> &middot;
+  <a href="https://packaging.python.org" target="_blank" rel="noopener">PyPA guide</a>
+</footer>
+
+<script>
+(function () {
+  const btns    = document.querySelectorAll('.f-btn');
+  const rows    = document.querySelectorAll('#tbody tr[data-cat]');
+  const countEl = document.getElementById('count-n');
+  const noRes   = document.getElementById('no-results');
+
+  function filter(cat) {
+    let shown = 0;
+    rows.forEach(r => {
+      const match = cat === 'all' || r.dataset.cat === cat;
+      r.style.display = match ? '' : 'none';
+      if (match) shown++;
+    });
+    countEl.textContent = shown;
+    noRes.style.display = shown === 0 ? 'block' : 'none';
+  }
+
+  btns.forEach(b => {
+    b.addEventListener('click', () => {
+      btns.forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      filter(b.dataset.cat);
+    });
+  });
+
+  window.copyAll = function (btn) {
+    const block = btn.closest('.cmd-block');
+    const lines = Array.from(block.querySelectorAll('.cmd-line'))
+      .map(l => l.textContent)
+      .join('\n');
+    navigator.clipboard.writeText(lines).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1500);
+    });
+  };
+})();
+</script>
+</body>
+</html>

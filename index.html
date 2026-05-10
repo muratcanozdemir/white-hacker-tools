@@ -117,6 +117,8 @@
   .post-card.observability:hover  { border-left-color: #2dd4bf; }
   .post-card.containers:hover     { border-left-color: #f472b6; }
   .post-card.golang:hover         { border-left-color: #a3e635; }
+  .tag-orange{ background: rgba(251,146,60,.12);  color: #fb923c; border: 1px solid rgba(251,146,60,.3);  }
+  .post-card.python:hover         { border-left-color: #fb923c; }
   .post-date { font-size: 10px; color: var(--muted); }
   .post-title {
     font-family: var(--display);
@@ -261,6 +263,29 @@
       <span class="post-arrow">&#8594;</span>
     </a>
 
+    <a href="python.html" class="post-card python">
+      <div>
+        <div class="post-meta">
+          <span class="tag tag-orange">python</span>
+          <span class="post-date">2026-05-09</span>
+        </div>
+        <p class="post-title">Python Packaging &amp; CI Toolkit</p>
+        <p class="post-desc">Modern Python toolchain — env management, packaging standards, quality gates, Rust/Python FFI, publishing, and reproducible CI patterns.</p>
+        <p class="tool-count"><strong>16</strong> tools &middot; 6 phases</p>
+      </div>
+      <span class="post-arrow">&#8594;</span>
+    </a>
+
+  </div>
+
+  <p class="section-label">up next</p>
+
+  <div class="coming-soon">
+    <p class="coming-soon-title">on the roadmap</p>
+    <div class="coming-item">Git &amp; Repo Hygiene — filter-repo, bisect, gitleaks, trufflehog, pre-commit, sparse-checkout</div>
+    <div class="coming-item">Network Diagnostics — mtr, ss, dig, grpcurl, curl deep-dive, k6, TLS inspection</div>
+    <div class="coming-item">SLURM &amp; HPC — sbatch, squeue, sacct, job arrays, dependency chains, resource debugging</div>
+    <div class="coming-item">PostgreSQL Operations — psql, pg_dump, pgbench, explain analyze, pg_stat_*, vacuumdb</div>
   </div>
 
 </main>
