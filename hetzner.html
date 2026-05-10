@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hetzner CLI (hcloud) — Production Surface Cheat Sheet</title>
+<meta name="description" content="Filterable hcloud reference for engineers with production scars — auth, servers, networks, storage, load balancers, firewalls.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #0e0808;
+    --bg2:     #160c0c;
+    --bg3:     #1e1010;
+    --border:  #2c1414;
+    --border2: #3c1c1c;
+    --text:    #d4b0b0;
+    --muted:   #7a4040;
+    --accent:  #d50c2d;
+    --cmd:     #7dd3a8;
+    --mono:    'JetBrains Mono', monospace;
+    --display: 'Syne', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--mono); font-size: 13px; line-height: 1.6; min-height: 100vh; }
+  body::before { content: ''; position: fixed; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px); pointer-events: none; z-index: 999; }
+  nav { border-bottom: 1px solid var(--border); padding: .6rem 2rem; display: flex; align-items: center; gap: .5rem; font-size: 11px; }
+  nav a { color: var(--muted); text-decoration: none; transition: color .15s; }
+  nav a:hover { color: var(--accent); }
+  nav .sep { color: var(--border2); }
+  nav .current { color: var(--text); }
+  header { border-bottom: 1px solid var(--border); padding: 2.5rem 2rem 2rem; position: relative; overflow: hidden; }
+  header::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 120px; height: 2px; background: var(--accent); }
+  .header-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .prompt { font-size: 11px; color: var(--accent); letter-spacing: .1em; margin-bottom: .5rem; }
+  .prompt::before { content: '$ '; color: var(--muted); }
+  h1 { font-family: var(--display); font-size: clamp(1.6rem, 4vw, 2.6rem); font-weight: 800; color: #f0d0d0; letter-spacing: -.02em; line-height: 1.1; }
+  h1 span { color: var(--accent); }
+  .subtitle { margin-top: .6rem; font-size: 12px; color: var(--muted); max-width: 520px; }
+  .meta { text-align: right; font-size: 11px; color: var(--muted); line-height: 2; }
+  .meta strong { color: var(--text); }
+  main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+  .callout { display: flex; align-items: flex-start; gap: .75rem; background: rgba(213,12,45,.05); border: 1px solid rgba(213,12,45,.2); border-left: 3px solid var(--accent); border-radius: 4px; padding: .85rem 1rem; margin-bottom: 1.75rem; font-size: 11px; color: var(--muted); line-height: 1.7; }
+  .callout::before { content: '!'; color: var(--accent); font-weight: 700; font-size: 13px; flex-shrink: 0; line-height: 1.5; }
+  .callout strong { color: var(--text); }
+  .callout code { color: var(--accent); font-size: 10.5px; }
+  .pinned { border: 1px solid var(--border2); border-radius: 6px; margin-bottom: 1.75rem; overflow: hidden; }
+  .pinned-header { background: var(--bg2); padding: .6rem 1rem; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: .5rem; }
+  .pinned-header::before { content: '📌'; font-size: 11px; }
+  .pinned-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .pinned-cell { padding: .9rem 1rem; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .pinned-cell:last-child { border-right: none; }
+  .pinned-cell:nth-last-child(-n+2) { border-bottom: none; }
+  .pinned-label { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-bottom: .4rem; }
+  .pinned-cell .cmd-line { display: block; color: var(--cmd); font-size: 11px; line-height: 1.9; word-break: break-all; }
+  .pinned-cell .cmd-line::before { content: '$ '; color: var(--muted); user-select: none; }
+  .pinned-cell .cmd-line.comment { color: var(--muted); }
+  .pinned-cell .cmd-line.comment::before { content: ''; }
+  .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-bottom: 1.25rem; }
+  .toolbar-label { font-size: 10px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; margin-right: .25rem; }
+  .f-btn { background: transparent; border: 1px solid var(--border2); border-radius: 3px; padding: 3px 10px; font-family: var(--mono); font-size: 11px; color: var(--muted); cursor: pointer; letter-spacing: .06em; transition: color .15s, border-color .15s, background .15s; }
+  .f-btn:hover { color: var(--text); background: var(--bg3); }
+  .f-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(213,12,45,0.07); }
+  .count { margin-left: auto; font-size: 11px; color: var(--muted); }
+  .count strong { color: var(--accent); }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 6px; }
+  table { width: 100%; border-collapse: collapse; min-width: 800px; }
+  thead th { background: var(--bg2); padding: 10px 14px; text-align: left; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap; font-weight: 400; }
+  thead th:first-child { border-radius: 6px 0 0 0; }
+  thead th:last-child  { border-radius: 0 6px 0 0; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg2); }
+  td { padding: 10px 14px; vertical-align: top; }
+  td.tool-name { font-weight: 700; font-size: 13px; color: #f0d0d0; white-space: nowrap; min-width: 160px; }
+  td.phase { min-width: 110px; }
+  .badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 2px; letter-spacing: .06em; font-weight: 500; white-space: nowrap; }
+  .badge-auth    { background: rgba(255,95,87,.12);  color: #ff7b75; border: 1px solid rgba(255,95,87,.3);  }
+  .badge-server  { background: rgba(213,12,45,.12);  color: #ff4060; border: 1px solid rgba(213,12,45,.3);  }
+  .badge-network { background: rgba(96,165,250,.12); color: #60a5fa; border: 1px solid rgba(96,165,250,.3); }
+  .badge-storage { background: rgba(57,255,130,.10); color: #39ff82; border: 1px solid rgba(57,255,130,.25);}
+  .badge-lb      { background: rgba(240,180,41,.12); color: #f0b429; border: 1px solid rgba(240,180,41,.3); }
+  .badge-fw      { background: rgba(192,96,255,.12); color: #c060ff; border: 1px solid rgba(192,96,255,.3); }
+  td.commands { min-width: 320px; max-width: 440px; }
+  .cmd-block { position: relative; }
+  .cmd-line { display: block; color: var(--cmd); font-size: 11.5px; line-height: 1.9; word-break: break-all; }
+  .cmd-line::before { content: '$ '; color: var(--muted); user-select: none; }
+  .cmd-line.comment { color: var(--muted); }
+  .cmd-line.comment::before { content: ''; }
+  .copy-btn { position: absolute; top: 0; right: 0; background: var(--bg3); border: 1px solid var(--border2); border-radius: 3px; color: var(--muted); font-family: var(--mono); font-size: 10px; padding: 1px 7px; cursor: pointer; opacity: 0; transition: opacity .15s, color .15s; letter-spacing: .05em; }
+  .cmd-block:hover .copy-btn { opacity: 1; }
+  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .copy-btn.copied { color: var(--accent); border-color: var(--accent); }
+  td.usecase { font-size: 12px; color: var(--muted); min-width: 220px; }
+  .no-results { text-align: center; padding: 3rem; color: var(--muted); font-size: 12px; display: none; }
+  footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; text-align: center; font-size: 11px; color: var(--muted); }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--text); }
+  @media (max-width: 640px) { header, main { padding: 1.25rem; } h1 { font-size: 1.5rem; } .meta { display: none; } .pinned-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html">&#8592; ops://cheatsheets</a>
+  <span class="sep">/</span>
+  <span class="current">hetzner</span>
+</nav>
+<header>
+  <div class="header-inner">
+    <div>
+      <p class="prompt">hcloud server list -o columns=id,name,status,ipv4,type,datacenter</p>
+      <h1>Hetzner CLI<br><span>Production Surface</span></h1>
+      <p class="subtitle">hcloud is one of the best-designed cloud CLIs. Consistent, composable, and honest about what it does. This page distills the production surface.</p>
+    </div>
+    <div class="meta"><strong>22</strong> entries<br><strong>6</strong> phases<br>hcloud v1.x</div>
+  </div>
+</header>
+<main>
+  <div class="callout">
+    <span><strong>What's not here — and why.</strong> Server provisioning belongs in Terraform (the Hetzner provider is excellent). <code>hcloud image create</code> from a running server — use <code>server create-image</code> instead. Managed Kubernetes (HCloud K3s) is not a first-party managed service — use Hetzner's K3s tutorials or Terraform modules. Object Storage uses S3-compatible API — use AWS CLI with Hetzner's endpoint.</span>
+  </div>
+  <div class="pinned">
+    <div class="pinned-header">cross-cutting — know these before anything else</div>
+    <div class="pinned-grid">
+      <div class="pinned-cell">
+        <div class="pinned-label">context (multi-account)</div>
+        <span class="cmd-line">hcloud context create prod</span>
+        <span class="cmd-line">hcloud context use prod</span>
+        <span class="cmd-line">hcloud context list</span>
+        <span class="cmd-line">hcloud context active</span>
+        <span class="cmd-line comment"># or: HCLOUD_TOKEN=xxx hcloud server list</span>
+      </div>
+      <div class="pinned-cell">
+        <div class="pinned-label">--output + selectors</div>
+        <span class="cmd-line">hcloud server list -o columns=id,name,status,ipv4,type</span>
+        <span class="cmd-line">hcloud server list -o json | jq '.[].name'</span>
+        <span class="cmd-line">hcloud server list -l env=prod</span>
+        <span class="cmd-line comment"># -l / --selector filters by label key=value</span>
+        <span class="cmd-line comment"># label selectors are the primary targeting mechanism</span>
+      </div>
+      <div class="pinned-cell">
+        <div class="pinned-label">locations + server types</div>
+        <span class="cmd-line">hcloud location list</span>
+        <span class="cmd-line">hcloud server-type list -o columns=id,name,cores,memory,disk,storage_type,price_monthly</span>
+        <span class="cmd-line">hcloud image list --type system -o columns=id,name,description | grep ubuntu</span>
+        <span class="cmd-line comment"># Hetzner locations: nbg1 fsn1 hel1 ash (US) hil (US) sin (SG)</span>
+      </div>
+    </div>
+  </div>
+  <div class="toolbar">
+    <span class="toolbar-label">Phase</span>
+    <button class="f-btn active" data-cat="all">all</button>
+    <button class="f-btn" data-cat="auth">auth</button>
+    <button class="f-btn" data-cat="server">servers</button>
+    <button class="f-btn" data-cat="network">networks</button>
+    <button class="f-btn" data-cat="storage">storage</button>
+    <button class="f-btn" data-cat="lb">load balancers</button>
+    <button class="f-btn" data-cat="fw">firewalls</button>
+    <span class="count" id="count"><strong id="count-n">22</strong> shown</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Service</th><th>Phase</th><th>Key commands</th><th>Use case</th></tr></thead>
+      <tbody id="tbody">
+
+        <tr data-cat="auth">
+          <td class="tool-name">hcloud context</td>
+          <td class="phase"><span class="badge badge-auth">auth</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">hcloud context create prod</span>
+            <span class="cmd-line">hcloud context create staging</span>
+            <span class="cmd-line">hcloud context use prod</span>
+            <span class="cmd-line">hcloud context list</span>
+            <span class="cmd-line">hcloud context delete staging</span>
+            <span class="cmd-line comment"># tokens stored in ~/.config/hcloud/cli.toml</span>
+            <span class="cmd-line comment"># CI: HCLOUD_TOKEN=xxx hcloud server list</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">hcloud contexts are project-level API tokens — each Hetzner project has its own token. Named contexts let you switch between projects cleanly. In CI, use the <code>HCLOUD_TOKEN</code> env var scoped to the command rather than storing it in the config file. Tokens are generated per-project in the Hetzner Cloud Console under Security → API Tokens.</td>
+        </tr>
+
+        <!-- SERVERS -->
+        <tr data-cat="server">
+          <td class="tool-name">server list / inspect</td>
+          <td class="phase"><span class="badge badge-server">servers</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">hcloud server list -o columns=id,name,status,ipv4,type,datacenter,labels</span>
+            <span class="cmd-line">hcloud server describe &lt;name-or-id&gt;</span>
+            <span class="cmd-line">hcloud server list -l env=prod -o columns=id,name,ipv4,status</span>
+            <span class="cmd-line">hcloud server list -o json | jq '.[] | select(.status != "running") | {id,name,status}'</span>
+            <span class="cmd-line">hcloud server metrics --type cpu --start $(date -u -d '1 hour ago' +%Y-%m-%dT%H:%M:%SZ) --end $(date -u +%Y-%m-%dT%H:%M:%SZ) &lt;id&gt;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Label selectors (<code>-l env=prod</code>) are the primary fleet targeting mechanism in hcloud — more reliable than name-matching. <code>describe</code> gives full server details including attached volumes, networks, and firewall. <code>metrics</code> returns CPU, disk I/O, and network stats for a time range — useful for a quick perf snapshot without opening the console.</td>
+        </tr>
+
+        <tr data-cat="server">
+          <td class="tool-name">server power ops</td>
+          <td class="phase"><span class="badge badge-server">servers</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">hcloud server poweroff &lt;name&gt;</span>
+            <span class="cmd-line">hcloud server poweron &lt;name&gt;</span>
+            <span class="cmd-line">hcloud server reboot &lt;name&gt;</span>
+            <span class="cmd-line">hcloud server reset &lt;name&gt;</span>
+            <span class="cmd-line">hcloud server shutdown &lt;name&gt;</span>
+            <span class="cmd-line comment"># shutdown: graceful ACPI; poweroff: hard cut; reset: hard reset</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>shutdown</code> sends an ACPI shutdown signal — the OS shuts down cleanly. <code>poweroff</code> cuts power immediately — use only when the OS is unresponsive. <code>reset</code> is equivalent to pressing the reset button. For scripted operations, prefer <code>shutdown</code> and poll status until the server is off before proceeding.</td>
+        </tr>
+
+        <tr data-cat="server">
+          <td class="tool-name">server SSH + console</td>
+          <td class="phase"><span class="badge badge-server">servers</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">hcloud server ssh &lt;name&gt;</span>
+            <span class="cmd-line">hcloud server ssh &lt;name&gt; -u deploy -p 2222</span>
+            <span class="cmd-line">hcloud server ssh &lt;name&gt; -- df -h</span>
+            <span class="cmd-line">hcloud server enable-rescue &lt;name&gt; --type linux64 --ssh-keys mykey</span>
+            <span class="cmd-line">hcloud server console &lt;name&gt;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>hcloud server ssh</code> resolves the server's IP and connects using your SSH key — cleaner than looking up the IP manually. <code>enable-rescue</code> boots into a live rescue system on next start — the correct approach when a server won't boot and you need to repair the filesystem or recover data. <code>console</code> opens a VNC console in the browser.</td>
+        </tr>
+
+        <tr data-cat="server">
+          <td class="tool-name">server images + rebuild</td>
+          <td class="phase"><span class="badge badge-server">servers</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">hcloud image list --type snapshot -o columns=id,name,description,created,disk_size</span>
+            <span class="cmd-line">hcloud server create-image --type snapshot --description myapp-$(date +%Y%m%d) &lt;name&gt;</span>
+            <span class="cmd-line">hcloud server rebuild &lt;name&gt; --image ubuntu-24.04</span>
+            <span class="cmd-line">hcloud image delete &lt;id&gt;</span>
+            <span class="cmd-line">hcloud image list --type snapshot -o json | jq '.[] | select(.created < "2025-01-01") | .id'</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>create-image</code> snapshots a running server — a snapshot of a live server may have inconsistent filesystem state if writes are in flight; prefer shutting down first for critical data. <code>rebuild</code> reinstalls the OS from an image — wipes all data. The jq date filter identifies old snapshots for cleanup; snapshots are billed at €0.0115/GB/month.</td>
+        </tr>
+
+        <tr data-cat="server">
+          <td class="tool-name">server resize</td>
+          <td class="phase"><span class="badge badge-server">servers</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">hcloud server change-type &lt;name&gt; --server-type cx31 --upgrade-disk=false</span>
+            <span class="cmd-line">hcloud server-type list -o columns=name,cores,memory,disk,price_monthly | grep cx</span>
+            <span class="cmd-line comment"># server must be powered off before change-type</span>
+            <span class="cmd-line comment"># --upgrade-disk=false allows downgrading type later</span>
+            <span class="cmd-line comment"># disk upgrades are permanent — cannot be reverted</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>--upgrade-disk=false</code> is critical if you ever want to resize down later — disk upgrades are permanent. Hetzner server types are CX (shared CPU), CPX (AMD shared CPU), CCX (dedicated CPU), CAX (Arm64). Shared CPU types are excellent for bursty workloads; dedicated for consistent performance.</td>
+        </tr>
+
+        <!-- NETWORKS -->
+        <tr data-cat="network">
+          <td class="tool-name">private networks</td>
+          <td class="phase"><span class="badge badge-network">networks</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">hcloud network list -o columns=id,name,ip_range,servers,subnets</span>
+            <span class="cmd-line">hcloud network describe &lt;name&gt;</span>
+            <span class="cmd-line">hcloud network add-subnet &lt;name&gt; --network-zone eu-central --type cloud --ip-range 10.0.1.0/24</span>
+            <span class="cmd-line">hcloud server attach-to-network &lt;server&gt; --network &lt;network&gt; --ip 10.0.1.10</span>
+            <span class="cmd-line">hcloud server detach-from-network &lt;server&gt; --network &lt;network&gt;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Private networks are free in Hetzner — always attach servers to a private network rather than communicating over public IPs. <code>--ip</code> assigns a static private IP — omit for auto-assignment. Network zones (eu-central, us-east, us-west, ap-southeast) determine which datacenters the network spans. A server can be in multiple networks simultaneously.</td>
+        </tr>
+
+        <tr data-cat="network">
+          <td class="tool-name">floating IPs</td>
+          <td class="phase"><span class="badge badge-network">networks</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">hcloud floating-ip list -o columns=id,name,ip,type,location,server</span>
+            <span class="cmd-line">hcloud floating-ip assign &lt;ip-id&gt; &lt;server-name&gt;</span>
+            <span class="cmd-line">hcloud floating-ip unassign &lt;ip-id&gt;</span>
+            <span class="cmd-line">hcloud floating-ip create --type ipv4 --home-location nbg1 --name prod-ingress</span>
+            <span class="cmd-line comment"># unassigned floating IPs are still billed — €0.0019/hour</span>
+            <span class="cmd-line comment"># must configure the IP inside the OS — not automatic</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Floating IPs enable zero-downtime failover — reassign the IP to a standby server in seconds. They must be configured inside the OS (add to the network interface) — the Hetzner docs provide the exact <code>ip addr add</code> commands per distribution. Unassigned floating IPs still cost money — release them when not in use.</td>
+        </tr>
+
+        <!-- STORAGE -->
+        <tr data-cat="storage">
+          <td class="tool-name">volumes (block storage)</td>
+          <td class="phase"><span class="badge badge-storage">storage</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">hcloud volume list -o columns=id,name,size,location,server,status</span>
+            <span class="cmd-line">hcloud volume attach &lt;volume&gt; --server &lt;server&gt;</span>
+            <span class="cmd-line">hcloud volume detach &lt;volume&gt;</span>
+            <span class="cmd-line">hcloud volume resize &lt;volume&gt; --size 100</span>
+            <span class="cmd-line">hcloud volume delete &lt;volume&gt;</span>
+            <span class="cmd-line comment"># after resize, grow the filesystem inside the server:</span>
+            <span class="cmd-line comment"># resize2fs /dev/disk/by-id/scsi-0HC_Volume_&lt;id&gt;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Volumes attach to servers in the same location only — you can't attach a Nuremberg volume to a Helsinki server. After CLI resize, the block device grows immediately but the filesystem doesn't — run <code>resize2fs</code> (ext4) or <code>xfs_growfs</code> (xfs) inside the server. Volumes without an attached server are still billed at €0.0239/GB/month.</td>
+        </tr>
+
+        <tr data-cat="storage">
+          <td class="tool-name">Object Storage (S3-compatible)</td>
+          <td class="phase"><span class="badge badge-storage">storage</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment"># Hetzner Object Storage uses S3-compatible API</span>
+            <span class="cmd-line comment"># endpoint: https://&lt;location&gt;.your-objectstorage.com</span>
+            <span class="cmd-line">aws s3 ls --endpoint-url https://fsn1.your-objectstorage.com</span>
+            <span class="cmd-line">aws s3 sync ./dist s3://mybucket --endpoint-url https://fsn1.your-objectstorage.com</span>
+            <span class="cmd-line">aws s3 presign s3://mybucket/file.tar.gz --endpoint-url https://fsn1.your-objectstorage.com --expires-in 3600</span>
+            <span class="cmd-line comment"># credentials: access key + secret from console (not API token)</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Object Storage is not managed via hcloud CLI — use the AWS CLI with Hetzner's S3-compatible endpoint. Credentials are separate from the API token — generate access keys in the console under Object Storage. Available in Falkenstein (fsn1), Nuremberg (nbg1), and Helsinki (hel1). €0.0059/GB/month — the cheapest in this comparison.</td>
+        </tr>
+
+        <!-- LOAD BALANCERS -->
+        <tr data-cat="lb">
+          <td class="tool-name">load balancer list / inspect</td>
+          <td class="phase"><span class="badge badge-lb">load balancers</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">hcloud load-balancer list -o columns=id,name,ipv4,type,location,services,targets</span>
+            <span class="cmd-line">hcloud load-balancer describe &lt;name&gt;</span>
+            <span class="cmd-line">hcloud load-balancer metrics --type open_connections --start $(date -u -d '1h ago' +%Y-%m-%dT%H:%M:%SZ) --end $(date -u +%Y-%m-%dT%H:%M:%SZ) &lt;name&gt;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>describe</code> shows all targets and their health status — the first stop when traffic stops routing correctly. <code>metrics</code> returns open connections, requests/sec, and bandwidth over a time range — useful for diagnosing traffic spikes. Hetzner LBs support HTTP, HTTPS, and TCP — configure SSL termination with a managed certificate or your own.</td>
+        </tr>
+
+        <tr data-cat="lb">
+          <td class="tool-name">load balancer targets</td>
+          <td class="phase"><span class="badge badge-lb">load balancers</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">hcloud load-balancer add-target &lt;lb&gt; --server &lt;server&gt;</span>
+            <span class="cmd-line">hcloud load-balancer add-target &lt;lb&gt; --label-selector env=prod</span>
+            <span class="cmd-line">hcloud load-balancer remove-target &lt;lb&gt; --server &lt;server&gt;</span>
+            <span class="cmd-line">hcloud load-balancer enable-public-interface &lt;lb&gt;</span>
+            <span class="cmd-line">hcloud load-balancer disable-public-interface &lt;lb&gt;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Label selector targets (<code>--label-selector env=prod</code>) automatically include any server matching the selector — new servers with that label are added dynamically without modifying the LB. This is the correct pattern for autoscaling groups. <code>disable-public-interface</code> makes the LB internal-only — serves only from the private network.</td>
+        </tr>
+
+        <tr data-cat="lb">
+          <td class="tool-name">load balancer services</td>
+          <td class="phase"><span class="badge badge-lb">load balancers</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">hcloud load-balancer add-service &lt;lb&gt; --protocol https --listen-port 443 --destination-port 8080 --http-certificates &lt;cert-id&gt;</span>
+            <span class="cmd-line">hcloud load-balancer update-health-check &lt;lb&gt; --protocol http --port 8080 --path /health --interval 10 --timeout 5 --retries 3</span>
+            <span class="cmd-line">hcloud load-balancer remove-service &lt;lb&gt; --listen-port 80</span>
+            <span class="cmd-line">hcloud certificate list -o columns=id,name,type,domain_names,not_valid_after</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Health check path and interval are the first things to audit when the LB marks targets unhealthy. The certificate list shows expiry dates — Hetzner managed certificates (<code>type=managed</code>) auto-renew; uploaded certificates don't. Update the health check to use a dedicated endpoint that checks dependencies, not just HTTP 200.</td>
+        </tr>
+
+        <!-- FIREWALLS -->
+        <tr data-cat="fw">
+          <td class="tool-name">firewall list / rules</td>
+          <td class="phase"><span class="badge badge-fw">firewalls</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">hcloud firewall list -o columns=id,name,rules_count,applied_to</span>
+            <span class="cmd-line">hcloud firewall describe &lt;name&gt;</span>
+            <span class="cmd-line">hcloud firewall add-rule &lt;name&gt; --direction in --protocol tcp --port 443 --source-ips 0.0.0.0/0 --source-ips ::/0</span>
+            <span class="cmd-line">hcloud firewall add-rule &lt;name&gt; --direction in --protocol tcp --port 22 --source-ips 10.0.0.0/8</span>
+            <span class="cmd-line">hcloud firewall delete-rule &lt;name&gt; --direction in --protocol tcp --port 80 --source-ips 0.0.0.0/0</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Hetzner firewalls default to deny all inbound when first applied — add all required rules before applying to a server. Both IPv4 and IPv6 source ranges must be specified separately for rules that should apply to all traffic. Describe shows applied_to targets — servers or label selectors that the firewall is protecting.</td>
+        </tr>
+
+        <tr data-cat="fw">
+          <td class="tool-name">firewall apply / remove</td>
+          <td class="phase"><span class="badge badge-fw">firewalls</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">hcloud firewall apply-to-resource &lt;name&gt; --server &lt;server&gt;</span>
+            <span class="cmd-line">hcloud firewall apply-to-resource &lt;name&gt; --label-selector env=prod</span>
+            <span class="cmd-line">hcloud firewall remove-from-resource &lt;name&gt; --server &lt;server&gt;</span>
+            <span class="cmd-line">hcloud server describe &lt;name&gt; -o json | jq '.firewalls'</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Label selector application is the correct pattern for fleet management — any server with the matching label gets the firewall automatically. <code>server describe | jq .firewalls</code> confirms which firewalls are applied to a specific server and their status — <code>applied</code> means rules are active, <code>pending</code> means changes are in progress.</td>
+        </tr>
+
+        <tr data-cat="fw">
+          <td class="tool-name">SSH keys</td>
+          <td class="phase"><span class="badge badge-fw">firewalls</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">hcloud ssh-key list -o columns=id,name,fingerprint</span>
+            <span class="cmd-line">hcloud ssh-key create --name mykey --public-key-from-file ~/.ssh/id_ed25519.pub</span>
+            <span class="cmd-line">hcloud ssh-key describe &lt;name&gt;</span>
+            <span class="cmd-line">hcloud ssh-key delete &lt;name&gt;</span>
+            <span class="cmd-line comment"># keys are referenced by name at server creation time</span>
+            <span class="cmd-line comment"># adding a key after creation requires manual authorized_keys edit</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">SSH keys registered in hcloud are injected at server creation only — adding a new team member's key later requires manual <code>authorized_keys</code> editing or a rebuild. Keep team SSH keys registered in hcloud and reference all of them at creation time. Use Ed25519 keys; RSA 2048 works but Ed25519 is faster and generates shorter authorized_keys entries.</td>
+        </tr>
+
+      </tbody>
+    </table>
+    <div class="no-results" id="no-results">No entries match this filter.</div>
+  </div>
+</main>
+<footer>
+  ops://cheatsheets &mdash;
+  <a href="https://github.com/hetznercloud/cli" target="_blank" rel="noopener">hcloud GitHub</a> &middot;
+  <a href="https://docs.hetzner.cloud/" target="_blank" rel="noopener">Hetzner Cloud API</a> &middot;
+  <a href="https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs" target="_blank" rel="noopener">Terraform provider</a>
+</footer>
+<script>
+(function () {
+  const btns = document.querySelectorAll('.f-btn'), rows = document.querySelectorAll('#tbody tr[data-cat]');
+  const countEl = document.getElementById('count-n'), noRes = document.getElementById('no-results');
+  function filter(cat) {
+    let s = 0; rows.forEach(r => { const m = cat==='all'||r.dataset.cat===cat; r.style.display=m?'':'none'; if(m)s++; });
+    countEl.textContent=s; noRes.style.display=s===0?'block':'none';
+  }
+  btns.forEach(b => b.addEventListener('click', () => { btns.forEach(x=>x.classList.remove('active')); b.classList.add('active'); filter(b.dataset.cat); }));
+  window.copyAll = function(btn) {
+    const lines = Array.from(btn.closest('.cmd-block').querySelectorAll('.cmd-line')).map(l=>l.textContent).join('\n');
+    navigator.clipboard.writeText(lines).then(() => { btn.textContent='copied!'; btn.classList.add('copied'); setTimeout(()=>{btn.textContent='copy';btn.classList.remove('copied');},1500); });
+  };
+})();
+</script>
+</body>
+</html>

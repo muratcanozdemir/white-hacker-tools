@@ -135,6 +135,12 @@
   .post-card.vps:hover            { border-left-color: #e879f9; }
   .tag-gcp   { background: rgba(52,208,88,.12);   color: #34d058; border: 1px solid rgba(52,208,88,.3);   }
   .post-card.gcp:hover            { border-left-color: #34d058; }
+  .tag-do    { background: rgba(0,105,255,.12);  color: #4d94ff; border: 1px solid rgba(0,105,255,.3);  }
+  .tag-linode{ background: rgba(2,177,89,.12);   color: #02b159; border: 1px solid rgba(2,177,89,.3);   }
+  .tag-hz    { background: rgba(213,12,45,.12);  color: #ff4060; border: 1px solid rgba(213,12,45,.3);  }
+  .post-card.do:hover             { border-left-color: #4d94ff; }
+  .post-card.linode:hover         { border-left-color: #02b159; }
+  .post-card.hetzner:hover        { border-left-color: #ff4060; }
   .post-date { font-size: 10px; color: var(--muted); }
   .post-title {
     font-family: var(--display);
@@ -396,15 +402,51 @@
       <span class="post-arrow">&#8594;</span>
     </a>
 
+    <a href="digitalocean.html" class="post-card do">
+      <div>
+        <div class="post-meta">
+          <span class="tag tag-do">digitalocean</span>
+          <span class="post-date">2026-05-10</span>
+        </div>
+        <p class="post-title">DigitalOcean CLI — Production Surface</p>
+        <p class="post-desc">doctl reference for engineers with production scars — droplets, DOKS, Spaces, networking, managed databases, App Platform, and Container Registry.</p>
+        <p class="tool-count"><strong>24</strong> entries &middot; 7 phases</p>
+      </div>
+      <span class="post-arrow">&#8594;</span>
+    </a>
+
+    <a href="linode.html" class="post-card linode">
+      <div>
+        <div class="post-meta">
+          <span class="tag tag-linode">linode</span>
+          <span class="post-date">2026-05-10</span>
+        </div>
+        <p class="post-title">Linode CLI — Production Surface</p>
+        <p class="post-desc">linode-cli reference for engineers with production scars — Linodes, LKE, Object Storage, volumes, firewalls, NodeBalancers, managed databases.</p>
+        <p class="tool-count"><strong>22</strong> entries &middot; 6 phases</p>
+      </div>
+      <span class="post-arrow">&#8594;</span>
+    </a>
+
+    <a href="hetzner.html" class="post-card hetzner">
+      <div>
+        <div class="post-meta">
+          <span class="tag tag-hz">hetzner</span>
+          <span class="post-date">2026-05-10</span>
+        </div>
+        <p class="post-title">Hetzner CLI — Production Surface</p>
+        <p class="post-desc">hcloud reference for engineers with production scars — servers, private networks, volumes, load balancers, firewalls, floating IPs, and Object Storage.</p>
+        <p class="tool-count"><strong>22</strong> entries &middot; 6 phases</p>
+      </div>
+      <span class="post-arrow">&#8594;</span>
+    </a>
+
   </div>
 
   <p class="section-label">up next</p>
 
   <div class="coming-soon">
     <p class="coming-soon-title">on the roadmap</p>
-    <div class="coming-item">DigitalOcean CLI (doctl) — Production Surface &mdash; droplets, kubernetes, databases, networking, spaces, functions</div>
-    <div class="coming-item">Linode CLI — Production Surface &mdash; linodes, kubernetes, object storage, databases, networking, firewalls</div>
-    <div class="coming-item">Hetzner CLI (hcloud) — Production Surface &mdash; servers, networks, volumes, load balancers, firewalls, snapshots</div>
     <div class="coming-item" style="margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border);">Kong — API gateway ops, deck config-as-code, plugin management, admin API, routing patterns</div>
     <div class="coming-item">MuleSoft — anypoint-cli + Mule Maven Plugin; deploy, promote, CI/CD, API Manager, runtime, observability, governance</div>
     <div class="coming-item">Nginx as API Gateway — upstream blocks, rate limiting, JWT via auth_request, mTLS, health checks, config validation</div>

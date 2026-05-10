@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linode CLI — Production Surface Cheat Sheet</title>
+<meta name="description" content="Filterable Linode CLI reference for engineers with production scars — auth, linodes, kubernetes, storage, networking, databases.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #060d0a;
+    --bg2:     #0a1410;
+    --bg3:     #0f1c16;
+    --border:  #152618;
+    --border2: #1e3622;
+    --text:    #a8d4b8;
+    --muted:   #3c7050;
+    --accent:  #02b159;
+    --cmd:     #7dd3a8;
+    --mono:    'JetBrains Mono', monospace;
+    --display: 'Syne', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--mono); font-size: 13px; line-height: 1.6; min-height: 100vh; }
+  body::before { content: ''; position: fixed; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px); pointer-events: none; z-index: 999; }
+  nav { border-bottom: 1px solid var(--border); padding: .6rem 2rem; display: flex; align-items: center; gap: .5rem; font-size: 11px; }
+  nav a { color: var(--muted); text-decoration: none; transition: color .15s; }
+  nav a:hover { color: var(--accent); }
+  nav .sep { color: var(--border2); }
+  nav .current { color: var(--text); }
+  header { border-bottom: 1px solid var(--border); padding: 2.5rem 2rem 2rem; position: relative; overflow: hidden; }
+  header::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 120px; height: 2px; background: var(--accent); }
+  .header-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .prompt { font-size: 11px; color: var(--accent); letter-spacing: .1em; margin-bottom: .5rem; }
+  .prompt::before { content: '$ '; color: var(--muted); }
+  h1 { font-family: var(--display); font-size: clamp(1.6rem, 4vw, 2.6rem); font-weight: 800; color: #c0f0d0; letter-spacing: -.02em; line-height: 1.1; }
+  h1 span { color: var(--accent); }
+  .subtitle { margin-top: .6rem; font-size: 12px; color: var(--muted); max-width: 520px; }
+  .meta { text-align: right; font-size: 11px; color: var(--muted); line-height: 2; }
+  .meta strong { color: var(--text); }
+  main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+  .callout { display: flex; align-items: flex-start; gap: .75rem; background: rgba(2,177,89,.05); border: 1px solid rgba(2,177,89,.2); border-left: 3px solid var(--accent); border-radius: 4px; padding: .85rem 1rem; margin-bottom: 1.75rem; font-size: 11px; color: var(--muted); line-height: 1.7; }
+  .callout::before { content: '!'; color: var(--accent); font-weight: 700; font-size: 13px; flex-shrink: 0; line-height: 1.5; }
+  .callout strong { color: var(--text); }
+  .callout code { color: var(--accent); font-size: 10.5px; }
+  .pinned { border: 1px solid var(--border2); border-radius: 6px; margin-bottom: 1.75rem; overflow: hidden; }
+  .pinned-header { background: var(--bg2); padding: .6rem 1rem; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: .5rem; }
+  .pinned-header::before { content: '📌'; font-size: 11px; }
+  .pinned-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .pinned-cell { padding: .9rem 1rem; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .pinned-cell:last-child { border-right: none; }
+  .pinned-cell:nth-last-child(-n+2) { border-bottom: none; }
+  .pinned-label { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-bottom: .4rem; }
+  .pinned-cell .cmd-line { display: block; color: var(--cmd); font-size: 11px; line-height: 1.9; word-break: break-all; }
+  .pinned-cell .cmd-line::before { content: '$ '; color: var(--muted); user-select: none; }
+  .pinned-cell .cmd-line.comment { color: var(--muted); }
+  .pinned-cell .cmd-line.comment::before { content: ''; }
+  .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-bottom: 1.25rem; }
+  .toolbar-label { font-size: 10px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; margin-right: .25rem; }
+  .f-btn { background: transparent; border: 1px solid var(--border2); border-radius: 3px; padding: 3px 10px; font-family: var(--mono); font-size: 11px; color: var(--muted); cursor: pointer; letter-spacing: .06em; transition: color .15s, border-color .15s, background .15s; }
+  .f-btn:hover { color: var(--text); background: var(--bg3); }
+  .f-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(2,177,89,0.07); }
+  .count { margin-left: auto; font-size: 11px; color: var(--muted); }
+  .count strong { color: var(--accent); }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 6px; }
+  table { width: 100%; border-collapse: collapse; min-width: 800px; }
+  thead th { background: var(--bg2); padding: 10px 14px; text-align: left; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap; font-weight: 400; }
+  thead th:first-child { border-radius: 6px 0 0 0; }
+  thead th:last-child  { border-radius: 0 6px 0 0; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg2); }
+  td { padding: 10px 14px; vertical-align: top; }
+  td.tool-name { font-weight: 700; font-size: 13px; color: #c0f0d0; white-space: nowrap; min-width: 160px; }
+  td.phase { min-width: 110px; }
+  .badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 2px; letter-spacing: .06em; font-weight: 500; white-space: nowrap; }
+  .badge-auth    { background: rgba(255,95,87,.12);  color: #ff7b75; border: 1px solid rgba(255,95,87,.3);  }
+  .badge-linode  { background: rgba(2,177,89,.12);   color: #02b159; border: 1px solid rgba(2,177,89,.3);   }
+  .badge-k8s     { background: rgba(96,165,250,.12); color: #60a5fa; border: 1px solid rgba(96,165,250,.3); }
+  .badge-storage { background: rgba(57,255,130,.10); color: #39ff82; border: 1px solid rgba(57,255,130,.25);}
+  .badge-network { background: rgba(45,212,191,.12); color: #2dd4bf; border: 1px solid rgba(45,212,191,.3); }
+  .badge-db      { background: rgba(240,180,41,.12); color: #f0b429; border: 1px solid rgba(240,180,41,.3); }
+  td.commands { min-width: 320px; max-width: 440px; }
+  .cmd-block { position: relative; }
+  .cmd-line { display: block; color: var(--cmd); font-size: 11.5px; line-height: 1.9; word-break: break-all; }
+  .cmd-line::before { content: '$ '; color: var(--muted); user-select: none; }
+  .cmd-line.comment { color: var(--muted); }
+  .cmd-line.comment::before { content: ''; }
+  .copy-btn { position: absolute; top: 0; right: 0; background: var(--bg3); border: 1px solid var(--border2); border-radius: 3px; color: var(--muted); font-family: var(--mono); font-size: 10px; padding: 1px 7px; cursor: pointer; opacity: 0; transition: opacity .15s, color .15s; letter-spacing: .05em; }
+  .cmd-block:hover .copy-btn { opacity: 1; }
+  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .copy-btn.copied { color: var(--accent); border-color: var(--accent); }
+  td.usecase { font-size: 12px; color: var(--muted); min-width: 220px; }
+  .no-results { text-align: center; padding: 3rem; color: var(--muted); font-size: 12px; display: none; }
+  footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; text-align: center; font-size: 11px; color: var(--muted); }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--text); }
+  @media (max-width: 640px) { header, main { padding: 1.25rem; } h1 { font-size: 1.5rem; } .meta { display: none; } .pinned-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html">&#8592; ops://cheatsheets</a>
+  <span class="sep">/</span>
+  <span class="current">linode</span>
+</nav>
+<header>
+  <div class="header-inner">
+    <div>
+      <p class="prompt">linode-cli linodes list</p>
+      <h1>Linode CLI<br><span>Production Surface</span></h1>
+      <p class="subtitle">linode-cli reference distilled to what engineers with production scars actually reach for. Now Akamai Cloud — same CLI.</p>
+    </div>
+    <div class="meta"><strong>22</strong> entries<br><strong>6</strong> phases<br>linode-cli 5.x</div>
+  </div>
+</header>
+<main>
+  <div class="callout">
+    <span><strong>What's not here — and why.</strong> <code>linode-cli stackscripts</code> — use cloud-init or Ansible for provisioning. Linode provisioning belongs in Terraform (the Linode provider is solid). <code>linode-cli longview</code> — console only. Object Storage uses the S3-compatible API — use the AWS CLI with a custom endpoint. <strong>Note:</strong> Linode is now Akamai Cloud; the CLI and API are unchanged but branding is shifting.</span>
+  </div>
+  <div class="pinned">
+    <div class="pinned-header">cross-cutting — know these before anything else</div>
+    <div class="pinned-grid">
+      <div class="pinned-cell">
+        <div class="pinned-label">configure + token</div>
+        <span class="cmd-line">linode-cli configure</span>
+        <span class="cmd-line">linode-cli configure --token $LINODE_TOKEN</span>
+        <span class="cmd-line comment"># config stored in ~/.config/linode-cli</span>
+        <span class="cmd-line comment"># env var: LINODE_CLI_TOKEN</span>
+        <span class="cmd-line">linode-cli profile view</span>
+      </div>
+      <div class="pinned-cell">
+        <div class="pinned-label">--text + --format for scripting</div>
+        <span class="cmd-line">linode-cli linodes list --text --no-header</span>
+        <span class="cmd-line">linode-cli linodes list --format id,label,status,region --text --no-header</span>
+        <span class="cmd-line">linode-cli linodes list --json | jq '.[].id'</span>
+        <span class="cmd-line comment"># --text --no-header produces tab-separated output for xargs</span>
+      </div>
+      <div class="pinned-cell">
+        <div class="pinned-label">regions + types</div>
+        <span class="cmd-line">linode-cli regions list --format id,country,status</span>
+        <span class="cmd-line">linode-cli linodes types --format id,label,memory,vcpus,price.monthly</span>
+        <span class="cmd-line">linode-cli images list --format id,label,type,status | grep linode</span>
+        <span class="cmd-line comment"># pin image IDs — "linode/ubuntu24.04" etc</span>
+      </div>
+    </div>
+  </div>
+  <div class="toolbar">
+    <span class="toolbar-label">Phase</span>
+    <button class="f-btn active" data-cat="all">all</button>
+    <button class="f-btn" data-cat="auth">auth</button>
+    <button class="f-btn" data-cat="linode">linodes</button>
+    <button class="f-btn" data-cat="k8s">kubernetes</button>
+    <button class="f-btn" data-cat="storage">storage</button>
+    <button class="f-btn" data-cat="network">networking</button>
+    <button class="f-btn" data-cat="db">databases</button>
+    <span class="count" id="count"><strong id="count-n">22</strong> shown</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Service</th><th>Phase</th><th>Key commands</th><th>Use case</th></tr></thead>
+      <tbody id="tbody">
+
+        <tr data-cat="auth">
+          <td class="tool-name">linode-cli configure</td>
+          <td class="phase"><span class="badge badge-auth">auth</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">linode-cli configure</span>
+            <span class="cmd-line">linode-cli configure --token $LINODE_TOKEN</span>
+            <span class="cmd-line">LINODE_CLI_TOKEN=$TOKEN linode-cli linodes list</span>
+            <span class="cmd-line">linode-cli profile view</span>
+            <span class="cmd-line">linode-cli profile token-create --label ci-token --expiry 2027-01-01T00:00:00</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Single token per CLI config — no multi-account context switching like doctl. For multiple accounts, use <code>LINODE_CLI_TOKEN</code> env var scoped to the command. <code>token-create</code> generates a scoped token with an expiry — prefer over using your personal token in CI. Tokens are managed under My Profile → API Tokens in the console.</td>
+        </tr>
+
+        <!-- LINODES -->
+        <tr data-cat="linode">
+          <td class="tool-name">linodes list / inspect</td>
+          <td class="phase"><span class="badge badge-linode">linodes</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">linode-cli linodes list --format id,label,status,region,type,ipv4</span>
+            <span class="cmd-line">linode-cli linodes view &lt;id&gt;</span>
+            <span class="cmd-line">linode-cli linodes list --format id,label --text --no-header | grep myapp</span>
+            <span class="cmd-line">linode-cli linodes stats &lt;id&gt;</span>
+            <span class="cmd-line">linode-cli linodes list --json | jq '.[] | select(.status != "running") | {id,label,status}'</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>stats</code> returns CPU, I/O, and network stats for the past 24 hours — useful for a quick performance snapshot without opening the console. The jq filter surfaces non-running Linodes — run this as a periodic check for unexpected shutdowns. Linode labels are unique per account, making them safe to use as identifiers in scripts.</td>
+        </tr>
+
+        <tr data-cat="linode">
+          <td class="tool-name">linode power ops</td>
+          <td class="phase"><span class="badge badge-linode">linodes</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">linode-cli linodes boot &lt;id&gt;</span>
+            <span class="cmd-line">linode-cli linodes reboot &lt;id&gt;</span>
+            <span class="cmd-line">linode-cli linodes shutdown &lt;id&gt;</span>
+            <span class="cmd-line">linode-cli linodes resize &lt;id&gt; --type g6-standard-4 --allow_auto_disk_resize true</span>
+            <span class="cmd-line">linode-cli linodes rebuild &lt;id&gt; --image linode/ubuntu24.04 --root_pass "$PASS"</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>resize</code> requires the Linode to be shut down first — it won't error immediately but will queue until the next shutdown. <code>rebuild</code> reinstalls the OS and wipes all data — use only when you mean it. <code>allow_auto_disk_resize=true</code> expands the disk to fill the new plan's disk allocation automatically.</td>
+        </tr>
+
+        <tr data-cat="linode">
+          <td class="tool-name">linode SSH</td>
+          <td class="phase"><span class="badge badge-linode">linodes</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">linode-cli linodes view &lt;id&gt; --format ipv4 --text --no-header | ssh deploy@$(cat -)</span>
+            <span class="cmd-line">ssh deploy@$(linode-cli linodes list --label myapp --format ipv4 --text --no-header | tr -d ' ')</span>
+            <span class="cmd-line">linode-cli linodes list --format id,label,ipv4 --text --no-header | column -t</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">The linode-cli has no built-in SSH command like doctl — shell substitution is the pattern. The column-formatted list gives a readable IP reference for a fleet. Add aliases to <code>~/.ssh/config</code> for frequently accessed Linodes to avoid looking up IPs every time.</td>
+        </tr>
+
+        <tr data-cat="linode">
+          <td class="tool-name">backups + snapshots</td>
+          <td class="phase"><span class="badge badge-linode">linodes</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">linode-cli linodes backups-list &lt;id&gt;</span>
+            <span class="cmd-line">linode-cli linodes snapshot &lt;id&gt; --label myapp-$(date +%Y%m%d)</span>
+            <span class="cmd-line">linode-cli linodes backups-enable &lt;id&gt;</span>
+            <span class="cmd-line">linode-cli linodes backups-restore &lt;id&gt; --backup_id &lt;backup-id&gt; --linode_id &lt;target-id&gt; --overwrite true</span>
+            <span class="cmd-line">linode-cli images list --format id,label,type,size --json | jq '.[] | select(.type=="snapshot")'</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Snapshots are stored as Images and count against your image storage quota (free up to 10GB per account). <code>backups-enable</code> enables the $2-5/month automated backup service — includes daily, weekly, and biweekly snapshots. Restore to a different Linode with <code>--linode_id</code> to test a restore without affecting production.</td>
+        </tr>
+
+        <tr data-cat="linode">
+          <td class="tool-name">disk + config</td>
+          <td class="phase"><span class="badge badge-linode">linodes</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">linode-cli linodes disks-list &lt;id&gt; --format id,label,size,status</span>
+            <span class="cmd-line">linode-cli linodes disk-resize &lt;id&gt; &lt;disk-id&gt; --size 40960</span>
+            <span class="cmd-line">linode-cli linodes configs-list &lt;id&gt; --format id,label,kernel,root_device</span>
+            <span class="cmd-line">linode-cli linodes config-view &lt;id&gt; &lt;config-id&gt;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Disk resize requires the Linode to be shut down and cannot shrink below current usage. Config view shows the boot kernel and device map — useful when a Linode fails to boot and you need to confirm it's booting from the right config. Linode's boot configuration system is more granular than most VPS providers.</td>
+        </tr>
+
+        <!-- KUBERNETES -->
+        <tr data-cat="k8s">
+          <td class="tool-name">LKE clusters</td>
+          <td class="phase"><span class="badge badge-k8s">kubernetes</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">linode-cli lke clusters-list --format id,label,region,k8s_version,status</span>
+            <span class="cmd-line">linode-cli lke kubeconfig-view &lt;id&gt; --text --no-header | base64 -d > ~/.kube/linode-config</span>
+            <span class="cmd-line">export KUBECONFIG=~/.kube/linode-config</span>
+            <span class="cmd-line">linode-cli lke versions-list</span>
+            <span class="cmd-line">linode-cli lke cluster-dashboard-url &lt;id&gt;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Kubeconfig is returned base64-encoded — decode and write to a file explicitly. <code>versions-list</code> shows available Kubernetes versions for the region. <code>cluster-dashboard-url</code> generates a temporary authenticated URL to the Kubernetes dashboard — useful for quick visual inspection without setting up kubectl access on a new machine.</td>
+        </tr>
+
+        <tr data-cat="k8s">
+          <td class="tool-name">LKE node pools</td>
+          <td class="phase"><span class="badge badge-k8s">kubernetes</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">linode-cli lke pools-list &lt;cluster-id&gt; --format id,type,count,nodes.status</span>
+            <span class="cmd-line">linode-cli lke pool-update &lt;cluster-id&gt; &lt;pool-id&gt; --count 5</span>
+            <span class="cmd-line">linode-cli lke pool-update &lt;cluster-id&gt; &lt;pool-id&gt; --autoscaler.enabled true --autoscaler.min 2 --autoscaler.max 10</span>
+            <span class="cmd-line">linode-cli lke node-recycle &lt;cluster-id&gt; &lt;pool-id&gt; &lt;node-id&gt;</span>
+            <span class="cmd-line">linode-cli lke cluster-recycle &lt;cluster-id&gt;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>node-recycle</code> replaces a specific node — drains, deletes, and provisions a replacement. <code>cluster-recycle</code> rolls all nodes — use after a Kubernetes minor upgrade to ensure nodes are running the new version. Autoscaler is configured per pool; enable with sensible min/max bounds to avoid surprise billing.</td>
+        </tr>
+
+        <!-- STORAGE -->
+        <tr data-cat="storage">
+          <td class="tool-name">Object Storage</td>
+          <td class="phase"><span class="badge badge-storage">storage</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">linode-cli obj mb s3://mybucket --cluster us-east-1</span>
+            <span class="cmd-line">linode-cli obj ls</span>
+            <span class="cmd-line">linode-cli obj ls s3://mybucket</span>
+            <span class="cmd-line">linode-cli obj put ./file.tar.gz s3://mybucket/backups/</span>
+            <span class="cmd-line">linode-cli obj get s3://mybucket/backups/file.tar.gz ./file.tar.gz</span>
+            <span class="cmd-line comment"># or use AWS CLI with Linode endpoint:</span>
+            <span class="cmd-line">aws s3 ls s3://mybucket --endpoint-url https://us-east-1.linodeobjects.com</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Object Storage uses S3-compatible API — the AWS CLI with <code>--endpoint-url</code> is more capable than <code>linode-cli obj</code> for complex operations (presign, sync with delete, multipart). Configure with Object Storage access keys from the console, not your API token. Buckets are region-specific; check cluster/region before creation.</td>
+        </tr>
+
+        <tr data-cat="storage">
+          <td class="tool-name">volumes (block storage)</td>
+          <td class="phase"><span class="badge badge-storage">storage</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">linode-cli volumes list --format id,label,size,region,linode_id,status</span>
+            <span class="cmd-line">linode-cli volumes attach &lt;vol-id&gt; --linode_id &lt;linode-id&gt;</span>
+            <span class="cmd-line">linode-cli volumes detach &lt;vol-id&gt;</span>
+            <span class="cmd-line">linode-cli volumes resize &lt;vol-id&gt; --size 40</span>
+            <span class="cmd-line">linode-cli volumes delete &lt;vol-id&gt;</span>
+            <span class="cmd-line comment"># volumes with no linode_id are unattached — still billed</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Volumes without a <code>linode_id</code> are detached and still billed at the full rate. Resize only increases size — no shrinking. After resizing you must resize the filesystem inside the Linode (<code>resize2fs</code> for ext4). Detach before delete; deletion of an attached volume is blocked.</td>
+        </tr>
+
+        <!-- NETWORKING -->
+        <tr data-cat="network">
+          <td class="tool-name">firewalls</td>
+          <td class="phase"><span class="badge badge-network">networking</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">linode-cli firewalls list --format id,label,status</span>
+            <span class="cmd-line">linode-cli firewalls rules-list &lt;id&gt;</span>
+            <span class="cmd-line">linode-cli firewalls rules-update &lt;id&gt; --inbound '[{"action":"ACCEPT","protocol":"TCP","ports":"443","addresses":{"ipv4":["0.0.0.0/0"]}}]' --inbound_policy DROP --outbound_policy ACCEPT</span>
+            <span class="cmd-line">linode-cli firewalls devices-list &lt;id&gt;</span>
+            <span class="cmd-line">linode-cli firewalls device-create &lt;firewall-id&gt; --id &lt;linode-id&gt; --type linode</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Linode firewalls use <code>inbound_policy</code> and <code>outbound_policy</code> as defaults — <code>DROP</code> is the correct production default for inbound. <code>rules-update</code> replaces the entire ruleset atomically — build the full JSON array before calling it. Firewall devices list shows which Linodes are protected — any Linode not in a firewall is fully exposed.</td>
+        </tr>
+
+        <tr data-cat="network">
+          <td class="tool-name">NodeBalancers</td>
+          <td class="phase"><span class="badge badge-network">networking</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">linode-cli nodebalancers list --format id,label,hostname,region,transfer.total</span>
+            <span class="cmd-line">linode-cli nodebalancers configs-list &lt;id&gt; --format id,port,protocol,algorithm,check,check_path</span>
+            <span class="cmd-line">linode-cli nodebalancers nodes-list &lt;nb-id&gt; &lt;config-id&gt; --format id,label,address,status,weight</span>
+            <span class="cmd-line">linode-cli nodebalancers node-update &lt;nb-id&gt; &lt;config-id&gt; &lt;node-id&gt; --weight 50</span>
+            <span class="cmd-line">linode-cli nodebalancers node-delete &lt;nb-id&gt; &lt;config-id&gt; &lt;node-id&gt;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Node status in <code>nodes-list</code> shows UP/DOWN/unknown — the first check when traffic stops reaching backends. <code>check_path</code> in configs confirms what path the health check is probing. Adjusting <code>weight</code> enables weighted traffic splitting between nodes — zero-weight effectively drains a node without removing it.</td>
+        </tr>
+
+        <tr data-cat="network">
+          <td class="tool-name">domains / DNS</td>
+          <td class="phase"><span class="badge badge-network">networking</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">linode-cli domains list --format id,domain,type,status</span>
+            <span class="cmd-line">linode-cli domains records-list &lt;domain-id&gt; --format id,type,name,target,ttl_sec</span>
+            <span class="cmd-line">linode-cli domains records-create &lt;domain-id&gt; --type A --name api --target 10.0.0.1 --ttl_sec 300</span>
+            <span class="cmd-line">linode-cli domains records-update &lt;domain-id&gt; &lt;record-id&gt; --target 10.0.0.2</span>
+            <span class="cmd-line">linode-cli domains records-delete &lt;domain-id&gt; &lt;record-id&gt;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Linode DNS is free for domains pointed at Linode nameservers. Record operations need the domain ID, not the domain name — list first. TTL of 300 seconds (5 minutes) is reasonable for records that may change; use higher values for stable records to reduce DNS lookup latency.</td>
+        </tr>
+
+        <tr data-cat="network">
+          <td class="tool-name">VPC + private networking</td>
+          <td class="phase"><span class="badge badge-network">networking</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">linode-cli vpcs list --format id,label,region,subnets</span>
+            <span class="cmd-line">linode-cli vpcs view &lt;id&gt;</span>
+            <span class="cmd-line">linode-cli vpcs subnets-list &lt;vpc-id&gt; --format id,label,ipv4,linodes</span>
+            <span class="cmd-line">linode-cli networking ips-list --format address,type,region,linode_id</span>
+            <span class="cmd-line">linode-cli networking ip-addresses-assign --region us-east --assignments '[{"address":"&lt;ip&gt;","linode_id":&lt;id&gt;}]'</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Linode VPCs are region-scoped and relatively new — check regional availability before designing around them. <code>ips-list</code> shows all IPs in the account including reserved IPs — unassigned reserved IPs are billed. Subnet <code>linodes</code> field shows which Linodes are attached to a subnet without querying each Linode individually.</td>
+        </tr>
+
+        <!-- DATABASES -->
+        <tr data-cat="db">
+          <td class="tool-name">managed databases</td>
+          <td class="phase"><span class="badge badge-db">databases</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">linode-cli databases list --format id,label,engine,version,region,status,cluster_size</span>
+            <span class="cmd-line">linode-cli databases postgresql-view &lt;id&gt;</span>
+            <span class="cmd-line">linode-cli databases postgresql-credentials-view &lt;id&gt; --text --no-header</span>
+            <span class="cmd-line">linode-cli databases postgresql-patch &lt;id&gt;</span>
+            <span class="cmd-line">linode-cli databases postgresql-backups-list &lt;id&gt; --format id,created,type</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>credentials-view</code> returns host, port, username, and password — treat this output as sensitive and pipe directly to a secrets store rather than printing to a shared terminal. <code>postgresql-patch</code> applies the latest minor version patch to the cluster — triggers a rolling restart. Check <code>backups-list</code> before patching to confirm a recent backup exists.</td>
+        </tr>
+
+        <tr data-cat="db">
+          <td class="tool-name">DB access controls</td>
+          <td class="phase"><span class="badge badge-db">databases</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">linode-cli databases postgresql-access-controls-list &lt;id&gt;</span>
+            <span class="cmd-line">linode-cli databases postgresql-access-controls-update &lt;id&gt; --allow_list '["10.0.0.1/32","192.168.1.0/24"]'</span>
+            <span class="cmd-line comment"># replaces the entire allow list — build the full JSON array</span>
+            <span class="cmd-line comment"># empty allow_list blocks all access — even from your app</span>
+            <span class="cmd-line">linode-cli databases mysql-access-controls-update &lt;id&gt; --allow_list '["10.0.0.0/8"]'</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Linode managed databases use an IP allowlist model — no connection without an explicit CIDR entry. <code>access-controls-update</code> replaces the entire list atomically — build the complete JSON array including all existing entries before calling. An empty allowlist blocks all connections immediately, including your application servers.</td>
+        </tr>
+
+      </tbody>
+    </table>
+    <div class="no-results" id="no-results">No entries match this filter.</div>
+  </div>
+</main>
+<footer>
+  ops://cheatsheets &mdash;
+  <a href="https://www.linode.com/docs/guides/linode-cli/" target="_blank" rel="noopener">linode-cli docs</a> &middot;
+  <a href="https://www.linode.com/docs/products/compute/kubernetes/" target="_blank" rel="noopener">LKE docs</a> &middot;
+  <a href="https://www.linode.com/docs/products/storage/object-storage/" target="_blank" rel="noopener">Object Storage</a>
+</footer>
+<script>
+(function () {
+  const btns = document.querySelectorAll('.f-btn'), rows = document.querySelectorAll('#tbody tr[data-cat]');
+  const countEl = document.getElementById('count-n'), noRes = document.getElementById('no-results');
+  function filter(cat) {
+    let s = 0; rows.forEach(r => { const m = cat==='all'||r.dataset.cat===cat; r.style.display=m?'':'none'; if(m)s++; });
+    countEl.textContent=s; noRes.style.display=s===0?'block':'none';
+  }
+  btns.forEach(b => b.addEventListener('click', () => { btns.forEach(x=>x.classList.remove('active')); b.classList.add('active'); filter(b.dataset.cat); }));
+  window.copyAll = function(btn) {
+    const lines = Array.from(btn.closest('.cmd-block').querySelectorAll('.cmd-line')).map(l=>l.textContent).join('\n');
+    navigator.clipboard.writeText(lines).then(() => { btn.textContent='copied!'; btn.classList.add('copied'); setTimeout(()=>{btn.textContent='copy';btn.classList.remove('copied');},1500); });
+  };
+})();
+</script>
+</body>
+</html>
