@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nginx as API Gateway — Production Surface Cheat Sheet</title>
+<meta name="description" content="Filterable Nginx API gateway reference — config validation, upstream, rate limiting, auth, TLS/mTLS, and observability patterns.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #070e07;
+    --bg2:     #0c160c;
+    --bg3:     #111e11;
+    --border:  #182618;
+    --border2: #213421;
+    --text:    #aad4aa;
+    --muted:   #406040;
+    --accent:  #269539;
+    --cmd:     #7dd3a8;
+    --conf:    #fcd34d;
+    --mono:    'JetBrains Mono', monospace;
+    --display: 'Syne', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--mono); font-size: 13px; line-height: 1.6; min-height: 100vh; }
+  body::before { content: ''; position: fixed; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px); pointer-events: none; z-index: 999; }
+  nav { border-bottom: 1px solid var(--border); padding: .6rem 2rem; display: flex; align-items: center; gap: .5rem; font-size: 11px; }
+  nav a { color: var(--muted); text-decoration: none; transition: color .15s; }
+  nav a:hover { color: var(--accent); }
+  nav .sep { color: var(--border2); }
+  nav .current { color: var(--text); }
+  header { border-bottom: 1px solid var(--border); padding: 2.5rem 2rem 2rem; position: relative; overflow: hidden; }
+  header::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 120px; height: 2px; background: var(--accent); }
+  .header-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .prompt { font-size: 11px; color: var(--accent); letter-spacing: .1em; margin-bottom: .5rem; }
+  .prompt::before { content: '$ '; color: var(--muted); }
+  h1 { font-family: var(--display); font-size: clamp(1.6rem, 4vw, 2.6rem); font-weight: 800; color: #c8f0c8; letter-spacing: -.02em; line-height: 1.1; }
+  h1 span { color: var(--accent); }
+  .subtitle { margin-top: .6rem; font-size: 12px; color: var(--muted); max-width: 520px; }
+  .meta { text-align: right; font-size: 11px; color: var(--muted); line-height: 2; }
+  .meta strong { color: var(--text); }
+  main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+  .callout { display: flex; align-items: flex-start; gap: .75rem; background: rgba(38,149,57,.05); border: 1px solid rgba(38,149,57,.2); border-left: 3px solid var(--accent); border-radius: 4px; padding: .85rem 1rem; margin-bottom: 1.75rem; font-size: 11px; color: var(--muted); line-height: 1.7; }
+  .callout::before { content: '!'; color: var(--accent); font-weight: 700; font-size: 13px; flex-shrink: 0; line-height: 1.5; }
+  .callout strong { color: var(--text); }
+  .callout code { color: var(--accent); font-size: 10.5px; }
+  .pinned { border: 1px solid var(--border2); border-radius: 6px; margin-bottom: 1.75rem; overflow: hidden; }
+  .pinned-header { background: var(--bg2); padding: .6rem 1rem; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: .5rem; }
+  .pinned-header::before { content: '📌'; font-size: 11px; }
+  .pinned-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .pinned-cell { padding: .9rem 1rem; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .pinned-cell:last-child { border-right: none; }
+  .pinned-cell:nth-last-child(-n+2) { border-bottom: none; }
+  .pinned-label { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-bottom: .4rem; }
+  .pinned-cell .cmd-line { display: block; color: var(--cmd); font-size: 11px; line-height: 1.9; word-break: break-all; }
+  .pinned-cell .cmd-line::before { content: '$ '; color: var(--muted); user-select: none; }
+  .pinned-cell .cmd-line.conf { color: var(--conf); font-style: italic; }
+  .pinned-cell .cmd-line.conf::before { content: '  '; }
+  .pinned-cell .cmd-line.comment { color: var(--muted); }
+  .pinned-cell .cmd-line.comment::before { content: ''; }
+  .legend { display: flex; align-items: center; gap: 1rem; font-size: 11px; color: var(--muted); margin-bottom: 1rem; flex-wrap: wrap; }
+  .leg-cmd { color: var(--cmd); }
+  .leg-conf { color: var(--conf); }
+  .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-bottom: 1.25rem; }
+  .toolbar-label { font-size: 10px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; margin-right: .25rem; }
+  .f-btn { background: transparent; border: 1px solid var(--border2); border-radius: 3px; padding: 3px 10px; font-family: var(--mono); font-size: 11px; color: var(--muted); cursor: pointer; letter-spacing: .06em; transition: color .15s, border-color .15s, background .15s; }
+  .f-btn:hover { color: var(--text); background: var(--bg3); }
+  .f-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(38,149,57,0.07); }
+  .count { margin-left: auto; font-size: 11px; color: var(--muted); }
+  .count strong { color: var(--accent); }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 6px; }
+  table { width: 100%; border-collapse: collapse; min-width: 800px; }
+  thead th { background: var(--bg2); padding: 10px 14px; text-align: left; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap; font-weight: 400; }
+  thead th:first-child { border-radius: 6px 0 0 0; }
+  thead th:last-child  { border-radius: 0 6px 0 0; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg2); }
+  td { padding: 10px 14px; vertical-align: top; }
+  td.tool-name { font-weight: 700; font-size: 13px; color: #c8f0c8; white-space: nowrap; min-width: 160px; }
+  td.phase { min-width: 110px; }
+  .badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 2px; letter-spacing: .06em; font-weight: 500; white-space: nowrap; }
+  .badge-config  { background: rgba(38,149,57,.12);  color: #26c939; border: 1px solid rgba(38,149,57,.3);  }
+  .badge-upstream{ background: rgba(96,165,250,.12); color: #60a5fa; border: 1px solid rgba(96,165,250,.3); }
+  .badge-ratelim { background: rgba(255,95,87,.12);  color: #ff7b75; border: 1px solid rgba(255,95,87,.3);  }
+  .badge-auth    { background: rgba(192,96,255,.12); color: #c060ff; border: 1px solid rgba(192,96,255,.3); }
+  .badge-tls     { background: rgba(240,180,41,.12); color: #f0b429; border: 1px solid rgba(240,180,41,.3); }
+  .badge-obs     { background: rgba(45,212,191,.12); color: #2dd4bf; border: 1px solid rgba(45,212,191,.3); }
+  td.commands { min-width: 320px; max-width: 460px; }
+  .cmd-block { position: relative; }
+  .cmd-line { display: block; color: var(--cmd); font-size: 11.5px; line-height: 1.9; word-break: break-all; }
+  .cmd-line::before { content: '$ '; color: var(--muted); user-select: none; }
+  .cmd-line.conf { color: var(--conf); font-style: italic; }
+  .cmd-line.conf::before { content: '  '; }
+  .cmd-line.comment { color: var(--muted); }
+  .cmd-line.comment::before { content: ''; }
+  .copy-btn { position: absolute; top: 0; right: 0; background: var(--bg3); border: 1px solid var(--border2); border-radius: 3px; color: var(--muted); font-family: var(--mono); font-size: 10px; padding: 1px 7px; cursor: pointer; opacity: 0; transition: opacity .15s, color .15s; letter-spacing: .05em; }
+  .cmd-block:hover .copy-btn { opacity: 1; }
+  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .copy-btn.copied { color: var(--accent); border-color: var(--accent); }
+  td.usecase { font-size: 12px; color: var(--muted); min-width: 220px; }
+  .no-results { text-align: center; padding: 3rem; color: var(--muted); font-size: 12px; display: none; }
+  footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; text-align: center; font-size: 11px; color: var(--muted); }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--text); }
+  @media (max-width: 640px) { header, main { padding: 1.25rem; } h1 { font-size: 1.5rem; } .meta { display: none; } .pinned-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html">&#8592; ops://cheatsheets</a>
+  <span class="sep">/</span>
+  <span class="current">nginx</span>
+</nav>
+<header>
+  <div class="header-inner">
+    <div>
+      <p class="prompt">nginx -T | grep -E "upstream|location|limit_req"</p>
+      <h1>Nginx<br><span>as API Gateway</span></h1>
+      <p class="subtitle">Config correctness over command quantity. Upstream blocks, rate limiting, JWT via auth_request, mTLS, health checks, and observability. nginx OSS and nginx Plus.</p>
+    </div>
+    <div class="meta"><strong>20</strong> patterns<br><strong>6</strong> phases<br>nginx 1.24+ &middot; config-first</div>
+  </div>
+</header>
+<main>
+  <div class="callout">
+    <span>
+      <strong>This page is config-centric, not command-centric.</strong> nginx's operational surface is mostly about getting the config right — the commands (<code>nginx -t</code>, <code>nginx -s reload</code>) are few and simple. Most of what bites you in production is a subtle config mistake: wrong upstream keepalive settings, missing proxy headers, rate limit zones sized too small, or TLS misconfiguration. Config snippets are the primary content here.
+      <br><br>
+      <strong>nginx OSS vs nginx Plus:</strong> active health checks (<code>health_check</code> directive), sticky sessions, and the live activity monitor require nginx Plus. OSS passive health checks (via <code>max_fails</code>/<code>fail_timeout</code>) are shown throughout. Plus-only features are marked.
+    </span>
+  </div>
+  <div class="pinned">
+    <div class="pinned-header">cross-cutting — know these before anything else</div>
+    <div class="pinned-grid">
+      <div class="pinned-cell">
+        <div class="pinned-label">essential commands</div>
+        <span class="cmd-line">nginx -t</span>
+        <span class="cmd-line">nginx -T</span>
+        <span class="cmd-line">nginx -s reload</span>
+        <span class="cmd-line">nginx -s quit</span>
+        <span class="cmd-line">nginx -v && nginx -V</span>
+        <span class="cmd-line comment"># -t: test config; -T: dump full config; reload: zero-downtime</span>
+      </div>
+      <div class="pinned-cell">
+        <div class="pinned-label">always validate before reload</div>
+        <span class="cmd-line">nginx -t && nginx -s reload</span>
+        <span class="cmd-line">systemctl reload nginx</span>
+        <span class="cmd-line">nginx -t 2>&1 | grep -E "error|warn"</span>
+        <span class="cmd-line comment"># NEVER: nginx -s reload without -t first</span>
+        <span class="cmd-line comment"># a bad reload leaves old workers serving stale config</span>
+        <span class="cmd-line comment"># check: ps aux | grep nginx (old workers linger)</span>
+      </div>
+      <div class="pinned-cell">
+        <div class="pinned-label">config structure</div>
+        <span class="conf">/etc/nginx/nginx.conf          # main</span>
+        <span class="conf">/etc/nginx/conf.d/*.conf       # included sites</span>
+        <span class="conf">/etc/nginx/snippets/           # reusable blocks</span>
+        <span class="cmd-line">nginx -T | grep "include"</span>
+        <span class="cmd-line comment"># verify all includes are loading from expected paths</span>
+        <span class="cmd-line comment"># nginx -T dumps the full merged config — use for debugging</span>
+      </div>
+      <div class="pinned-cell">
+        <div class="pinned-label">proxy_pass gotcha</div>
+        <span class="conf"># With trailing slash — strips location prefix:</span>
+        <span class="conf">location /api/ { proxy_pass http://backend/; }</span>
+        <span class="conf"># /api/users → http://backend/users</span>
+        <span class="conf"> </span>
+        <span class="conf"># Without trailing slash — passes full URI:</span>
+        <span class="conf">location /api/ { proxy_pass http://backend; }</span>
+        <span class="conf"># /api/users → http://backend/api/users</span>
+        <span class="cmd-line comment"># trailing slash on proxy_pass is the #1 nginx gotcha</span>
+      </div>
+    </div>
+  </div>
+  <div class="legend">
+    <span><span class="leg-cmd">green</span> = shell command</span>
+    <span><span class="leg-conf">yellow</span> = nginx config snippet</span>
+  </div>
+  <div class="toolbar">
+    <span class="toolbar-label">Phase</span>
+    <button class="f-btn active" data-cat="all">all</button>
+    <button class="f-btn" data-cat="config">config</button>
+    <button class="f-btn" data-cat="upstream">upstream</button>
+    <button class="f-btn" data-cat="ratelim">rate limiting</button>
+    <button class="f-btn" data-cat="auth">auth</button>
+    <button class="f-btn" data-cat="tls">tls / mtls</button>
+    <button class="f-btn" data-cat="obs">observability</button>
+    <span class="count" id="count"><strong id="count-n">20</strong> shown</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Pattern</th><th>Phase</th><th>Config / Commands</th><th>Notes</th></tr></thead>
+      <tbody id="tbody">
+
+        <!-- CONFIG -->
+        <tr data-cat="config">
+          <td class="tool-name">config validation</td>
+          <td class="phase"><span class="badge badge-config">config</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">nginx -t</span>
+            <span class="cmd-line">nginx -T</span>
+            <span class="cmd-line">nginx -T | grep -E "server_name|listen|upstream"</span>
+            <span class="cmd-line">nginx -t && systemctl reload nginx</span>
+            <span class="cmd-line">curl -sv http://localhost/health 2>&1 | grep -E "< HTTP|< X-"</span>
+            <span class="cmd-line">ss -tlnp | grep nginx</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>nginx -T</code> dumps the complete merged configuration — the definitive way to debug include ordering and see exactly what nginx is running. Always run <code>nginx -t</code> before reload; a failed reload leaves the old config running, which may not be obvious. <code>ss -tlnp | grep nginx</code> confirms which ports nginx is actually listening on after reload.</td>
+        </tr>
+
+        <tr data-cat="config">
+          <td class="tool-name">minimal API gateway config</td>
+          <td class="phase"><span class="badge badge-config">config</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="conf">server {</span>
+            <span class="conf">  listen 443 ssl;</span>
+            <span class="conf">  server_name api.example.com;</span>
+            <span class="conf">  </span>
+            <span class="conf">  location /api/v1/ {</span>
+            <span class="conf">    proxy_pass http://backend_v1/;</span>
+            <span class="conf">    proxy_set_header Host              $host;</span>
+            <span class="conf">    proxy_set_header X-Real-IP         $remote_addr;</span>
+            <span class="conf">    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;</span>
+            <span class="conf">    proxy_set_header X-Forwarded-Proto $scheme;</span>
+            <span class="conf">    proxy_connect_timeout 5s;</span>
+            <span class="conf">    proxy_send_timeout    30s;</span>
+            <span class="conf">    proxy_read_timeout    30s;</span>
+            <span class="conf">  }</span>
+            <span class="conf">}</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Always set all four proxy headers — backends that log the real IP need <code>X-Forwarded-For</code>; backends behind multiple proxies need <code>X-Forwarded-Proto</code> to know if the original request was HTTPS. Explicit timeouts are required — nginx defaults (60s) are too high for most APIs where you'd rather fail fast and let the client retry.</td>
+        </tr>
+
+        <tr data-cat="config">
+          <td class="tool-name">worker / connection tuning</td>
+          <td class="phase"><span class="badge badge-config">config</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="conf"># nginx.conf — http/events blocks:</span>
+            <span class="conf">worker_processes auto;         # one per CPU core</span>
+            <span class="conf">worker_rlimit_nofile 65535;    # match system ulimit</span>
+            <span class="conf">events {</span>
+            <span class="conf">  worker_connections 4096;       # per worker</span>
+            <span class="conf">  use epoll;                     # Linux only</span>
+            <span class="conf">  multi_accept on;</span>
+            <span class="conf">}</span>
+            <span class="conf">http {</span>
+            <span class="conf">  keepalive_timeout 65;</span>
+            <span class="conf">  keepalive_requests 1000;</span>
+            <span class="conf">  sendfile on;</span>
+            <span class="conf">  tcp_nopush on;</span>
+            <span class="conf">  tcp_nodelay on;</span>
+            <span class="conf">}</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Max concurrent connections = <code>worker_processes × worker_connections</code>. <code>worker_rlimit_nofile</code> must match or exceed the OS file descriptor limit (<code>ulimit -n</code>). <code>multi_accept on</code> accepts all pending connections at once rather than one per event loop cycle — necessary under high load. <code>tcp_nodelay on</code> disables Nagle's algorithm — critical for low-latency API responses.</td>
+        </tr>
+
+        <!-- UPSTREAM -->
+        <tr data-cat="upstream">
+          <td class="tool-name">upstream block patterns</td>
+          <td class="phase"><span class="badge badge-upstream">upstream</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="conf">upstream backend_v1 {</span>
+            <span class="conf">  least_conn;                    # or: round_robin (default), ip_hash</span>
+            <span class="conf">  server 10.0.0.1:8080 weight=3;</span>
+            <span class="conf">  server 10.0.0.2:8080 weight=1;</span>
+            <span class="conf">  server 10.0.0.3:8080 backup;   # only used when others fail</span>
+            <span class="conf">  keepalive 32;                  # idle keepalive connections per worker</span>
+            <span class="conf">  keepalive_requests 100;</span>
+            <span class="conf">  keepalive_timeout 60s;</span>
+            <span class="conf">}</span>
+            <span class="conf"># in location block, add:</span>
+            <span class="conf">proxy_http_version 1.1;</span>
+            <span class="conf">proxy_set_header Connection "";</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>keepalive</code> in the upstream block + <code>proxy_http_version 1.1</code> + clearing the <code>Connection</code> header is the complete pattern for upstream connection reuse — all three directives are required. Without this, nginx opens a new TCP connection to the backend for every request. <code>backup</code> servers receive traffic only when all primary servers fail.</td>
+        </tr>
+
+        <tr data-cat="upstream">
+          <td class="tool-name">passive health checks</td>
+          <td class="phase"><span class="badge badge-upstream">upstream</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="conf">upstream backend {</span>
+            <span class="conf">  server 10.0.0.1:8080 max_fails=3 fail_timeout=30s;</span>
+            <span class="conf">  server 10.0.0.2:8080 max_fails=3 fail_timeout=30s;</span>
+            <span class="conf">}</span>
+            <span class="conf"># in location block — what counts as a failure:</span>
+            <span class="conf">proxy_next_upstream error timeout http_500 http_502 http_503;</span>
+            <span class="conf">proxy_next_upstream_tries 2;</span>
+            <span class="conf">proxy_next_upstream_timeout 10s;</span>
+            <span class="cmd-line comment"># active health checks (nginx Plus only):</span>
+            <span class="conf">health_check interval=10s fails=3 passes=2 uri=/health;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Passive health checks (OSS): after <code>max_fails</code> failures within <code>fail_timeout</code> the server is marked unavailable for <code>fail_timeout</code> seconds. <code>proxy_next_upstream</code> defines what response codes trigger a retry on the next upstream. <code>proxy_next_upstream_tries</code> caps retries — without a cap, a failed cluster triggers retries across all backends amplifying load.</td>
+        </tr>
+
+        <tr data-cat="upstream">
+          <td class="tool-name">dynamic upstream via resolver</td>
+          <td class="phase"><span class="badge badge-upstream">upstream</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="conf"># resolve upstream hostnames dynamically (useful in containers/K8s):</span>
+            <span class="conf">resolver 127.0.0.53 valid=30s ipv6=off;</span>
+            <span class="conf">resolver_timeout 5s;</span>
+            <span class="conf"> </span>
+            <span class="conf">server {</span>
+            <span class="conf">  set $backend "http://my-service.namespace.svc.cluster.local:8080";</span>
+            <span class="conf">  location /api/ {</span>
+            <span class="conf">    proxy_pass $backend;</span>
+            <span class="conf">  }</span>
+            <span class="conf">}</span>
+            <span class="cmd-line comment"># using a variable in proxy_pass forces re-resolution per request</span>
+            <span class="cmd-line comment"># without resolver, nginx resolves once at startup and caches forever</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">In Kubernetes, using a static upstream hostname with no resolver causes nginx to cache the IP at startup — when the pod IP changes (common after restarts), nginx sends traffic to dead IPs until reload. The variable + resolver pattern forces DNS re-resolution, keeping nginx aligned with the current service endpoint. Set <code>valid</code> to a short TTL.</td>
+        </tr>
+
+        <!-- RATE LIMITING -->
+        <tr data-cat="ratelim">
+          <td class="tool-name">rate limiting zones</td>
+          <td class="phase"><span class="badge badge-ratelim">rate limiting</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="conf"># in http block — define zones:</span>
+            <span class="conf">limit_req_zone $binary_remote_addr zone=per_ip:10m rate=10r/s;</span>
+            <span class="conf">limit_req_zone $http_x_api_key   zone=per_key:10m rate=100r/s;</span>
+            <span class="conf">limit_req_zone $server_name       zone=per_server:10m rate=1000r/s;</span>
+            <span class="conf"> </span>
+            <span class="conf"># in location block — apply:</span>
+            <span class="conf">limit_req zone=per_ip burst=20 nodelay;</span>
+            <span class="conf">limit_req zone=per_key burst=50 nodelay;</span>
+            <span class="conf">limit_req_status 429;</span>
+            <span class="conf">limit_req_log_level warn;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>burst</code> allows short spikes above the rate; <code>nodelay</code> processes burst requests immediately rather than queuing them (queue = latency spike). Zone size: 1MB stores ~16,000 IP states; 10MB covers most API deployments. Rate by API key (<code>$http_x_api_key</code>) allows per-client limits independently of IP — clients behind NAT share the same IP but not the same key.</td>
+        </tr>
+
+        <tr data-cat="ratelim">
+          <td class="tool-name">connection limiting</td>
+          <td class="phase"><span class="badge badge-ratelim">rate limiting</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="conf"># limit concurrent connections (separate from request rate):</span>
+            <span class="conf">limit_conn_zone $binary_remote_addr zone=conn_per_ip:10m;</span>
+            <span class="conf">limit_conn_zone $server_name       zone=conn_per_server:10m;</span>
+            <span class="conf"> </span>
+            <span class="conf">server {</span>
+            <span class="conf">  limit_conn conn_per_ip     10;    # max 10 concurrent from one IP</span>
+            <span class="conf">  limit_conn conn_per_server 1000;  # max 1000 concurrent to this vhost</span>
+            <span class="conf">  limit_conn_status 503;</span>
+            <span class="conf">  limit_conn_log_level warn;</span>
+            <span class="conf">}</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>limit_conn</code> limits simultaneous open connections, not request rate — distinct from <code>limit_req</code>. A single slow HTTP/1.1 client with 10 open connections consumes <code>limit_conn</code> budget. Use both together: <code>limit_req</code> for request throughput, <code>limit_conn</code> for Slowloris-style connection exhaustion attacks. Per-server limit protects the backend from overload.</td>
+        </tr>
+
+        <!-- AUTH -->
+        <tr data-cat="auth">
+          <td class="tool-name">API key auth</td>
+          <td class="phase"><span class="badge badge-auth">auth</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="conf"># simple map-based API key validation:</span>
+            <span class="conf">map $http_x_api_key $api_client {</span>
+            <span class="conf">  default          "";             # unknown key → empty string</span>
+            <span class="conf">  "key-abc123"     "client-a";</span>
+            <span class="conf">  "key-def456"     "client-b";</span>
+            <span class="conf">}</span>
+            <span class="conf">server {</span>
+            <span class="conf">  location /api/ {</span>
+            <span class="conf">    if ($api_client = "") { return 401; }</span>
+            <span class="conf">    proxy_set_header X-API-Client $api_client;</span>
+            <span class="conf">    proxy_pass http://backend/;</span>
+            <span class="conf">  }</span>
+            <span class="conf">}</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Map-based API key validation is O(1) lookup — performant for hundreds of keys. Reload nginx after adding/removing keys. For large key sets or dynamic key management, delegate to <code>auth_request</code> pointing to an auth service. Pass the resolved client identity as a header so the backend knows who called it.</td>
+        </tr>
+
+        <tr data-cat="auth">
+          <td class="tool-name">JWT via auth_request</td>
+          <td class="phase"><span class="badge badge-auth">auth</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="conf">server {</span>
+            <span class="conf">  location /api/ {</span>
+            <span class="conf">    auth_request /auth;</span>
+            <span class="conf">    auth_request_set $auth_user $upstream_http_x_auth_user;</span>
+            <span class="conf">    proxy_set_header X-Auth-User $auth_user;</span>
+            <span class="conf">    proxy_pass http://backend/;</span>
+            <span class="conf">    error_page 401 = @error401;</span>
+            <span class="conf">  }</span>
+            <span class="conf">  location = /auth {</span>
+            <span class="conf">    internal;</span>
+            <span class="conf">    proxy_pass http://auth-service/validate;</span>
+            <span class="conf">    proxy_pass_request_body off;</span>
+            <span class="conf">    proxy_set_header Content-Length "";</span>
+            <span class="conf">    proxy_set_header X-Original-URI $request_uri;</span>
+            <span class="conf">  }</span>
+            <span class="conf">  location @error401 { return 401 '{"error":"unauthorized"}'; }</span>
+            <span class="conf">}</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>auth_request</code> delegates authentication to a subrequest — your auth service validates the JWT and returns 200/401. <code>auth_request_set</code> captures response headers from the auth service and makes them available for injection into the upstream request. <code>internal</code> on the auth location prevents direct external access. <code>proxy_pass_request_body off</code> avoids forwarding the request body to the auth service unnecessarily.</td>
+        </tr>
+
+        <tr data-cat="auth">
+          <td class="tool-name">basic auth</td>
+          <td class="phase"><span class="badge badge-auth">auth</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">htpasswd -c /etc/nginx/.htpasswd alice</span>
+            <span class="cmd-line">htpasswd /etc/nginx/.htpasswd bob</span>
+            <span class="cmd-line">openssl passwd -apr1 mypassword</span>
+            <span class="conf">location /admin/ {</span>
+            <span class="conf">  auth_basic "Admin Area";</span>
+            <span class="conf">  auth_basic_user_file /etc/nginx/.htpasswd;</span>
+            <span class="conf">  proxy_pass http://admin-backend/;</span>
+            <span class="conf">}</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Basic auth is appropriate for internal admin interfaces, not public APIs — credentials are base64-encoded, not encrypted, so HTTPS is required. <code>htpasswd</code> uses bcrypt by default in modern versions; use <code>openssl passwd -apr1</code> to generate APR1-MD5 for compatibility with older htpasswd files. Never use basic auth on an HTTP endpoint.</td>
+        </tr>
+
+        <!-- TLS -->
+        <tr data-cat="tls">
+          <td class="tool-name">TLS configuration</td>
+          <td class="phase"><span class="badge badge-tls">tls / mtls</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="conf">server {</span>
+            <span class="conf">  listen 443 ssl;  # add http2 for HTTP/2</span>
+            <span class="conf">  ssl_certificate     /etc/nginx/ssl/cert.pem;</span>
+            <span class="conf">  ssl_certificate_key /etc/nginx/ssl/key.pem;</span>
+            <span class="conf">  ssl_protocols TLSv1.2 TLSv1.3;</span>
+            <span class="conf">  ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305;</span>
+            <span class="conf">  ssl_prefer_server_ciphers off;  # TLS 1.3 negotiates ciphers</span>
+            <span class="conf">  ssl_session_cache shared:SSL:10m;</span>
+            <span class="conf">  ssl_session_timeout 1d;</span>
+            <span class="conf">  ssl_stapling on;</span>
+            <span class="conf">  ssl_stapling_verify on;</span>
+            <span class="conf">  add_header Strict-Transport-Security "max-age=63072000" always;</span>
+            <span class="conf">}</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">TLS 1.0 and 1.1 are broken — drop them. The cipher list prioritises ECDHE forward-secrecy suites. <code>ssl_prefer_server_ciphers off</code> is correct for TLS 1.3 which has its own cipher negotiation. <code>ssl_session_cache</code> dramatically reduces TLS handshake overhead for repeated connections. OCSP stapling reduces client-side certificate validation latency.</td>
+        </tr>
+
+        <tr data-cat="tls">
+          <td class="tool-name">mTLS (mutual TLS)</td>
+          <td class="phase"><span class="badge badge-tls">tls / mtls</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="conf"># require client certificate on /api/internal/:</span>
+            <span class="conf">server {</span>
+            <span class="conf">  ssl_client_certificate /etc/nginx/ssl/ca.pem;</span>
+            <span class="conf">  ssl_verify_client optional;  # or: on (required), off</span>
+            <span class="conf">  ssl_verify_depth 2;</span>
+            <span class="conf"> </span>
+            <span class="conf">  location /api/internal/ {</span>
+            <span class="conf">    if ($ssl_client_verify != SUCCESS) { return 403; }</span>
+            <span class="conf">    proxy_set_header X-SSL-Client-CN   $ssl_client_s_dn_cn;</span>
+            <span class="conf">    proxy_set_header X-SSL-Client-Cert $ssl_client_escaped_cert;</span>
+            <span class="conf">    proxy_pass http://internal-backend/;</span>
+            <span class="conf">  }</span>
+            <span class="conf">}</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>ssl_verify_client optional</code> allows both mTLS and non-mTLS clients on the same server — use <code>if ($ssl_client_verify != SUCCESS)</code> per-location to enforce it selectively. Pass the client CN and cert to backends so they can perform identity-based authorization. <code>ssl_verify_depth 2</code> allows certificates signed by intermediate CAs in a two-level hierarchy.</td>
+        </tr>
+
+        <tr data-cat="tls">
+          <td class="tool-name">Let's Encrypt (certbot)</td>
+          <td class="phase"><span class="badge badge-tls">tls / mtls</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">certbot --nginx -d api.example.com</span>
+            <span class="cmd-line">certbot renew --dry-run</span>
+            <span class="cmd-line">certbot renew --pre-hook "nginx -t" --post-hook "nginx -s reload"</span>
+            <span class="cmd-line">certbot certificates</span>
+            <span class="cmd-line">openssl x509 -in /etc/letsencrypt/live/api.example.com/cert.pem -noout -dates</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>--nginx</code> plugin modifies nginx config automatically and handles reload. Use <code>--pre-hook "nginx -t"</code> to abort renewal if the config is invalid before the reload. Check expiry with <code>openssl x509 -noout -dates</code> to confirm the cert that's actually loaded, not just what certbot reports. Certbot installs a systemd timer for auto-renewal — verify it's running with <code>systemctl status certbot.timer</code>.</td>
+        </tr>
+
+        <!-- OBSERVABILITY -->
+        <tr data-cat="obs">
+          <td class="tool-name">access log format</td>
+          <td class="phase"><span class="badge badge-obs">observability</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="conf">http {</span>
+            <span class="conf">  log_format json_combined escape=json</span>
+            <span class="conf">    '{"time":"$time_iso8601",'</span>
+            <span class="conf">    '"method":"$request_method",'</span>
+            <span class="conf">    '"uri":"$request_uri",'</span>
+            <span class="conf">    '"status":$status,'</span>
+            <span class="conf">    '"bytes_sent":$bytes_sent,'</span>
+            <span class="conf">    '"request_time":$request_time,'</span>
+            <span class="conf">    '"upstream_response_time":"$upstream_response_time",'</span>
+            <span class="conf">    '"upstream_addr":"$upstream_addr",'</span>
+            <span class="conf">    '"http_referer":"$http_referer",'</span>
+            <span class="conf">    '"http_x_forwarded_for":"$http_x_forwarded_for"}';</span>
+            <span class="conf">  access_log /var/log/nginx/access.log json_combined;</span>
+            <span class="conf">}</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">JSON access logs are machine-parseable by any log aggregator without a custom grok pattern. <code>upstream_response_time</code> is the backend latency; <code>request_time</code> includes nginx processing + backend — the difference is nginx overhead. <code>escape=json</code> escapes special characters in variable values, preventing log injection. Pipe through <code>jq</code> for immediate local analysis.</td>
+        </tr>
+
+        <tr data-cat="obs">
+          <td class="tool-name">stub_status + metrics</td>
+          <td class="phase"><span class="badge badge-obs">observability</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="conf">server {</span>
+            <span class="conf">  listen 8080;          # internal only — do not expose publicly</span>
+            <span class="conf">  allow 10.0.0.0/8;</span>
+            <span class="conf">  deny all;</span>
+            <span class="conf">  location /nginx_status {</span>
+            <span class="conf">    stub_status;</span>
+            <span class="conf">  }</span>
+            <span class="conf">}</span>
+            <span class="cmd-line">curl -s http://localhost:8080/nginx_status</span>
+            <span class="cmd-line comment"># output: Active connections, accepts, handled, requests, Reading/Writing/Waiting</span>
+            <span class="cmd-line comment"># Waiting (keepalive idle) high → reduce keepalive_timeout</span>
+            <span class="cmd-line comment"># handled < accepts → connections being dropped</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>stub_status</code> is OSS nginx's basic metrics endpoint — exposes active connections and request counters. Restrict to internal networks only. <code>Waiting</code> count = idle keepalive connections; if this dominates <code>Active connections</code>, reduce <code>keepalive_timeout</code>. nginx Plus exposes a full JSON API at <code>/api/</code> with per-upstream server stats, zone metrics, and cache hit rates.</td>
+        </tr>
+
+        <tr data-cat="obs">
+          <td class="tool-name">log analysis patterns</td>
+          <td class="phase"><span class="badge badge-obs">observability</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment"># top 503/502 URIs (last hour):</span>
+            <span class="cmd-line">awk '$9 ~ /50[23]/' /var/log/nginx/access.log | awk '{print $7}' | sort | uniq -c | sort -rn | head -20</span>
+            <span class="cmd-line comment"># slowest requests (JSON log):</span>
+            <span class="cmd-line">cat /var/log/nginx/access.log | jq -r 'select(.request_time > 1) | [.request_time, .uri, .status] | @tsv' | sort -rn | head -20</span>
+            <span class="cmd-line comment"># requests per second (last minute):</span>
+            <span class="cmd-line">awk -v d="$(date -d '1 minute ago' '+%d/%b/%Y:%H:%M')" '$4 > "["d' /var/log/nginx/access.log | wc -l</span>
+            <span class="cmd-line comment"># top client IPs hitting 429:</span>
+            <span class="cmd-line">awk '$9 == 429 {print $1}' /var/log/nginx/access.log | sort | uniq -c | sort -rn | head -10</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">These patterns work on both default combined log format (awk) and JSON log format (jq). Top 429 IPs helps tune rate limit zones — if the same legitimate client is being rate-limited, the zone rate or burst needs adjusting. Top error URIs during an incident points to which endpoint is failing, not just that something is failing.</td>
+        </tr>
+
+      </tbody>
+    </table>
+    <div class="no-results" id="no-results">No patterns match this filter.</div>
+  </div>
+</main>
+<footer>
+  ops://cheatsheets &mdash;
+  <a href="https://nginx.org/en/docs/" target="_blank" rel="noopener">nginx docs</a> &middot;
+  <a href="https://nginx.org/en/docs/http/ngx_http_upstream_module.html" target="_blank" rel="noopener">upstream module</a> &middot;
+  <a href="https://nginx.org/en/docs/http/ngx_http_limit_req_module.html" target="_blank" rel="noopener">limit_req</a> &middot;
+  <a href="https://ssl-config.mozilla.org/" target="_blank" rel="noopener">Mozilla TLS config</a>
+</footer>
+<script>
+(function () {
+  const btns = document.querySelectorAll('.f-btn'), rows = document.querySelectorAll('#tbody tr[data-cat]');
+  const countEl = document.getElementById('count-n'), noRes = document.getElementById('no-results');
+  function filter(cat) {
+    let s = 0; rows.forEach(r => { const m = cat==='all'||r.dataset.cat===cat; r.style.display=m?'':'none'; if(m)s++; });
+    countEl.textContent=s; noRes.style.display=s===0?'block':'none';
+  }
+  btns.forEach(b => b.addEventListener('click', () => { btns.forEach(x=>x.classList.remove('active')); b.classList.add('active'); filter(b.dataset.cat); }));
+  window.copyAll = function(btn) {
+    const lines = Array.from(btn.closest('.cmd-block').querySelectorAll('.cmd-line')).map(l=>l.textContent).join('\n');
+    navigator.clipboard.writeText(lines).then(() => { btn.textContent='copied!'; btn.classList.add('copied'); setTimeout(()=>{btn.textContent='copy';btn.classList.remove('copied');},1500); });
+  };
+})();
+</script>
+</body>
+</html>

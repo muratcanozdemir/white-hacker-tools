@@ -141,6 +141,12 @@
   .post-card.do:hover             { border-left-color: #4d94ff; }
   .post-card.linode:hover         { border-left-color: #02b159; }
   .post-card.hetzner:hover        { border-left-color: #ff4060; }
+  .tag-kong   { background: rgba(9,201,154,.12);  color: #09c99a; border: 1px solid rgba(9,201,154,.3);  }
+  .tag-mule   { background: rgba(0,161,223,.12);  color: #00a1df; border: 1px solid rgba(0,161,223,.3);  }
+  .tag-nginx  { background: rgba(38,149,57,.12);  color: #26c939; border: 1px solid rgba(38,149,57,.3);  }
+  .post-card.kong:hover           { border-left-color: #09c99a; }
+  .post-card.mule:hover           { border-left-color: #00a1df; }
+  .post-card.nginx:hover          { border-left-color: #26c939; }
   .post-date { font-size: 10px; color: var(--muted); }
   .post-title {
     font-family: var(--display);
@@ -441,15 +447,52 @@
       <span class="post-arrow">&#8594;</span>
     </a>
 
+    <a href="kong.html" class="post-card kong">
+      <div>
+        <div class="post-meta">
+          <span class="tag tag-kong">api gateway</span>
+          <span class="post-date">2026-05-10</span>
+        </div>
+        <p class="post-title">Kong API Gateway</p>
+        <p class="post-desc">Admin API patterns, deck config-as-code, plugin management, routing, upstreams, and operational inspection for Kong OSS and Kong Gateway.</p>
+        <p class="tool-count"><strong>22</strong> entries &middot; 7 phases</p>
+      </div>
+      <span class="post-arrow">&#8594;</span>
+    </a>
+
+    <a href="mulesoft.html" class="post-card mule">
+      <div>
+        <div class="post-meta">
+          <span class="tag tag-mule">mulesoft</span>
+          <span class="post-date">2026-05-10</span>
+        </div>
+        <p class="post-title">MuleSoft — Production Surface</p>
+        <p class="post-desc">anypoint-cli for interactive ops and environment promotion. Mule Maven Plugin for CI/CD deployments. Deploy, promote, API Manager, runtime, observability, governance.</p>
+        <p class="tool-count"><strong>20</strong> entries &middot; 6 phases</p>
+      </div>
+      <span class="post-arrow">&#8594;</span>
+    </a>
+
+    <a href="nginx.html" class="post-card nginx">
+      <div>
+        <div class="post-meta">
+          <span class="tag tag-nginx">nginx</span>
+          <span class="post-date">2026-05-10</span>
+        </div>
+        <p class="post-title">Nginx as API Gateway</p>
+        <p class="post-desc">Config-centric reference — upstream blocks, rate limiting, JWT via auth_request, mTLS, TLS hardening, and observability patterns. nginx OSS and nginx Plus.</p>
+        <p class="tool-count"><strong>20</strong> patterns &middot; 6 phases</p>
+      </div>
+      <span class="post-arrow">&#8594;</span>
+    </a>
+
   </div>
 
   <p class="section-label">up next</p>
 
   <div class="coming-soon">
     <p class="coming-soon-title">on the roadmap</p>
-    <div class="coming-item" style="margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border);">Kong — API gateway ops, deck config-as-code, plugin management, admin API, routing patterns</div>
-    <div class="coming-item">MuleSoft — anypoint-cli + Mule Maven Plugin; deploy, promote, CI/CD, API Manager, runtime, observability, governance</div>
-    <div class="coming-item">Nginx as API Gateway — upstream blocks, rate limiting, JWT via auth_request, mTLS, health checks, config validation</div>
+    <div class="coming-item" style="margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border);">More to come. Suggestions welcome.</div>
 
   </div>
 

@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MuleSoft — Production Surface Cheat Sheet</title>
+<meta name="description" content="Filterable MuleSoft reference — anypoint-cli and Mule Maven Plugin for deploy, CI/CD, API management, runtime, observability, and governance.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #060c14;
+    --bg2:     #0a1220;
+    --bg3:     #0f192c;
+    --border:  #14243c;
+    --border2: #1c3254;
+    --text:    #a8c4e0;
+    --muted:   #406080;
+    --accent:  #00a1df;
+    --cmd:     #7dd3a8;
+    --mvn:     #f97316;
+    --conf:    #fcd34d;
+    --mono:    'JetBrains Mono', monospace;
+    --display: 'Syne', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--mono); font-size: 13px; line-height: 1.6; min-height: 100vh; }
+  body::before { content: ''; position: fixed; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px); pointer-events: none; z-index: 999; }
+  nav { border-bottom: 1px solid var(--border); padding: .6rem 2rem; display: flex; align-items: center; gap: .5rem; font-size: 11px; }
+  nav a { color: var(--muted); text-decoration: none; transition: color .15s; }
+  nav a:hover { color: var(--accent); }
+  nav .sep { color: var(--border2); }
+  nav .current { color: var(--text); }
+  header { border-bottom: 1px solid var(--border); padding: 2.5rem 2rem 2rem; position: relative; overflow: hidden; }
+  header::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 120px; height: 2px; background: var(--accent); }
+  .header-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .prompt { font-size: 11px; color: var(--accent); letter-spacing: .1em; margin-bottom: .5rem; }
+  .prompt::before { content: '$ '; color: var(--muted); }
+  h1 { font-family: var(--display); font-size: clamp(1.6rem, 4vw, 2.6rem); font-weight: 800; color: #c0dff8; letter-spacing: -.02em; line-height: 1.1; }
+  h1 span { color: var(--accent); }
+  .subtitle { margin-top: .6rem; font-size: 12px; color: var(--muted); max-width: 520px; }
+  .meta { text-align: right; font-size: 11px; color: var(--muted); line-height: 2; }
+  .meta strong { color: var(--text); }
+  main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+  .callout { display: flex; align-items: flex-start; gap: .75rem; background: rgba(0,161,223,.05); border: 1px solid rgba(0,161,223,.2); border-left: 3px solid var(--accent); border-radius: 4px; padding: .85rem 1rem; margin-bottom: 1.75rem; font-size: 11px; color: var(--muted); line-height: 1.7; }
+  .callout::before { content: '!'; color: var(--accent); font-weight: 700; font-size: 13px; flex-shrink: 0; line-height: 1.5; }
+  .callout strong { color: var(--text); }
+  .callout code { color: var(--accent); font-size: 10.5px; }
+  .pinned { border: 1px solid var(--border2); border-radius: 6px; margin-bottom: 1.75rem; overflow: hidden; }
+  .pinned-header { background: var(--bg2); padding: .6rem 1rem; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: .5rem; }
+  .pinned-header::before { content: '📌'; font-size: 11px; }
+  .pinned-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .pinned-cell { padding: .9rem 1rem; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .pinned-cell:last-child { border-right: none; }
+  .pinned-cell:nth-last-child(-n+2) { border-bottom: none; }
+  .pinned-label { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-bottom: .4rem; }
+  .pinned-cell .cmd-line { display: block; color: var(--cmd); font-size: 11px; line-height: 1.9; word-break: break-all; }
+  .pinned-cell .cmd-line::before { content: '$ '; color: var(--muted); user-select: none; }
+  .pinned-cell .cmd-line.mvn { color: var(--mvn); }
+  .pinned-cell .cmd-line.mvn::before { content: '> '; color: var(--muted); }
+  .pinned-cell .cmd-line.comment { color: var(--muted); }
+  .pinned-cell .cmd-line.comment::before { content: ''; }
+  .legend { display: flex; align-items: center; gap: 1rem; font-size: 11px; color: var(--muted); margin-bottom: 1rem; flex-wrap: wrap; }
+  .leg-cmd { color: var(--cmd); }
+  .leg-mvn { color: var(--mvn); }
+  .leg-conf { color: var(--conf); }
+  .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-bottom: 1.25rem; }
+  .toolbar-label { font-size: 10px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; margin-right: .25rem; }
+  .f-btn { background: transparent; border: 1px solid var(--border2); border-radius: 3px; padding: 3px 10px; font-family: var(--mono); font-size: 11px; color: var(--muted); cursor: pointer; letter-spacing: .06em; transition: color .15s, border-color .15s, background .15s; }
+  .f-btn:hover { color: var(--text); background: var(--bg3); }
+  .f-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(0,161,223,0.07); }
+  .count { margin-left: auto; font-size: 11px; color: var(--muted); }
+  .count strong { color: var(--accent); }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 6px; }
+  table { width: 100%; border-collapse: collapse; min-width: 800px; }
+  thead th { background: var(--bg2); padding: 10px 14px; text-align: left; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap; font-weight: 400; }
+  thead th:first-child { border-radius: 6px 0 0 0; }
+  thead th:last-child  { border-radius: 0 6px 0 0; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg2); }
+  td { padding: 10px 14px; vertical-align: top; }
+  td.tool-name { font-weight: 700; font-size: 13px; color: #c0dff8; white-space: nowrap; min-width: 160px; }
+  td.phase { min-width: 110px; }
+  .badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 2px; letter-spacing: .06em; font-weight: 500; white-space: nowrap; }
+  .badge-deploy  { background: rgba(0,161,223,.12);  color: #00a1df; border: 1px solid rgba(0,161,223,.3);  }
+  .badge-cicd    { background: rgba(249,115,22,.12); color: #fb923c; border: 1px solid rgba(249,115,22,.3); }
+  .badge-api     { background: rgba(96,165,250,.12); color: #60a5fa; border: 1px solid rgba(96,165,250,.3); }
+  .badge-runtime { background: rgba(240,180,41,.12); color: #f0b429; border: 1px solid rgba(240,180,41,.3); }
+  .badge-obs     { background: rgba(45,212,191,.12); color: #2dd4bf; border: 1px solid rgba(45,212,191,.3); }
+  .badge-gov     { background: rgba(192,96,255,.12); color: #c060ff; border: 1px solid rgba(192,96,255,.3); }
+  td.commands { min-width: 320px; max-width: 460px; }
+  .cmd-block { position: relative; }
+  .cmd-line { display: block; color: var(--cmd); font-size: 11.5px; line-height: 1.9; word-break: break-all; }
+  .cmd-line::before { content: '$ '; color: var(--muted); user-select: none; }
+  .cmd-line.mvn { color: var(--mvn); }
+  .cmd-line.mvn::before { content: '> '; color: var(--muted); }
+  .cmd-line.conf { color: var(--conf); font-style: italic; }
+  .cmd-line.conf::before { content: '# '; color: var(--muted); }
+  .cmd-line.comment { color: var(--muted); }
+  .cmd-line.comment::before { content: ''; }
+  .copy-btn { position: absolute; top: 0; right: 0; background: var(--bg3); border: 1px solid var(--border2); border-radius: 3px; color: var(--muted); font-family: var(--mono); font-size: 10px; padding: 1px 7px; cursor: pointer; opacity: 0; transition: opacity .15s, color .15s; letter-spacing: .05em; }
+  .cmd-block:hover .copy-btn { opacity: 1; }
+  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .copy-btn.copied { color: var(--accent); border-color: var(--accent); }
+  td.usecase { font-size: 12px; color: var(--muted); min-width: 220px; }
+  .no-results { text-align: center; padding: 3rem; color: var(--muted); font-size: 12px; display: none; }
+  footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; text-align: center; font-size: 11px; color: var(--muted); }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--text); }
+  @media (max-width: 640px) { header, main { padding: 1.25rem; } h1 { font-size: 1.5rem; } .meta { display: none; } .pinned-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html">&#8592; ops://cheatsheets</a>
+  <span class="sep">/</span>
+  <span class="current">mulesoft</span>
+</nav>
+<header>
+  <div class="header-inner">
+    <div>
+      <p class="prompt">anypoint-cli runtime-mgr application list --environment Production</p>
+      <h1>MuleSoft<br><span>Production Surface</span></h1>
+      <p class="subtitle">anypoint-cli for interactive ops and environment promotion. Mule Maven Plugin for reproducible CI/CD deployments. Two tools, one pipeline.</p>
+    </div>
+    <div class="meta"><strong>20</strong> entries<br><strong>6</strong> phases<br>anypoint-cli 3.x &middot; Mule 4.x</div>
+  </div>
+</header>
+<main>
+  <div class="callout">
+    <span>
+      <strong>Two tools, different jobs.</strong>
+      <code>anypoint-cli</code> is for interactive ops — status checks, log retrieval, environment promotion, API management. It's what you reach for during an incident.
+      <strong>Mule Maven Plugin</strong> (<code>mvn mule:deploy</code>) is for CI/CD — reproducible, parameterised, pipeline-driven deployments. Never deploy to production by hand when a Maven plugin can do it from a locked-down pipeline.
+      <br><br>
+      <strong>Auth:</strong> Always use Connected App credentials (<code>client_credentials</code>) in CI — not username/password, which is being deprecated. Username/password is acceptable for local anypoint-cli use only.
+    </span>
+  </div>
+  <div class="pinned">
+    <div class="pinned-header">cross-cutting — know these before anything else</div>
+    <div class="pinned-grid">
+      <div class="pinned-cell">
+        <div class="pinned-label">anypoint-cli auth</div>
+        <span class="cmd-line">anypoint-cli --client_id $CLIENT_ID --client_secret $CLIENT_SECRET runtime-mgr application list</span>
+        <span class="cmd-line">anypoint-cli conf set username me@example.com</span>
+        <span class="cmd-line">anypoint-cli conf set environment Production</span>
+        <span class="cmd-line">anypoint-cli conf set organization MyOrg</span>
+        <span class="cmd-line comment"># conf stored in ~/.anypoint/credentials</span>
+      </div>
+      <div class="pinned-cell">
+        <div class="pinned-label">Maven plugin auth (CI)</div>
+        <span class="conf">pom.xml deployment config:</span>
+        <span class="conf">&lt;connectedAppClientId&gt;${client.id}&lt;/connectedAppClientId&gt;</span>
+        <span class="conf">&lt;connectedAppClientSecret&gt;${client.secret}&lt;/connectedAppClientSecret&gt;</span>
+        <span class="conf">&lt;connectedAppGrantType&gt;client_credentials&lt;/connectedAppGrantType&gt;</span>
+        <span class="cmd-line comment"># pass via: mvn mule:deploy -Dclient.id=$ID -Dclient.secret=$SECRET</span>
+        <span class="cmd-line comment"># NEVER hardcode credentials in pom.xml</span>
+      </div>
+      <div class="pinned-cell">
+        <div class="pinned-label">MuleSoft Exchange Maven repo</div>
+        <span class="conf">~/.m2/settings.xml — required for plugin + deps:</span>
+        <span class="conf">&lt;server&gt;</span>
+        <span class="conf">  &lt;id&gt;anypoint-exchange-v3&lt;/id&gt;</span>
+        <span class="conf">  &lt;username&gt;~~~Client~~~&lt;/username&gt;</span>
+        <span class="conf">  &lt;password&gt;${client.id}~?~${client.secret}&lt;/password&gt;</span>
+        <span class="conf">&lt;/server&gt;</span>
+        <span class="cmd-line comment"># plugin pulls from MuleSoft's private repo, not Maven Central</span>
+      </div>
+      <div class="pinned-cell">
+        <div class="pinned-label">environments</div>
+        <span class="cmd-line">anypoint-cli runtime-mgr application list --environment Sandbox</span>
+        <span class="cmd-line">anypoint-cli runtime-mgr application list --environment Production</span>
+        <span class="cmd-line comment"># --environment must match exactly (case-sensitive)</span>
+        <span class="cmd-line comment"># environments defined in Anypoint Platform Access Mgmt</span>
+        <span class="cmd-line">anypoint-cli account environment list</span>
+      </div>
+    </div>
+  </div>
+  <div class="legend">
+    <span><span class="leg-cmd">green</span> = anypoint-cli shell command</span>
+    <span><span class="leg-mvn">orange</span> = Maven / mvn command</span>
+    <span><span class="leg-conf">yellow</span> = pom.xml / config snippet</span>
+  </div>
+  <div class="toolbar">
+    <span class="toolbar-label">Phase</span>
+    <button class="f-btn active" data-cat="all">all</button>
+    <button class="f-btn" data-cat="deploy">deploy</button>
+    <button class="f-btn" data-cat="cicd">ci/cd</button>
+    <button class="f-btn" data-cat="api">api manager</button>
+    <button class="f-btn" data-cat="runtime">runtime</button>
+    <button class="f-btn" data-cat="obs">observability</button>
+    <button class="f-btn" data-cat="gov">governance</button>
+    <span class="count" id="count"><strong id="count-n">20</strong> shown</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tool / Concept</th><th>Phase</th><th>Key commands</th><th>Use case</th></tr></thead>
+      <tbody id="tbody">
+
+        <!-- DEPLOY -->
+        <tr data-cat="deploy">
+          <td class="tool-name">app list / status</td>
+          <td class="phase"><span class="badge badge-deploy">deploy</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">anypoint-cli runtime-mgr application list --environment Production --output table</span>
+            <span class="cmd-line">anypoint-cli runtime-mgr application describe --environment Production myapp</span>
+            <span class="cmd-line">anypoint-cli runtime-mgr application status --environment Production myapp</span>
+            <span class="cmd-line">anypoint-cli runtime-mgr application list --environment Production --output json | jq '.[] | select(.status != "STARTED") | {name,status}'</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">First commands during an incident — surfaces which apps are not STARTED. <code>describe</code> shows full deployment config including worker size, region, and environment variables (values masked). The jq filter on JSON output surfaces unhealthy apps across the entire environment in one call.</td>
+        </tr>
+
+        <tr data-cat="deploy">
+          <td class="tool-name">deploy + undeploy</td>
+          <td class="phase"><span class="badge badge-deploy">deploy</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">anypoint-cli runtime-mgr application deploy --environment Sandbox \
+  --runtime 4.6.0 \
+  --workers 1 \
+  --workerSize 0.1 \
+  myapp ./target/myapp-1.0.0-mule-application.jar</span>
+            <span class="cmd-line">anypoint-cli runtime-mgr application modify --environment Production \
+  --workers 2 myapp</span>
+            <span class="cmd-line">anypoint-cli runtime-mgr application stop --environment Production myapp</span>
+            <span class="cmd-line">anypoint-cli runtime-mgr application undeploy --environment Production myapp</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Use <code>modify</code> to scale workers without redeploying — fastest response to a traffic event. <code>stop</code> halts the app but preserves the deployment config; <code>undeploy</code> removes it entirely. In practice, production deploys should go through the Maven plugin for reproducibility — use <code>anypoint-cli deploy</code> for hotfixes only.</td>
+        </tr>
+
+        <tr data-cat="deploy">
+          <td class="tool-name">environment promotion</td>
+          <td class="phase"><span class="badge badge-deploy">deploy</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">anypoint-cli runtime-mgr application download-artifact --environment Staging myapp ./myapp-staging.jar</span>
+            <span class="cmd-line">anypoint-cli runtime-mgr application deploy --environment Production \
+  --runtime 4.6.0 \
+  --workers 2 \
+  --workerSize 0.2 \
+  --property env:production \
+  --property db.url:$PROD_DB_URL \
+  myapp ./myapp-staging.jar</span>
+            <span class="cmd-line comment"># promote the same artifact, not a rebuild</span>
+            <span class="cmd-line comment"># environment-specific config via --property, not embedded in jar</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Promotion pattern: download the artifact that passed QA from Staging, deploy the same JAR to Production with production-specific properties. This guarantees the artifact tested is the one deployed — never rebuild for promotion. Store environment-specific config as <code>--property</code> flags or in Anypoint Secrets Manager, never in the JAR.</td>
+        </tr>
+
+        <!-- CI/CD -->
+        <tr data-cat="cicd">
+          <td class="tool-name">pom.xml plugin config</td>
+          <td class="phase"><span class="badge badge-cicd">ci/cd</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="conf">&lt;plugin&gt;</span>
+            <span class="conf">  &lt;groupId&gt;org.mule.tools.maven&lt;/groupId&gt;</span>
+            <span class="conf">  &lt;artifactId&gt;mule-maven-plugin&lt;/artifactId&gt;</span>
+            <span class="conf">  &lt;version&gt;4.2.0&lt;/version&gt;</span>
+            <span class="conf">  &lt;extensions&gt;true&lt;/extensions&gt;</span>
+            <span class="conf">  &lt;configuration&gt;</span>
+            <span class="conf">    &lt;cloudHubDeployment&gt;</span>
+            <span class="conf">      &lt;uri&gt;https://anypoint.mulesoft.com&lt;/uri&gt;</span>
+            <span class="conf">      &lt;muleVersion&gt;4.6.0&lt;/muleVersion&gt;</span>
+            <span class="conf">      &lt;connectedAppClientId&gt;${client.id}&lt;/connectedAppClientId&gt;</span>
+            <span class="conf">      &lt;connectedAppClientSecret&gt;${client.secret}&lt;/connectedAppClientSecret&gt;</span>
+            <span class="conf">      &lt;connectedAppGrantType&gt;client_credentials&lt;/connectedAppGrantType&gt;</span>
+            <span class="conf">      &lt;applicationName&gt;${app.name}-${env}&lt;/applicationName&gt;</span>
+            <span class="conf">      &lt;environment&gt;${env}&lt;/environment&gt;</span>
+            <span class="conf">      &lt;workerType&gt;${worker.type}&lt;/workerType&gt;</span>
+            <span class="conf">      &lt;workers&gt;${workers}&lt;/workers&gt;</span>
+            <span class="conf">    &lt;/cloudHubDeployment&gt;</span>
+            <span class="conf">  &lt;/configuration&gt;</span>
+            <span class="conf">&lt;/plugin&gt;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Worker size and count as Maven properties enable environment-specific overrides from the pipeline without changing <code>pom.xml</code>. <code>applicationName</code> with <code>${env}</code> suffix creates distinct app names per environment — prevents accidental cross-environment overwrites. Pin the plugin version explicitly — minor versions occasionally have breaking parameter changes.</td>
+        </tr>
+
+        <tr data-cat="cicd">
+          <td class="tool-name">mvn deploy commands</td>
+          <td class="phase"><span class="badge badge-cicd">ci/cd</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment"># build + package (skip tests in CI via profile):</span>
+            <span class="mvn">mvn clean package -DskipTests</span>
+            <span class="cmd-line comment"># deploy to CloudHub:</span>
+            <span class="mvn">mvn mule:deploy -DmuleDeploy \
+  -Denv=Production \
+  -Dclient.id=$APP_CLIENT_ID \
+  -Dclient.secret=$APP_CLIENT_SECRET \
+  -Dworker.type=MICRO \
+  -Dworkers=2</span>
+            <span class="cmd-line comment"># deploy + publish to Exchange in one step:</span>
+            <span class="mvn">mvn deploy -DmuleDeploy \
+  -Denv=Production \
+  -Dclient.id=$APP_CLIENT_ID \
+  -Dclient.secret=$APP_CLIENT_SECRET</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>mvn mule:deploy</code> deploys only; <code>mvn deploy</code> also publishes the artifact to Exchange — use the latter if you want Exchange as an artifact store. Pass credentials as <code>-D</code> flags from CI secrets, never from <code>settings.xml</code> in the repo. The <code>-DmuleDeploy</code> flag activates the deployment goal; without it, <code>deploy</code> only publishes to Exchange.</td>
+        </tr>
+
+        <tr data-cat="cicd">
+          <td class="tool-name">GitHub Actions pipeline</td>
+          <td class="phase"><span class="badge badge-cicd">ci/cd</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="conf">jobs:</span>
+            <span class="conf">  deploy:</span>
+            <span class="conf">    runs-on: ubuntu-latest</span>
+            <span class="conf">    steps:</span>
+            <span class="conf">      - uses: actions/checkout@v4</span>
+            <span class="conf">      - uses: actions/setup-java@v4</span>
+            <span class="conf">        with: { java-version: '17', distribution: 'temurin' }</span>
+            <span class="conf">      - name: Cache Maven</span>
+            <span class="conf">        uses: actions/cache@v4</span>
+            <span class="conf">        with: { path: ~/.m2, key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }} }</span>
+            <span class="conf">      - name: Deploy to CloudHub</span>
+            <span class="conf">        run: mvn mule:deploy -DmuleDeploy -Denv=Production -Dclient.id=${{ secrets.CLIENT_ID }} -Dclient.secret=${{ secrets.CLIENT_SECRET }}</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Maven cache keyed on <code>pom.xml</code> hash dramatically reduces pipeline time — MuleSoft's Exchange repo downloads are the main bottleneck. Store CLIENT_ID and CLIENT_SECRET as GitHub Actions secrets. Gate the deploy step on <code>github.ref == 'refs/heads/main'</code> to prevent accidental deploys from feature branches.</td>
+        </tr>
+
+        <tr data-cat="cicd">
+          <td class="tool-name">settings.xml for Exchange</td>
+          <td class="phase"><span class="badge badge-cicd">ci/cd</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="conf">&lt;!-- ~/.m2/settings.xml or CI-generated settings --&gt;</span>
+            <span class="conf">&lt;servers&gt;</span>
+            <span class="conf">  &lt;server&gt;</span>
+            <span class="conf">    &lt;id&gt;anypoint-exchange-v3&lt;/id&gt;</span>
+            <span class="conf">    &lt;username&gt;~~~Client~~~&lt;/username&gt;</span>
+            <span class="conf">    &lt;password&gt;${CLIENT_ID}~?~${CLIENT_SECRET}&lt;/password&gt;</span>
+            <span class="conf">  &lt;/server&gt;</span>
+            <span class="conf">  &lt;server&gt;</span>
+            <span class="conf">    &lt;id&gt;MuleRepository&lt;/id&gt;</span>
+            <span class="conf">    &lt;username&gt;~~~Client~~~&lt;/username&gt;</span>
+            <span class="conf">    &lt;password&gt;${CLIENT_ID}~?~${CLIENT_SECRET}&lt;/password&gt;</span>
+            <span class="conf">  &lt;/server&gt;</span>
+            <span class="conf">&lt;/servers&gt;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">This is the most common silent failure in MuleSoft CI — the plugin pulls dependencies from MuleSoft's private Exchange repository, not Maven Central, and the credentials format is non-standard (<code>~~~Client~~~</code> prefix, <code>~?~</code> separator). Missing or malformed settings.xml produces misleading "artifact not found" errors. Generate this file in CI from secrets rather than committing it.</td>
+        </tr>
+
+        <!-- API MANAGER -->
+        <tr data-cat="api">
+          <td class="tool-name">API Manager list / inspect</td>
+          <td class="phase"><span class="badge badge-api">api manager</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">anypoint-cli api-mgr api list --environment Production --output table</span>
+            <span class="cmd-line">anypoint-cli api-mgr api describe --environment Production &lt;api-id&gt;</span>
+            <span class="cmd-line">anypoint-cli api-mgr api list --environment Production --output json | jq '.[] | {id,assetId,status,autodiscoveryInstanceName}'</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>autodiscoveryInstanceName</code> is the value you configure in your Mule app to link it to the API Manager instance — mismatches here cause policies not to apply. List all APIs to find the correct <code>api-id</code> before other API Manager operations. <code>status=ACTIVE</code> vs <code>INACTIVE</code> controls whether policies are enforced.</td>
+        </tr>
+
+        <tr data-cat="api">
+          <td class="tool-name">API policy management</td>
+          <td class="phase"><span class="badge badge-api">api manager</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">anypoint-cli api-mgr policy list --environment Production &lt;api-id&gt;</span>
+            <span class="cmd-line">anypoint-cli api-mgr policy apply --environment Production &lt;api-id&gt; \
+  --policyId rate-limiting-sla \
+  --config '{"rateLimits":[{"maximumRequests":100,"timePeriodInMilliseconds":60000}]}'</span>
+            <span class="cmd-line">anypoint-cli api-mgr policy disable --environment Production &lt;api-id&gt; &lt;policy-id&gt;</span>
+            <span class="cmd-line">anypoint-cli api-mgr policy remove --environment Production &lt;api-id&gt; &lt;policy-id&gt;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Policy application order matters — policies execute in the order applied. <code>disable</code> temporarily suspends a policy without removing it — useful for emergency debugging when a policy may be causing issues. List before applying to check existing policies and their ordering. Policy config JSON varies per policy type — check Anypoint's policy documentation for schema.</td>
+        </tr>
+
+        <tr data-cat="api">
+          <td class="tool-name">SLA tiers + contracts</td>
+          <td class="phase"><span class="badge badge-api">api manager</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">anypoint-cli api-mgr tier list --environment Production &lt;api-id&gt;</span>
+            <span class="cmd-line">anypoint-cli api-mgr contract list --environment Production &lt;api-id&gt;</span>
+            <span class="cmd-line">anypoint-cli api-mgr contract revoke --environment Production &lt;api-id&gt; &lt;contract-id&gt;</span>
+            <span class="cmd-line">anypoint-cli api-mgr contract approve --environment Production &lt;api-id&gt; &lt;contract-id&gt;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Contracts link consumer apps to API SLA tiers — revoking a contract immediately stops the consumer's API key from working. Contract list shows pending approval requests — if clients report access issues, check for contracts stuck in PENDING state. Approval/revocation takes effect without redeployment.</td>
+        </tr>
+
+        <!-- RUNTIME -->
+        <tr data-cat="runtime">
+          <td class="tool-name">worker sizing guide</td>
+          <td class="phase"><span class="badge badge-runtime">runtime</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="conf">CloudHub 1.0 worker sizes:</span>
+            <span class="conf">MICRO:  0.1 vCores, 500MB — dev/test, lightweight integrations</span>
+            <span class="conf">SMALL:  0.2 vCores, 1GB  — low traffic APIs</span>
+            <span class="conf">MEDIUM: 1   vCores, 1.5GB — production standard</span>
+            <span class="conf">LARGE:  2   vCores, 3.5GB — high throughput / heavy processing</span>
+            <span class="conf">XLARGE: 4   vCores, 7.5GB — batch / DataWeave intensive</span>
+            <span class="cmd-line comment"># scale horizontally (more workers) before vertically (larger size)</span>
+            <span class="cmd-line comment"># persistent queues: required for horizontal scaling with guaranteed delivery</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Horizontal scaling (multiple workers) requires Persistent Queues enabled — without it, only one worker processes VM queue messages and state is not shared. For stateless HTTP APIs, horizontal scaling works without Persistent Queues. MICRO workers are aggressively throttled on CPU — use SMALL or above for any production workload with non-trivial DataWeave transforms.</td>
+        </tr>
+
+        <tr data-cat="runtime">
+          <td class="tool-name">app restart + modify</td>
+          <td class="phase"><span class="badge badge-runtime">runtime</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">anypoint-cli runtime-mgr application restart --environment Production myapp</span>
+            <span class="cmd-line">anypoint-cli runtime-mgr application start --environment Production myapp</span>
+            <span class="cmd-line">anypoint-cli runtime-mgr application stop --environment Production myapp</span>
+            <span class="cmd-line">anypoint-cli runtime-mgr application modify --environment Production \
+  --workers 3 myapp</span>
+            <span class="cmd-line">anypoint-cli runtime-mgr application modify --environment Production \
+  --property db.url:$NEW_URL myapp</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>modify --property</code> updates a runtime property and triggers a restart — the correct way to update config without redeploying the JAR. <code>modify --workers</code> scales without a restart on CloudHub 2.0; on CloudHub 1.0 it triggers a brief restart. Use <code>restart</code> (not stop + start) to preserve deployment config.</td>
+        </tr>
+
+        <tr data-cat="runtime">
+          <td class="tool-name">Flex Gateway vs MuleSoft Gateway</td>
+          <td class="phase"><span class="badge badge-runtime">runtime</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="conf">MuleSoft Gateway (embedded): runs inside Mule runtime</span>
+            <span class="conf">  — Mule 4.x runtime, CloudHub, on-prem Mule</span>
+            <span class="conf">  — policies applied via API Manager autodiscovery</span>
+            <span class="conf">  — limited to Mule-native policy types</span>
+            <span class="conf"> </span>
+            <span class="conf">Flex Gateway: standalone sidecar/proxy</span>
+            <span class="conf">  — Docker/K8s/Linux, not tied to Mule runtime</span>
+            <span class="conf">  — Connected Mode: managed via API Manager</span>
+            <span class="conf">  — Local Mode: declarative YAML, no Anypoint needed</span>
+            <span class="cmd-line">flexctl apply -f api-policy.yaml</span>
+            <span class="cmd-line">flexctl get ApiInstance -n gateway</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Flex Gateway is the future direction for non-Mule workloads — it can proxy any HTTP service, not just Mule apps. Local Mode is the most ops-friendly: declarative YAML, no Anypoint Platform dependency, git-managed config. Connected Mode integrates with API Manager for centralised policy management. Choose Flex Gateway for new non-Mule API proxy needs.</td>
+        </tr>
+
+        <!-- OBSERVABILITY -->
+        <tr data-cat="obs">
+          <td class="tool-name">application logs</td>
+          <td class="phase"><span class="badge badge-obs">observability</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">anypoint-cli runtime-mgr application tail-log --environment Production myapp</span>
+            <span class="cmd-line">anypoint-cli runtime-mgr application download-log --environment Production myapp ./myapp.log</span>
+            <span class="cmd-line">anypoint-cli runtime-mgr application list-log --environment Production myapp</span>
+            <span class="cmd-line comment"># filter downloaded log for errors:</span>
+            <span class="cmd-line">grep -E "ERROR|WARN|Exception" ./myapp.log | tail -50</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>tail-log</code> streams live logs — the first step during an incident. <code>download-log</code> retrieves the full log file for offline analysis. Log retention on CloudHub is 30 days; download before investigating old incidents. For structured log analysis at scale, forward to an external log aggregator (Splunk, ELK) via the Cloudhub log appender.</td>
+        </tr>
+
+        <tr data-cat="obs">
+          <td class="tool-name">alerts + monitoring</td>
+          <td class="phase"><span class="badge badge-obs">observability</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">anypoint-cli runtime-mgr alert list --environment Production</span>
+            <span class="cmd-line">anypoint-cli runtime-mgr alert describe --environment Production &lt;alert-id&gt;</span>
+            <span class="cmd-line">anypoint-cli runtime-mgr alert create --environment Production \
+  --name "App down" \
+  --condition application-not-responding \
+  --application myapp \
+  --email ops@example.com</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Alert conditions: <code>application-not-responding</code>, <code>cpu-usage</code>, <code>memory-usage</code>, <code>worker-not-responding</code>. List alerts to confirm monitoring is configured before taking an app to production — it's common to discover no alerts are set up until the first outage. Email is the minimum; hook into PagerDuty via webhook in the alert config.</td>
+        </tr>
+
+        <!-- GOVERNANCE -->
+        <tr data-cat="gov">
+          <td class="tool-name">Exchange asset management</td>
+          <td class="phase"><span class="badge badge-gov">governance</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">anypoint-cli exchange asset list --output table</span>
+            <span class="cmd-line">anypoint-cli exchange asset describe &lt;group-id&gt;/&lt;asset-id&gt;/&lt;version&gt;</span>
+            <span class="cmd-line">anypoint-cli exchange asset upload --name "My API" \
+  --version 1.0.0 \
+  --type rest-api \
+  --file ./my-api.raml</span>
+            <span class="cmd-line">anypoint-cli exchange asset deprecate &lt;group-id&gt;/&lt;asset-id&gt;/&lt;version&gt;</span>
+            <span class="cmd-line">anypoint-cli exchange asset delete &lt;group-id&gt;/&lt;asset-id&gt;/&lt;version&gt;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Exchange is the internal API marketplace — the correct place to publish API specs before implementing them (API-first). <code>deprecate</code> flags a version as deprecated without removing it — consumers see the deprecation notice but can still use it. Delete only when all consumers have migrated; deletion is permanent and breaks any app depending on that version.</td>
+        </tr>
+
+        <tr data-cat="gov">
+          <td class="tool-name">API versioning patterns</td>
+          <td class="phase"><span class="badge badge-gov">governance</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="conf">API versioning in anypoint-cli deploy:</span>
+            <span class="conf">  applicationName: myapi-v1  (CloudHub app per major version)</span>
+            <span class="conf">  environment: Production</span>
+            <span class="conf"> </span>
+            <span class="conf">URI versioning: /api/v1/... /api/v2/...</span>
+            <span class="conf">  → route to different CloudHub apps via Flex Gateway</span>
+            <span class="cmd-line">anypoint-cli api-mgr api list --output json | jq '.[] | select(.assetVersion | startswith("2.")) | {id,assetId,assetVersion}'</span>
+            <span class="cmd-line comment"># manage v1 and v2 as separate API Manager instances</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">MuleSoft's recommended pattern: separate CloudHub application per major API version (myapi-v1, myapi-v2), separate API Manager instance per version, Flex Gateway or load balancer routes by URI prefix. This allows independent deployment cycles for v1 and v2. Avoid breaking changes within a major version — consumers expect stability within a version.</td>
+        </tr>
+
+      </tbody>
+    </table>
+    <div class="no-results" id="no-results">No entries match this filter.</div>
+  </div>
+</main>
+<footer>
+  ops://cheatsheets &mdash;
+  <a href="https://docs.mulesoft.com/anypoint-cli/latest/" target="_blank" rel="noopener">anypoint-cli docs</a> &middot;
+  <a href="https://docs.mulesoft.com/mule-maven-plugin/latest/" target="_blank" rel="noopener">Mule Maven Plugin</a> &middot;
+  <a href="https://docs.mulesoft.com/gateway/latest/" target="_blank" rel="noopener">Flex Gateway</a>
+</footer>
+<script>
+(function () {
+  const btns = document.querySelectorAll('.f-btn'), rows = document.querySelectorAll('#tbody tr[data-cat]');
+  const countEl = document.getElementById('count-n'), noRes = document.getElementById('no-results');
+  function filter(cat) {
+    let s = 0; rows.forEach(r => { const m = cat==='all'||r.dataset.cat===cat; r.style.display=m?'':'none'; if(m)s++; });
+    countEl.textContent=s; noRes.style.display=s===0?'block':'none';
+  }
+  btns.forEach(b => b.addEventListener('click', () => { btns.forEach(x=>x.classList.remove('active')); b.classList.add('active'); filter(b.dataset.cat); }));
+  window.copyAll = function(btn) {
+    const lines = Array.from(btn.closest('.cmd-block').querySelectorAll('.cmd-line')).map(l=>l.textContent).join('\n');
+    navigator.clipboard.writeText(lines).then(() => { btn.textContent='copied!'; btn.classList.add('copied'); setTimeout(()=>{btn.textContent='copy';btn.classList.remove('copied');},1500); });
+  };
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kong API Gateway — Production Surface Cheat Sheet</title>
+<meta name="description" content="Filterable Kong reference — admin API, services, routes, plugins, upstreams, deck config-as-code, and inspection patterns.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #060e0e;
+    --bg2:     #0a1515;
+    --bg3:     #0f1d1d;
+    --border:  #142424;
+    --border2: #1c3333;
+    --text:    #a8d4d4;
+    --muted:   #406060;
+    --accent:  #09c99a;
+    --cmd:     #7dd3a8;
+    --api:     #93c5fd;
+    --conf:    #fcd34d;
+    --mono:    'JetBrains Mono', monospace;
+    --display: 'Syne', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--mono); font-size: 13px; line-height: 1.6; min-height: 100vh; }
+  body::before { content: ''; position: fixed; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px); pointer-events: none; z-index: 999; }
+  nav { border-bottom: 1px solid var(--border); padding: .6rem 2rem; display: flex; align-items: center; gap: .5rem; font-size: 11px; }
+  nav a { color: var(--muted); text-decoration: none; transition: color .15s; }
+  nav a:hover { color: var(--accent); }
+  nav .sep { color: var(--border2); }
+  nav .current { color: var(--text); }
+  header { border-bottom: 1px solid var(--border); padding: 2.5rem 2rem 2rem; position: relative; overflow: hidden; }
+  header::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 120px; height: 2px; background: var(--accent); }
+  .header-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .prompt { font-size: 11px; color: var(--accent); letter-spacing: .1em; margin-bottom: .5rem; }
+  .prompt::before { content: '$ '; color: var(--muted); }
+  h1 { font-family: var(--display); font-size: clamp(1.6rem, 4vw, 2.6rem); font-weight: 800; color: #c0f0e8; letter-spacing: -.02em; line-height: 1.1; }
+  h1 span { color: var(--accent); }
+  .subtitle { margin-top: .6rem; font-size: 12px; color: var(--muted); max-width: 520px; }
+  .meta { text-align: right; font-size: 11px; color: var(--muted); line-height: 2; }
+  .meta strong { color: var(--text); }
+  main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+  .callout { display: flex; align-items: flex-start; gap: .75rem; background: rgba(9,201,154,.05); border: 1px solid rgba(9,201,154,.2); border-left: 3px solid var(--accent); border-radius: 4px; padding: .85rem 1rem; margin-bottom: 1.75rem; font-size: 11px; color: var(--muted); line-height: 1.7; }
+  .callout::before { content: '!'; color: var(--accent); font-weight: 700; font-size: 13px; flex-shrink: 0; line-height: 1.5; }
+  .callout strong { color: var(--text); }
+  .callout code { color: var(--accent); font-size: 10.5px; }
+  .pinned { border: 1px solid var(--border2); border-radius: 6px; margin-bottom: 1.75rem; overflow: hidden; }
+  .pinned-header { background: var(--bg2); padding: .6rem 1rem; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: .5rem; }
+  .pinned-header::before { content: '📌'; font-size: 11px; }
+  .pinned-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .pinned-cell { padding: .9rem 1rem; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .pinned-cell:last-child { border-right: none; }
+  .pinned-cell:nth-last-child(-n+2) { border-bottom: none; }
+  .pinned-label { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin-bottom: .4rem; }
+  .pinned-cell .cmd-line { display: block; color: var(--cmd); font-size: 11px; line-height: 1.9; word-break: break-all; }
+  .pinned-cell .cmd-line::before { content: '$ '; color: var(--muted); user-select: none; }
+  .pinned-cell .cmd-line.api { color: var(--api); }
+  .pinned-cell .cmd-line.api::before { content: '> '; color: var(--muted); }
+  .pinned-cell .cmd-line.comment { color: var(--muted); }
+  .pinned-cell .cmd-line.comment::before { content: ''; }
+  .legend { display: flex; align-items: center; gap: 1rem; font-size: 11px; color: var(--muted); margin-bottom: 1rem; flex-wrap: wrap; }
+  .leg-cmd { color: var(--cmd); }
+  .leg-api { color: var(--api); }
+  .leg-conf { color: var(--conf); }
+  .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-bottom: 1.25rem; }
+  .toolbar-label { font-size: 10px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; margin-right: .25rem; }
+  .f-btn { background: transparent; border: 1px solid var(--border2); border-radius: 3px; padding: 3px 10px; font-family: var(--mono); font-size: 11px; color: var(--muted); cursor: pointer; letter-spacing: .06em; transition: color .15s, border-color .15s, background .15s; }
+  .f-btn:hover { color: var(--text); background: var(--bg3); }
+  .f-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(9,201,154,0.07); }
+  .count { margin-left: auto; font-size: 11px; color: var(--muted); }
+  .count strong { color: var(--accent); }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 6px; }
+  table { width: 100%; border-collapse: collapse; min-width: 800px; }
+  thead th { background: var(--bg2); padding: 10px 14px; text-align: left; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap; font-weight: 400; }
+  thead th:first-child { border-radius: 6px 0 0 0; }
+  thead th:last-child  { border-radius: 0 6px 0 0; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg2); }
+  td { padding: 10px 14px; vertical-align: top; }
+  td.tool-name { font-weight: 700; font-size: 13px; color: #c0f0e8; white-space: nowrap; min-width: 160px; }
+  td.phase { min-width: 110px; }
+  .badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 2px; letter-spacing: .06em; font-weight: 500; white-space: nowrap; }
+  .badge-connect  { background: rgba(255,95,87,.12);  color: #ff7b75; border: 1px solid rgba(255,95,87,.3);  }
+  .badge-services { background: rgba(9,201,154,.12);  color: #09c99a; border: 1px solid rgba(9,201,154,.3);  }
+  .badge-routes   { background: rgba(96,165,250,.12); color: #60a5fa; border: 1px solid rgba(96,165,250,.3); }
+  .badge-plugins  { background: rgba(240,180,41,.12); color: #f0b429; border: 1px solid rgba(240,180,41,.3); }
+  .badge-upstream { background: rgba(192,96,255,.12); color: #c060ff; border: 1px solid rgba(192,96,255,.3); }
+  .badge-deck     { background: rgba(57,255,130,.10); color: #39ff82; border: 1px solid rgba(57,255,130,.25);}
+  .badge-inspect  { background: rgba(45,212,191,.12); color: #2dd4bf; border: 1px solid rgba(45,212,191,.3); }
+  td.commands { min-width: 320px; max-width: 460px; }
+  .cmd-block { position: relative; }
+  .cmd-line { display: block; color: var(--cmd); font-size: 11.5px; line-height: 1.9; word-break: break-all; }
+  .cmd-line::before { content: '$ '; color: var(--muted); user-select: none; }
+  .cmd-line.api { color: var(--api); }
+  .cmd-line.api::before { content: '> '; color: var(--muted); }
+  .cmd-line.conf { color: var(--conf); font-style: italic; }
+  .cmd-line.conf::before { content: '# '; color: var(--muted); }
+  .cmd-line.comment { color: var(--muted); }
+  .cmd-line.comment::before { content: ''; }
+  .copy-btn { position: absolute; top: 0; right: 0; background: var(--bg3); border: 1px solid var(--border2); border-radius: 3px; color: var(--muted); font-family: var(--mono); font-size: 10px; padding: 1px 7px; cursor: pointer; opacity: 0; transition: opacity .15s, color .15s; letter-spacing: .05em; }
+  .cmd-block:hover .copy-btn { opacity: 1; }
+  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .copy-btn.copied { color: var(--accent); border-color: var(--accent); }
+  td.usecase { font-size: 12px; color: var(--muted); min-width: 220px; }
+  .no-results { text-align: center; padding: 3rem; color: var(--muted); font-size: 12px; display: none; }
+  footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; text-align: center; font-size: 11px; color: var(--muted); }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--text); }
+  @media (max-width: 640px) { header, main { padding: 1.25rem; } h1 { font-size: 1.5rem; } .meta { display: none; } .pinned-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html">&#8592; ops://cheatsheets</a>
+  <span class="sep">/</span>
+  <span class="current">kong</span>
+</nav>
+<header>
+  <div class="header-inner">
+    <div>
+      <p class="prompt">curl -s http://localhost:8001/status | jq '.server'</p>
+      <h1>Kong API Gateway<br><span>Production Surface</span></h1>
+      <p class="subtitle">Admin API patterns, deck config-as-code, plugin management, routing, upstreams, and operational inspection. Kong OSS and Kong Gateway.</p>
+    </div>
+    <div class="meta"><strong>22</strong> entries<br><strong>7</strong> phases<br>Kong 3.x &middot; deck 1.x</div>
+  </div>
+</header>
+<main>
+  <div class="callout">
+    <span><strong>Two interaction models.</strong> The <strong>Admin API</strong> (<code>:8001</code>) is imperative — changes take effect immediately but are lost on DB-less mode restarts. <strong>deck</strong> is declarative — the correct model for production where config lives in Git and is applied via CI/CD. Use the Admin API for inspection and emergency changes; use deck for everything that should persist. <strong>DB-less mode</strong> uses <code>declarative_config</code> YAML — deck targets DB-backed Kong.</span>
+  </div>
+  <div class="pinned">
+    <div class="pinned-header">cross-cutting — know these before anything else</div>
+    <div class="pinned-grid">
+      <div class="pinned-cell">
+        <div class="pinned-label">Admin API base patterns</div>
+        <span class="cmd-line">curl -s http://localhost:8001/ | jq '{version:.version,node_id:.node_id}'</span>
+        <span class="cmd-line">curl -s http://localhost:8001/status | jq</span>
+        <span class="cmd-line comment"># Admin API port: 8001 (HTTP) / 8444 (HTTPS)</span>
+        <span class="cmd-line comment"># Proxy port:    8000 (HTTP) / 8443 (HTTPS)</span>
+        <span class="cmd-line comment"># Set KONG_ADMIN=http://localhost:8001 in shell</span>
+      </div>
+      <div class="pinned-cell">
+        <div class="pinned-label">deck workflow (config-as-code)</div>
+        <span class="cmd-line">deck dump > kong.yaml</span>
+        <span class="cmd-line">deck validate kong.yaml</span>
+        <span class="cmd-line">deck diff --state kong.yaml</span>
+        <span class="cmd-line">deck sync --state kong.yaml</span>
+        <span class="cmd-line comment"># deck ping -- verify connectivity</span>
+        <span class="cmd-line">deck ping</span>
+      </div>
+      <div class="pinned-cell">
+        <div class="pinned-label">pagination + filtering</div>
+        <span class="cmd-line">curl -s "http://localhost:8001/services?size=100" | jq '.data[].name'</span>
+        <span class="cmd-line">curl -s "http://localhost:8001/services?size=100&offset=<token>" | jq</span>
+        <span class="cmd-line comment"># all list responses paginate — check .next for more pages</span>
+        <span class="cmd-line comment"># filter by tag: /services?tags=env:prod</span>
+      </div>
+      <div class="pinned-cell">
+        <div class="pinned-label">tags — the targeting mechanism</div>
+        <span class="cmd-line">curl -s "http://localhost:8001/services?tags=env:prod" | jq '.data[].name'</span>
+        <span class="cmd-line">curl -s "http://localhost:8001/plugins?tags=team:platform" | jq</span>
+        <span class="cmd-line comment"># tags are on every entity — services, routes, plugins, upstreams</span>
+        <span class="cmd-line comment"># deck supports --select-tag to scope sync to a subset</span>
+        <span class="cmd-line">deck sync --select-tag env:prod --state kong.yaml</span>
+      </div>
+    </div>
+  </div>
+  <div class="legend">
+    <span><span class="leg-cmd">green</span> = shell command</span>
+    <span><span class="leg-api">blue</span> = Admin API response / JSON path</span>
+    <span><span class="leg-conf">yellow</span> = deck YAML / config snippet</span>
+  </div>
+  <div class="toolbar">
+    <span class="toolbar-label">Phase</span>
+    <button class="f-btn active" data-cat="all">all</button>
+    <button class="f-btn" data-cat="connect">connect</button>
+    <button class="f-btn" data-cat="services">services</button>
+    <button class="f-btn" data-cat="routes">routes</button>
+    <button class="f-btn" data-cat="plugins">plugins</button>
+    <button class="f-btn" data-cat="upstream">upstreams</button>
+    <button class="f-btn" data-cat="deck">deck</button>
+    <button class="f-btn" data-cat="inspect">inspect</button>
+    <span class="count" id="count"><strong id="count-n">22</strong> shown</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Concept / Command</th><th>Phase</th><th>Key commands</th><th>Use case</th></tr></thead>
+      <tbody id="tbody">
+
+        <!-- CONNECT -->
+        <tr data-cat="connect">
+          <td class="tool-name">connectivity check</td>
+          <td class="phase"><span class="badge badge-connect">connect</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">curl -s http://localhost:8001/ | jq '{version:.version,node_id:.node_id,lua_version:.lua_version}'</span>
+            <span class="cmd-line">curl -s http://localhost:8001/status | jq '{server:.server,memory:.memory.lua.http_allocated_gc}'</span>
+            <span class="cmd-line">deck ping --kong-addr http://localhost:8001</span>
+            <span class="cmd-line comment"># Kong Manager UI: :8002 (HTTP) / :8445 (HTTPS)</span>
+            <span class="cmd-line comment"># Kong Admin API auth (Enterprise): set KONG_ADMIN_TOKEN</span>
+            <span class="cmd-line">curl -s -H "Kong-Admin-Token: $KONG_ADMIN_TOKEN" http://localhost:8001/services | jq</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">First commands after deployment or post-incident. <code>status</code> shows server stats and memory usage — memory pressure is a common Kong stability issue. <code>deck ping</code> validates that deck can reach the Admin API before attempting a sync. Enterprise Kong requires <code>Kong-Admin-Token</code> header on all Admin API calls.</td>
+        </tr>
+
+        <!-- SERVICES -->
+        <tr data-cat="services">
+          <td class="tool-name">service list / inspect</td>
+          <td class="phase"><span class="badge badge-services">services</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">curl -s http://localhost:8001/services | jq '.data[] | {name,host,port,protocol,path}'</span>
+            <span class="cmd-line">curl -s http://localhost:8001/services/my-service | jq</span>
+            <span class="cmd-line">curl -s http://localhost:8001/services/my-service/routes | jq '.data[].paths'</span>
+            <span class="cmd-line">curl -s http://localhost:8001/services/my-service/plugins | jq '.data[].name'</span>
+            <span class="cmd-line">curl -s "http://localhost:8001/services?size=100" | jq '[.data[] | {name,enabled:.enabled}]'</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">A Kong Service maps to an upstream API. Listing services gives the inventory of what Kong is proxying — inspect host and port to confirm the backend address. Services can be disabled without deleting them. Fetching a service's routes and plugins in separate calls is the correct pattern for understanding full configuration.</td>
+        </tr>
+
+        <tr data-cat="services">
+          <td class="tool-name">service create / update</td>
+          <td class="phase"><span class="badge badge-services">services</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">curl -s -X POST http://localhost:8001/services \
+  -d name=my-service \
+  -d url=http://backend:8080 \
+  -d tags=env:prod | jq '{id,name,host,port}'</span>
+            <span class="cmd-line">curl -s -X PATCH http://localhost:8001/services/my-service \
+  -d host=new-backend \
+  -d port=9090 | jq '{name,host,port}'</span>
+            <span class="cmd-line">curl -s -X PUT http://localhost:8001/services/my-service \
+  -d url=http://backend:8080 \
+  -d connect_timeout=5000 \
+  -d write_timeout=10000 \
+  -d read_timeout=10000 | jq</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Use PATCH for partial updates; PUT replaces the entire entity. Timeouts are in milliseconds — defaults (60s) are often too high for production APIs where you'd rather fail fast. <code>url</code> shorthand expands to host/port/path/protocol. In production, prefer deck YAML over direct Admin API mutations.</td>
+        </tr>
+
+        <!-- ROUTES -->
+        <tr data-cat="routes">
+          <td class="tool-name">route list / inspect</td>
+          <td class="phase"><span class="badge badge-routes">routes</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">curl -s http://localhost:8001/routes | jq '.data[] | {name,paths,methods,hosts,service:.service.id}'</span>
+            <span class="cmd-line">curl -s http://localhost:8001/routes/my-route | jq</span>
+            <span class="cmd-line">curl -s "http://localhost:8001/services/my-service/routes" | jq '.data[] | {name,paths,strip_path,preserve_host}'</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>strip_path</code> and <code>preserve_host</code> are the two most commonly misconfigured route fields. <code>strip_path=true</code> removes the matched path prefix before forwarding — if your backend doesn't have <code>/api/v1</code> in its routes, you want this. <code>preserve_host=false</code> sends the upstream's hostname, not the client's Host header.</td>
+        </tr>
+
+        <tr data-cat="routes">
+          <td class="tool-name">route create / update</td>
+          <td class="phase"><span class="badge badge-routes">routes</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">curl -s -X POST http://localhost:8001/services/my-service/routes \
+  -d name=my-route \
+  -d "paths[]=/api/v1" \
+  -d "methods[]=GET" \
+  -d "methods[]=POST" \
+  -d strip_path=true | jq '{id,name,paths,methods}'</span>
+            <span class="cmd-line">curl -s -X PATCH http://localhost:8001/routes/my-route \
+  -d "paths[]=/api/v2" | jq '.paths'</span>
+            <span class="cmd-line">curl -s -X DELETE http://localhost:8001/routes/my-route</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Array fields (paths, methods, hosts) use the <code>field[]</code> form-encoding syntax — common source of curl mistakes. Delete is immediate and permanent — no soft delete. Routes can match on paths, hosts, methods, headers, or SNI in any combination. More specific routes (more matching criteria) take priority.</td>
+        </tr>
+
+        <!-- PLUGINS -->
+        <tr data-cat="plugins">
+          <td class="tool-name">plugin list / inspect</td>
+          <td class="phase"><span class="badge badge-plugins">plugins</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">curl -s http://localhost:8001/plugins | jq '.data[] | {name,service:.service.id,route:.route.id,enabled,config}'</span>
+            <span class="cmd-line">curl -s http://localhost:8001/plugins/enabled | jq '.enabled_plugins[]'</span>
+            <span class="cmd-line">curl -s http://localhost:8001/plugins/schema/rate-limiting | jq '.fields[] | keys[]'</span>
+            <span class="cmd-line">curl -s http://localhost:8001/services/my-service/plugins | jq '.data[] | {name,enabled,config}'</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>/plugins/enabled</code> lists every plugin available on this Kong instance — check before configuring a plugin that might not be installed. <code>/plugins/schema/&lt;name&gt;</code> reveals all valid config fields — avoids trial and error. Plugins have scope: global, service-level, route-level, or consumer-level.</td>
+        </tr>
+
+        <tr data-cat="plugins">
+          <td class="tool-name">rate-limiting plugin</td>
+          <td class="phase"><span class="badge badge-plugins">plugins</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">curl -s -X POST http://localhost:8001/services/my-service/plugins \
+  -d name=rate-limiting \
+  -d config.minute=100 \
+  -d config.hour=1000 \
+  -d config.policy=redis \
+  -d config.redis_host=redis \
+  -d config.redis_port=6379 | jq '{id,name,config}'</span>
+            <span class="conf">deck YAML equivalent:</span>
+            <span class="conf">plugins:</span>
+            <span class="conf">  - name: rate-limiting</span>
+            <span class="conf">    service: my-service</span>
+            <span class="conf">    config: {minute: 100, hour: 1000, policy: redis}</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Use <code>policy=redis</code> in production — the default <code>local</code> policy counts per Kong node, not globally, so limits are multiplied by node count. Redis policy requires a shared Redis instance but enforces accurate global rate limits across a Kong cluster. Set both per-minute and per-hour limits to catch burst and sustained abuse.</td>
+        </tr>
+
+        <tr data-cat="plugins">
+          <td class="tool-name">auth plugins</td>
+          <td class="phase"><span class="badge badge-plugins">plugins</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment"># JWT plugin:</span>
+            <span class="cmd-line">curl -s -X POST http://localhost:8001/services/my-service/plugins \
+  -d name=jwt \
+  -d config.claims_to_verify=exp | jq '{id,name}'</span>
+            <span class="cmd-line comment"># Key Auth plugin (API keys):</span>
+            <span class="cmd-line">curl -s -X POST http://localhost:8001/routes/my-route/plugins \
+  -d name=key-auth \
+  -d config.key_names=X-API-Key | jq '{id,name}'</span>
+            <span class="cmd-line comment"># OAuth2:</span>
+            <span class="cmd-line">curl -s -X POST http://localhost:8001/services/my-service/plugins \
+  -d name=oauth2 \
+  -d config.scopes[]=read \
+  -d config.scopes[]=write \
+  -d config.mandatory_scope=true | jq</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Auth plugins are applied at service or route level — service level protects all routes, route level allows mixed auth on a single service. JWT plugin validates signature and claims but doesn't issue tokens. Key Auth requires creating consumers and credentials. OAuth2 plugin manages token issuance — it's a full OAuth2 server embedded in Kong.</td>
+        </tr>
+
+        <tr data-cat="plugins">
+          <td class="tool-name">proxy-cache + request-transformer</td>
+          <td class="phase"><span class="badge badge-plugins">plugins</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">curl -s -X POST http://localhost:8001/services/my-service/plugins \
+  -d name=proxy-cache \
+  -d config.response_code=200 \
+  -d config.request_method=GET \
+  -d config.content_type=application/json \
+  -d config.cache_ttl=300 \
+  -d config.strategy=memory | jq '{id,name}'</span>
+            <span class="cmd-line">curl -s -X POST http://localhost:8001/routes/my-route/plugins \
+  -d name=request-transformer \
+  -d "config.add.headers[]=X-Internal-Source:kong" \
+  -d "config.remove.headers[]=X-Forwarded-For" | jq</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Proxy cache with <code>strategy=memory</code> is per-node — use Redis strategy for cluster-wide caching. Cache only GET responses with explicit content types to avoid caching errors or partial responses. Request transformer is the correct place to inject internal headers (correlation IDs, routing hints) rather than modifying upstream code.</td>
+        </tr>
+
+        <!-- UPSTREAMS -->
+        <tr data-cat="upstream">
+          <td class="tool-name">upstreams + targets</td>
+          <td class="phase"><span class="badge badge-upstream">upstreams</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">curl -s http://localhost:8001/upstreams | jq '.data[] | {name,algorithm,healthchecks:.healthchecks.active.healthy}'</span>
+            <span class="cmd-line">curl -s http://localhost:8001/upstreams/my-upstream/targets | jq '.data[] | {target,weight,health}'</span>
+            <span class="cmd-line">curl -s http://localhost:8001/upstreams/my-upstream/health | jq '.data[] | {target,health:.health}'</span>
+            <span class="cmd-line">curl -s -X POST http://localhost:8001/upstreams \
+  -d name=my-upstream \
+  -d algorithm=round-robin \
+  -d healthchecks.active.healthy.interval=10 \
+  -d healthchecks.active.unhealthy.http_failures=3 | jq</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Upstreams provide load balancing and health checking for service backends. <code>/upstreams/my-upstream/health</code> is the definitive check for why traffic isn't reaching a target — shows HEALTHY, UNHEALTHY, or UNDEFINED per target. Algorithms: round-robin, least-connections, consistent-hashing (sticky sessions by header/cookie).</td>
+        </tr>
+
+        <tr data-cat="upstream">
+          <td class="tool-name">target management</td>
+          <td class="phase"><span class="badge badge-upstream">upstreams</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">curl -s -X POST http://localhost:8001/upstreams/my-upstream/targets \
+  -d target=10.0.0.1:8080 \
+  -d weight=100 | jq '{id,target,weight}'</span>
+            <span class="cmd-line">curl -s -X POST http://localhost:8001/upstreams/my-upstream/targets \
+  -d target=10.0.0.2:8080 \
+  -d weight=0 | jq '{target,weight}'</span>
+            <span class="cmd-line comment"># weight=0 drains a target without removing it</span>
+            <span class="cmd-line">curl -s -X DELETE http://localhost:8001/upstreams/my-upstream/targets/&lt;target-id&gt;</span>
+            <span class="cmd-line">curl -s -X POST http://localhost:8001/upstreams/my-upstream/targets/&lt;target-id&gt;/unhealthy</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Setting <code>weight=0</code> drains a target gracefully — in-flight requests complete, new requests go elsewhere. This is the correct way to remove a backend during deployment. Manually marking a target unhealthy (<code>/unhealthy</code> endpoint) forces Kong to stop routing to it immediately — use during emergency maintenance.</td>
+        </tr>
+
+        <!-- DECK -->
+        <tr data-cat="deck">
+          <td class="tool-name">deck core workflow</td>
+          <td class="phase"><span class="badge badge-deck">deck</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">deck ping</span>
+            <span class="cmd-line">deck dump --output-file kong.yaml</span>
+            <span class="cmd-line">deck validate --state kong.yaml</span>
+            <span class="cmd-line">deck diff --state kong.yaml</span>
+            <span class="cmd-line">deck sync --state kong.yaml</span>
+            <span class="cmd-line">deck sync --state kong.yaml --dry-run</span>
+            <span class="cmd-line">deck reset --force</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>diff</code> before <code>sync</code> — always. Diff shows exactly what will be created, updated, or deleted. <code>reset --force</code> wipes all Kong config — use only in dev/test. In CI: <code>validate</code> on PR, <code>diff</code> as PR comment, <code>sync</code> on merge to main. Never sync untested YAML to production without a diff review.</td>
+        </tr>
+
+        <tr data-cat="deck">
+          <td class="tool-name">deck file operations</td>
+          <td class="phase"><span class="badge badge-deck">deck</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">deck file merge --state services.yaml --state plugins.yaml > kong.yaml</span>
+            <span class="cmd-line">deck file lint --state kong.yaml</span>
+            <span class="cmd-line">deck file render --state kong.yaml</span>
+            <span class="cmd-line">deck sync --select-tag env:prod --state kong.yaml</span>
+            <span class="cmd-line">deck dump --select-tag env:prod --output-file prod.yaml</span>
+            <span class="cmd-line comment"># --select-tag scopes sync to tagged entities only (safe partial update)</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>--select-tag</code> is the production safety mechanism — scope a sync to only the entities tagged for a specific team or environment, leaving others untouched. <code>file merge</code> lets you maintain services and plugins in separate YAML files and merge at sync time. <code>file render</code> resolves templating and shows the final config that would be synced.</td>
+        </tr>
+
+        <tr data-cat="deck">
+          <td class="tool-name">deck in CI/CD</td>
+          <td class="phase"><span class="badge badge-deck">deck</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment"># GitHub Actions step pattern:</span>
+            <span class="conf">- uses: kong/setup-deck@v1</span>
+            <span class="conf">  with: { version: "1.40.0" }</span>
+            <span class="conf">- run: deck validate --state kong.yaml</span>
+            <span class="conf">- run: deck diff --state kong.yaml</span>
+            <span class="conf">  env: { DECK_KONG_ADDR: "${{ secrets.KONG_ADMIN_URL }}" }</span>
+            <span class="conf">- run: deck sync --state kong.yaml</span>
+            <span class="conf">  if: github.ref == 'refs/heads/main'</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Gate sync on branch — diff runs on every PR, sync only on merge to main. Store the Kong Admin URL and token as GitHub secrets. Pin the deck version explicitly — deck minor versions occasionally have breaking flag changes. The <code>kong/setup-deck</code> action handles installation cleanly.</td>
+        </tr>
+
+        <!-- INSPECT -->
+        <tr data-cat="inspect">
+          <td class="tool-name">consumer management</td>
+          <td class="phase"><span class="badge badge-inspect">inspect</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">curl -s http://localhost:8001/consumers | jq '.data[] | {username,custom_id,tags}'</span>
+            <span class="cmd-line">curl -s http://localhost:8001/consumers/my-consumer/key-auth | jq '.data[].key'</span>
+            <span class="cmd-line">curl -s http://localhost:8001/consumers/my-consumer/jwt | jq '.data[] | {key,algorithm}'</span>
+            <span class="cmd-line">curl -s -X POST http://localhost:8001/consumers \
+  -d username=my-app \
+  -d custom_id=app-123 | jq</span>
+            <span class="cmd-line">curl -s -X POST http://localhost:8001/consumers/my-consumer/key-auth | jq '.key'</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Consumers are Kong's identity model — they map to API clients, not end users. Credentials (API keys, JWTs) are attached to consumers. Listing a consumer's credentials reveals all active keys — useful for auditing or rotating. <code>custom_id</code> links Kong consumers to your application's user/tenant identifiers.</td>
+        </tr>
+
+        <tr data-cat="inspect">
+          <td class="tool-name">traffic debugging</td>
+          <td class="phase"><span class="badge badge-inspect">inspect</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">curl -sv http://localhost:8000/api/v1/health -H "Host: api.example.com" 2>&1 | grep -E "< HTTP|< X-Kong"</span>
+            <span class="cmd-line">curl -s http://localhost:8001/debug/node/log_level | jq</span>
+            <span class="cmd-line">curl -s -X PUT http://localhost:8001/debug/node/log_level/debug</span>
+            <span class="cmd-line">curl -s -X PUT http://localhost:8001/debug/node/log_level/notice</span>
+            <span class="cmd-line comment"># Kong response headers reveal routing:</span>
+            <span class="cmd-line comment"># X-Kong-Proxy-Latency: time Kong spent routing (ms)</span>
+            <span class="cmd-line comment"># X-Kong-Upstream-Latency: time the backend took (ms)</span>
+            <span class="cmd-line comment"># X-Kong-Upstream-Status: what the backend returned</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>X-Kong-Proxy-Latency</code> vs <code>X-Kong-Upstream-Latency</code> immediately separates Kong overhead from backend latency — if proxy latency is high, the issue is Kong plugins or routing; if upstream latency is high, the issue is your backend. Temporarily enabling debug log level on a specific node is safe in production — it only affects that node and is reset on restart.</td>
+        </tr>
+
+        <tr data-cat="inspect">
+          <td class="tool-name">node info + cluster</td>
+          <td class="phase"><span class="badge badge-inspect">inspect</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">curl -s http://localhost:8001/clustering/data-planes | jq '.data[] | {id,ip,version,status,last_seen}'</span>
+            <span class="cmd-line">curl -s http://localhost:8001/debug/profiling/start</span>
+            <span class="cmd-line">curl -s http://localhost:8001/debug/profiling/stop</span>
+            <span class="cmd-line">curl -s http://localhost:8001/endpoints | jq '.data | length'</span>
+            <span class="cmd-line">curl -s http://localhost:8001/timers | jq</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>/clustering/data-planes</code> lists all connected data planes in a control plane / data plane (hybrid mode) deployment — <code>last_seen</code> reveals data planes that have stopped syncing. <code>/timers</code> shows background timer activity — excessive timer count can indicate runaway plugin behavior. <code>/endpoints</code> count confirms all Admin API routes are registered.</td>
+        </tr>
+
+      </tbody>
+    </table>
+    <div class="no-results" id="no-results">No entries match this filter.</div>
+  </div>
+</main>
+<footer>
+  ops://cheatsheets &mdash;
+  <a href="https://docs.konghq.com/gateway/latest/admin-api/" target="_blank" rel="noopener">Admin API ref</a> &middot;
+  <a href="https://docs.konghq.com/deck/latest/" target="_blank" rel="noopener">deck docs</a> &middot;
+  <a href="https://docs.konghq.com/hub/" target="_blank" rel="noopener">Plugin Hub</a>
+</footer>
+<script>
+(function () {
+  const btns = document.querySelectorAll('.f-btn'), rows = document.querySelectorAll('#tbody tr[data-cat]');
+  const countEl = document.getElementById('count-n'), noRes = document.getElementById('no-results');
+  function filter(cat) {
+    let s = 0; rows.forEach(r => { const m = cat==='all'||r.dataset.cat===cat; r.style.display=m?'':'none'; if(m)s++; });
+    countEl.textContent=s; noRes.style.display=s===0?'block':'none';
+  }
+  btns.forEach(b => b.addEventListener('click', () => { btns.forEach(x=>x.classList.remove('active')); b.classList.add('active'); filter(b.dataset.cat); }));
+  window.copyAll = function(btn) {
+    const lines = Array.from(btn.closest('.cmd-block').querySelectorAll('.cmd-line')).map(l=>l.textContent).join('\n');
+    navigator.clipboard.writeText(lines).then(() => { btn.textContent='copied!'; btn.classList.add('copied'); setTimeout(()=>{btn.textContent='copy';btn.classList.remove('copied');},1500); });
+  };
+})();
+</script>
+</body>
+</html>
