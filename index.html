@@ -119,6 +119,8 @@
   .post-card.golang:hover         { border-left-color: #a3e635; }
   .tag-orange{ background: rgba(251,146,60,.12);  color: #fb923c; border: 1px solid rgba(251,146,60,.3);  }
   .post-card.python:hover         { border-left-color: #fb923c; }
+  .tag-violet{ background: rgba(167,139,250,.12); color: #a78bfa; border: 1px solid rgba(167,139,250,.3); }
+  .post-card.git:hover            { border-left-color: #a78bfa; }
   .post-date { font-size: 10px; color: var(--muted); }
   .post-title {
     font-family: var(--display);
@@ -276,13 +278,25 @@
       <span class="post-arrow">&#8594;</span>
     </a>
 
+    <a href="git.html" class="post-card git">
+      <div>
+        <div class="post-meta">
+          <span class="tag tag-violet">git</span>
+          <span class="post-date">2026-05-10</span>
+        </div>
+        <p class="post-title">Git &amp; Repo Hygiene</p>
+        <p class="post-desc">History rewriting, forensic archaeology, secret scanning, hook automation, and large-repo tooling. Beyond the daily commit cycle.</p>
+        <p class="tool-count"><strong>17</strong> tools &middot; 6 phases</p>
+      </div>
+      <span class="post-arrow">&#8594;</span>
+    </a>
+
   </div>
 
   <p class="section-label">up next</p>
 
   <div class="coming-soon">
     <p class="coming-soon-title">on the roadmap</p>
-    <div class="coming-item">Git &amp; Repo Hygiene — filter-repo, bisect, gitleaks, trufflehog, pre-commit, sparse-checkout</div>
     <div class="coming-item">Network Diagnostics — mtr, ss, dig, grpcurl, curl deep-dive, k6, TLS inspection</div>
     <div class="coming-item">SLURM &amp; HPC — sbatch, squeue, sacct, job arrays, dependency chains, resource debugging</div>
     <div class="coming-item">PostgreSQL Operations — psql, pg_dump, pgbench, explain analyze, pg_stat_*, vacuumdb</div>
