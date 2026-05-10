@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SLURM &amp; HPC — Cheat Sheet</title>
+<meta name="description" content="Filterable cheat sheet for SLURM and HPC job management — submission, monitoring, debugging, arrays, dependencies, and resource tuning.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #0e0c08;
+    --bg2:     #161309;
+    --bg3:     #1e1a0c;
+    --border:  #2c2710;
+    --border2: #3c3618;
+    --text:    #d4c89a;
+    --muted:   #7a6e40;
+    --accent:  #fbbf24;
+    --cmd:     #7dd3a8;
+    --mono:    'JetBrains Mono', monospace;
+    --display: 'Syne', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+    pointer-events: none; z-index: 999;
+  }
+
+  nav {
+    border-bottom: 1px solid var(--border);
+    padding: .6rem 2rem;
+    display: flex; align-items: center; gap: .5rem;
+    font-size: 11px;
+  }
+  nav a { color: var(--muted); text-decoration: none; transition: color .15s; }
+  nav a:hover { color: var(--accent); }
+  nav .sep { color: var(--border2); }
+  nav .current { color: var(--text); }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 2rem 2rem;
+    position: relative; overflow: hidden;
+  }
+  header::after {
+    content: '';
+    position: absolute; bottom: -1px; left: 0;
+    width: 120px; height: 2px;
+    background: var(--accent);
+  }
+  .header-inner {
+    max-width: 1200px; margin: 0 auto;
+    display: flex; align-items: flex-end;
+    justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  }
+  .prompt { font-size: 11px; color: var(--accent); letter-spacing: .1em; margin-bottom: .5rem; }
+  .prompt::before { content: '$ '; color: var(--muted); }
+  h1 {
+    font-family: var(--display);
+    font-size: clamp(1.6rem, 4vw, 2.6rem);
+    font-weight: 800; color: #f0e4b0;
+    letter-spacing: -.02em; line-height: 1.1;
+  }
+  h1 span { color: var(--accent); }
+  .subtitle { margin-top: .6rem; font-size: 12px; color: var(--muted); max-width: 520px; }
+  .meta { text-align: right; font-size: 11px; color: var(--muted); line-height: 2; }
+  .meta strong { color: var(--text); }
+
+  main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+  .toolbar {
+    display: flex; flex-wrap: wrap;
+    align-items: center; gap: .5rem;
+    margin-bottom: 1.25rem;
+  }
+  .toolbar-label { font-size: 10px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; margin-right: .25rem; }
+  .f-btn {
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: 3px; padding: 3px 10px;
+    font-family: var(--mono); font-size: 11px;
+    color: var(--muted); cursor: pointer;
+    letter-spacing: .06em;
+    transition: color .15s, border-color .15s, background .15s;
+  }
+  .f-btn:hover { color: var(--text); background: var(--bg3); }
+  .f-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(251,191,36,0.07); }
+  .count { margin-left: auto; font-size: 11px; color: var(--muted); }
+  .count strong { color: var(--accent); }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 6px; }
+  table { width: 100%; border-collapse: collapse; min-width: 800px; }
+  thead th {
+    background: var(--bg2); padding: 10px 14px;
+    text-align: left; font-size: 10px;
+    letter-spacing: .12em; text-transform: uppercase;
+    color: var(--muted); border-bottom: 1px solid var(--border);
+    white-space: nowrap; font-weight: 400;
+  }
+  thead th:first-child { border-radius: 6px 0 0 0; }
+  thead th:last-child  { border-radius: 0 6px 0 0; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg2); }
+  td { padding: 10px 14px; vertical-align: top; }
+  td.tool-name { font-weight: 700; font-size: 13px; color: #f0e4b0; white-space: nowrap; min-width: 140px; }
+  td.phase { min-width: 100px; }
+
+  .badge {
+    display: inline-block; font-size: 10px;
+    padding: 2px 8px; border-radius: 2px;
+    letter-spacing: .06em; font-weight: 500; white-space: nowrap;
+  }
+  .badge-submit  { background: rgba(251,191,36,.12);  color: #fbbf24; border: 1px solid rgba(251,191,36,.3);  }
+  .badge-monitor { background: rgba(96,165,250,.12);  color: #60a5fa; border: 1px solid rgba(96,165,250,.3);  }
+  .badge-debug   { background: rgba(255,95,87,.12);   color: #ff7b75; border: 1px solid rgba(255,95,87,.3);   }
+  .badge-array   { background: rgba(57,255,130,.10);  color: #39ff82; border: 1px solid rgba(57,255,130,.25); }
+  .badge-dep     { background: rgba(192,96,255,.12);  color: #c060ff; border: 1px solid rgba(192,96,255,.3);  }
+  .badge-resource{ background: rgba(45,212,191,.12);  color: #2dd4bf; border: 1px solid rgba(45,212,191,.3);  }
+
+  td.commands { min-width: 320px; max-width: 440px; }
+  .cmd-block { position: relative; }
+  .cmd-line {
+    display: block; color: var(--cmd);
+    font-size: 11.5px; line-height: 1.9;
+    word-break: break-all;
+  }
+  .cmd-line::before { content: '$ '; color: var(--muted); user-select: none; }
+  .cmd-line.comment { color: var(--muted); }
+  .cmd-line.comment::before { content: ''; }
+  .copy-btn {
+    position: absolute; top: 0; right: 0;
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: 3px; color: var(--muted);
+    font-family: var(--mono); font-size: 10px;
+    padding: 1px 7px; cursor: pointer;
+    opacity: 0; transition: opacity .15s, color .15s;
+    letter-spacing: .05em;
+  }
+  .cmd-block:hover .copy-btn { opacity: 1; }
+  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .copy-btn.copied { color: var(--accent); border-color: var(--accent); }
+
+  td.usecase { font-size: 12px; color: var(--muted); min-width: 220px; }
+  .no-results { text-align: center; padding: 3rem; color: var(--muted); font-size: 12px; display: none; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    text-align: center; font-size: 11px; color: var(--muted);
+  }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--text); }
+
+  @media (max-width: 640px) {
+    header, main { padding: 1.25rem; }
+    h1 { font-size: 1.5rem; }
+    .meta { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html">&#8592; ops://cheatsheets</a>
+  <span class="sep">/</span>
+  <span class="current">slurm</span>
+</nav>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <p class="prompt">squeue -u $USER --format="%.18i %.9P %.30j %.8T %.10M %.6D %R"</p>
+      <h1>SLURM &amp;<br><span>HPC Toolkit</span></h1>
+      <p class="subtitle">Job submission, queue monitoring, failure debugging, array jobs, dependency chains, and resource profiling. CPU-only and GPU clusters.</p>
+    </div>
+    <div class="meta">
+      <strong>17</strong> commands<br>
+      <strong>6</strong> phases<br>
+      SLURM 22+ &middot; CPU &middot; GPU
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="toolbar">
+    <span class="toolbar-label">Phase</span>
+    <button class="f-btn active" data-cat="all">all</button>
+    <button class="f-btn" data-cat="submit">submit</button>
+    <button class="f-btn" data-cat="monitor">monitor</button>
+    <button class="f-btn" data-cat="debug">debug</button>
+    <button class="f-btn" data-cat="array">arrays</button>
+    <button class="f-btn" data-cat="dep">dependencies</button>
+    <button class="f-btn" data-cat="resource">resources</button>
+    <span class="count" id="count"><strong id="count-n">17</strong> commands shown</span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Tool / Command</th><th>Phase</th><th>Key usage</th><th>Use case</th></tr>
+      </thead>
+      <tbody id="tbody">
+
+        <!-- SUBMIT -->
+        <tr data-cat="submit">
+          <td class="tool-name">sbatch</td>
+          <td class="phase"><span class="badge badge-submit">submit</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">sbatch job.sh</span>
+            <span class="cmd-line">sbatch --job-name=train --nodes=1 --ntasks=1 --cpus-per-task=8 --mem=32G --time=04:00:00 --partition=compute job.sh</span>
+            <span class="cmd-line">sbatch --output=logs/%j.out --error=logs/%j.err job.sh</span>
+            <span class="cmd-line">sbatch --requeue --signal=B:USR1@60 job.sh</span>
+            <span class="cmd-line">sbatch --parsable job.sh</span>
+            <span class="cmd-line comment"># --parsable returns only the job ID — pipe to downstream steps</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Always set <code>--mem</code> and <code>--time</code> explicitly — defaults vary by cluster and silent OOM kills waste queue time. <code>%j</code> in output paths expands to job ID. <code>--parsable</code> emits just the job ID for scripting. <code>--signal=B:USR1@60</code> sends a warning signal 60s before time limit — implement a checkpoint handler.</td>
+        </tr>
+
+        <tr data-cat="submit">
+          <td class="tool-name">batch script headers</td>
+          <td class="phase"><span class="badge badge-submit">submit</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment">#!/bin/bash</span>
+            <span class="cmd-line comment">#SBATCH --job-name=mymodel</span>
+            <span class="cmd-line comment">#SBATCH --nodes=1</span>
+            <span class="cmd-line comment">#SBATCH --ntasks=1</span>
+            <span class="cmd-line comment">#SBATCH --cpus-per-task=16</span>
+            <span class="cmd-line comment">#SBATCH --mem=64G</span>
+            <span class="cmd-line comment">#SBATCH --time=08:00:00</span>
+            <span class="cmd-line comment">#SBATCH --partition=compute</span>
+            <span class="cmd-line comment">#SBATCH --output=logs/%j-%x.out</span>
+            <span class="cmd-line comment">#SBATCH --mail-type=FAIL</span>
+            <span class="cmd-line comment">#SBATCH --mail-user=you@example.com</span>
+            <span class="cmd-line comment">%x = job name, %j = job ID, %N = node name</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Canonical header block. <code>%x</code> expands to job name in output paths — more readable than bare job IDs in log directories. <code>--mail-type=FAIL</code> only; NONE or FAIL are the only values worth using in practice. <code>--ntasks=1 --cpus-per-task=N</code> is the correct pattern for multithreaded single-process jobs.</td>
+        </tr>
+
+        <tr data-cat="submit">
+          <td class="tool-name">srun</td>
+          <td class="phase"><span class="badge badge-submit">submit</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">srun --pty --nodes=1 --cpus-per-task=4 --mem=16G --time=01:00:00 --partition=compute bash</span>
+            <span class="cmd-line">srun --pty --time=02:00:00 --mem=32G bash</span>
+            <span class="cmd-line">srun --nodes=1 --ntasks=1 python train.py</span>
+            <span class="cmd-line comment"># inside an sbatch script, srun steps inherit #SBATCH directives:</span>
+            <span class="cmd-line">srun python train.py</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Interactive allocation with <code>--pty</code> — the correct way to get a shell on a compute node for debugging without bypassing the scheduler. Inside an sbatch script, <code>srun</code> creates a job step visible in <code>squeue</code> and <code>sacct</code>, which improves accounting granularity.</td>
+        </tr>
+
+        <tr data-cat="submit">
+          <td class="tool-name">scancel</td>
+          <td class="phase"><span class="badge badge-submit">submit</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">scancel &lt;jobid&gt;</span>
+            <span class="cmd-line">scancel --user=$USER</span>
+            <span class="cmd-line">scancel --state=PENDING --user=$USER</span>
+            <span class="cmd-line">scancel --name=mymodel</span>
+            <span class="cmd-line">scancel &lt;jobid&gt;_[3-7]</span>
+            <span class="cmd-line comment"># send signal without killing (e.g. checkpoint trigger):</span>
+            <span class="cmd-line">scancel --signal=USR1 &lt;jobid&gt;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Cancel by job ID, user, state, name, or array range. <code>--signal</code> without cancellation is how you trigger checkpoint saves in jobs that implement a USR1 handler — cleaner than killing and resubmitting from scratch.</td>
+        </tr>
+
+        <!-- MONITOR -->
+        <tr data-cat="monitor">
+          <td class="tool-name">squeue</td>
+          <td class="phase"><span class="badge badge-monitor">monitor</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">squeue -u $USER</span>
+            <span class="cmd-line">squeue -u $USER --format="%.10i %.9P %.30j %.8T %.12M %.6D %.R"</span>
+            <span class="cmd-line">squeue --partition=compute --states=RUNNING</span>
+            <span class="cmd-line">squeue --job &lt;jobid&gt; -o "%T %r %N"</span>
+            <span class="cmd-line">watch -n 30 'squeue -u $USER'</span>
+            <span class="cmd-line">squeue -u $USER --sort=+i --noheader | wc -l</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>%R</code> in the format string shows the reason a job is pending — the first thing to check when a job doesn't start. Common reasons: <code>Resources</code> (waiting for allocation), <code>Priority</code>, <code>QOSMaxJobsPerUser</code>, <code>Dependency</code>. <code>watch -n 30</code> is less aggressive than <code>-n 5</code> on shared head nodes.</td>
+        </tr>
+
+        <tr data-cat="monitor">
+          <td class="tool-name">sinfo</td>
+          <td class="phase"><span class="badge badge-monitor">monitor</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">sinfo</span>
+            <span class="cmd-line">sinfo -p compute -o "%N %C %m %G %T"</span>
+            <span class="cmd-line">sinfo --Node --long</span>
+            <span class="cmd-line">sinfo -t idle</span>
+            <span class="cmd-line">sinfo -t down,drain</span>
+            <span class="cmd-line">sinfo -o "%n %C" | awk -F'/' '{print $1, ($2-$1)" free"}'</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Cluster state — partition availability, node states, CPU/memory/GPU capacity. <code>%C</code> gives allocated/idle/other/total CPUs per node. <code>-t down,drain</code> surfaces unhealthy nodes. The awk one-liner computes free CPUs per node from the A/I/O/T string.</td>
+        </tr>
+
+        <tr data-cat="monitor">
+          <td class="tool-name">sacct</td>
+          <td class="phase"><span class="badge badge-monitor">monitor</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">sacct -j &lt;jobid&gt; --format=JobID,State,ExitCode,Elapsed,MaxRSS,MaxVMSize</span>
+            <span class="cmd-line">sacct -u $USER --starttime=2025-01-01 --format=JobID,JobName,State,Elapsed,MaxRSS</span>
+            <span class="cmd-line">sacct -j &lt;jobid&gt; --format=JobID,TRESUsageInMax%80</span>
+            <span class="cmd-line">sacct -j &lt;jobid&gt;.batch --format=MaxRSS,MaxVMSize,CPUTime</span>
+            <span class="cmd-line">sacct -u $USER --state=FAILED --starttime=now-7days</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Post-mortem accounting — actual memory used (<code>MaxRSS</code>), CPU time, exit codes. <code>.batch</code> suffix on the job ID queries the batch step specifically. <code>--state=FAILED</code> with a time window surfaces all failures quickly. Essential for right-sizing <code>--mem</code> on repeat jobs.</td>
+        </tr>
+
+        <!-- DEBUG -->
+        <tr data-cat="debug">
+          <td class="tool-name">scontrol</td>
+          <td class="phase"><span class="badge badge-debug">debug</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">scontrol show job &lt;jobid&gt;</span>
+            <span class="cmd-line">scontrol show job &lt;jobid&gt; | grep -E "Reason|NodeList|StartTime|TimeLimit"</span>
+            <span class="cmd-line">scontrol show node &lt;nodename&gt;</span>
+            <span class="cmd-line">scontrol show partition compute</span>
+            <span class="cmd-line">scontrol hold &lt;jobid&gt;</span>
+            <span class="cmd-line">scontrol release &lt;jobid&gt;</span>
+            <span class="cmd-line">scontrol update JobId=&lt;jobid&gt; TimeLimit=06:00:00</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Full job and node detail — more verbose than <code>squeue</code>. <code>Reason</code> field explains pending state. <code>hold</code>/<code>release</code> pauses a job without losing queue position. <code>update TimeLimit</code> extends a running job's walltime if the partition allows it — ask before the job hits the limit.</td>
+        </tr>
+
+        <tr data-cat="debug">
+          <td class="tool-name">job log inspection</td>
+          <td class="phase"><span class="badge badge-debug">debug</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">tail -f logs/&lt;jobid&gt;.out</span>
+            <span class="cmd-line">ls -lt logs/ | head -5</span>
+            <span class="cmd-line">grep -i "error\|oom\|killed\|signal" logs/&lt;jobid&gt;.out</span>
+            <span class="cmd-line">grep "slurmstepd" /var/log/slurmctld.log | grep &lt;jobid&gt;</span>
+            <span class="cmd-line comment"># OOM kill signature in log:</span>
+            <span class="cmd-line comment"># slurmstepd: error: Exceeded job memory limit at some point</span>
+            <span class="cmd-line comment"># or: Killed (signal 9) — check dmesg on the node</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">First-line triage for failed jobs. OOM kills appear as signal 9 with no Python traceback — the only clue is the slurmstepd message or <code>sacct</code> showing <code>OUT_OF_MEMORY</code> state. <code>dmesg | grep -i oom</code> on the compute node confirms kernel-level OOM kills.</td>
+        </tr>
+
+        <tr data-cat="debug">
+          <td class="tool-name">node-level debug</td>
+          <td class="phase"><span class="badge badge-debug">debug</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">srun --pty --jobid=&lt;jobid&gt; bash</span>
+            <span class="cmd-line">ssh &lt;nodename&gt;</span>
+            <span class="cmd-line comment"># once on node:</span>
+            <span class="cmd-line">top -u $USER</span>
+            <span class="cmd-line">ps aux --sort=-%mem | head -20</span>
+            <span class="cmd-line">cat /proc/&lt;pid&gt;/status | grep VmRSS</span>
+            <span class="cmd-line">ls /sys/fs/cgroup/memory/slurm/uid_*/job_&lt;jobid&gt;/memory.usage_in_bytes</span>
+            <span class="cmd-line">cat /sys/fs/cgroup/memory/slurm/uid_*/job_&lt;jobid&gt;/memory.max_usage_in_bytes</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Live memory inspection on the compute node. cgroup memory files give real peak RSS for the job without waiting for <code>sacct</code>. Most clusters allow SSH to your own job's node — check with <code>scontrol show job &lt;jobid&gt; | grep NodeList</code> first.</td>
+        </tr>
+
+        <!-- ARRAYS -->
+        <tr data-cat="array">
+          <td class="tool-name">job arrays</td>
+          <td class="phase"><span class="badge badge-array">arrays</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">sbatch --array=0-99 job.sh</span>
+            <span class="cmd-line">sbatch --array=0-999%20 job.sh</span>
+            <span class="cmd-line">sbatch --array=1,3,7,42 job.sh</span>
+            <span class="cmd-line">sbatch --array=0-99:5 job.sh</span>
+            <span class="cmd-line comment"># inside job.sh — use SLURM_ARRAY_TASK_ID:</span>
+            <span class="cmd-line comment">INPUT_FILE="data/sample_${SLURM_ARRAY_TASK_ID}.parquet"</span>
+            <span class="cmd-line comment">python process.py --input $INPUT_FILE --task-id $SLURM_ARRAY_TASK_ID</span>
+            <span class="cmd-line">squeue -u $USER --array</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>%N</code> after the range caps concurrent tasks — <code>0-999%20</code> runs at most 20 simultaneously, protecting shared storage from thundering-herd I/O. <code>:5</code> step runs tasks 0,5,10,... — useful for strided parameter sweeps. <code>SLURM_ARRAY_TASK_ID</code> indexes into config files, input lists, or hyperparameter grids.</td>
+        </tr>
+
+        <tr data-cat="array">
+          <td class="tool-name">array task lookup pattern</td>
+          <td class="phase"><span class="badge badge-array">arrays</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment"># params.txt: one config per line</span>
+            <span class="cmd-line comment"># lr=0.001 batch=32</span>
+            <span class="cmd-line comment"># lr=0.01  batch=64</span>
+            <span class="cmd-line comment"># lr=0.1   batch=128</span>
+            <span class="cmd-line comment">PARAMS=$(sed -n "$((SLURM_ARRAY_TASK_ID + 1))p" params.txt)</span>
+            <span class="cmd-line comment">python train.py $PARAMS --seed $SLURM_ARRAY_TASK_ID</span>
+            <span class="cmd-line comment"># count lines to set array bound:</span>
+            <span class="cmd-line">wc -l params.txt</span>
+            <span class="cmd-line">sbatch --array=0-$(( $(wc -l &lt; params.txt) - 1 )) job.sh</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Canonical hyperparameter sweep pattern — one param set per line, task ID as line index. Dynamically computing the array bound from file length avoids off-by-one errors when the grid changes. Pass <code>--seed $SLURM_ARRAY_TASK_ID</code> for reproducible but distinct runs.</td>
+        </tr>
+
+        <!-- DEPENDENCIES -->
+        <tr data-cat="dep">
+          <td class="tool-name">dependency chains</td>
+          <td class="phase"><span class="badge badge-dep">dependencies</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">JID1=$(sbatch --parsable preprocess.sh)</span>
+            <span class="cmd-line">JID2=$(sbatch --parsable --dependency=afterok:$JID1 train.sh)</span>
+            <span class="cmd-line">JID3=$(sbatch --parsable --dependency=afterok:$JID2 evaluate.sh)</span>
+            <span class="cmd-line">sbatch --dependency=afterok:$JID2 --dependency=afterany:$JID3 report.sh</span>
+            <span class="cmd-line">sbatch --dependency=aftercorr:&lt;array_jobid&gt; downstream.sh</span>
+            <span class="cmd-line">sbatch --dependency=singleton --job-name=mymodel job.sh</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>afterok</code> requires exit code 0; <code>afterany</code> runs regardless of exit code; <code>aftercorr</code> matches array task IDs — task N of the downstream job starts after task N of the upstream array completes. <code>singleton</code> prevents concurrent runs of the same job name — useful for protecting shared output directories.</td>
+        </tr>
+
+        <tr data-cat="dep">
+          <td class="tool-name">pipeline script pattern</td>
+          <td class="phase"><span class="badge badge-dep">dependencies</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment">#!/bin/bash</span>
+            <span class="cmd-line comment">set -euo pipefail</span>
+            <span class="cmd-line comment">PREP=$(sbatch --parsable prep.sh)</span>
+            <span class="cmd-line comment">echo "prep: $PREP"</span>
+            <span class="cmd-line comment">TRAIN=$(sbatch --parsable --dependency=afterok:$PREP train.sh)</span>
+            <span class="cmd-line comment">echo "train: $TRAIN"</span>
+            <span class="cmd-line comment">EVAL=$(sbatch --parsable --dependency=afterok:$TRAIN eval.sh)</span>
+            <span class="cmd-line comment">echo "eval: $EVAL"</span>
+            <span class="cmd-line comment">squeue --jobs=$PREP,$TRAIN,$EVAL -o "%.10i %.30j %.8T %R"</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Submit an entire pipeline in one script, capture each job ID, print them, then show the full chain in <code>squeue</code>. <code>set -euo pipefail</code> aborts on any sbatch failure so downstream jobs are never submitted with a bad upstream ID. Commit pipeline scripts to version control alongside model code.</td>
+        </tr>
+
+        <!-- RESOURCES -->
+        <tr data-cat="resource">
+          <td class="tool-name">right-sizing memory</td>
+          <td class="phase"><span class="badge badge-resource">resources</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">sacct -j &lt;jobid&gt;.batch --format=MaxRSS,ReqMem,Elapsed --noheader</span>
+            <span class="cmd-line comment"># MaxRSS in KB — convert to GB:</span>
+            <span class="cmd-line">sacct -j &lt;jobid&gt;.batch --format=MaxRSS --noheader | awk '{printf "%.1f GB\n", $1/1024/1024}'</span>
+            <span class="cmd-line comment"># efficiency ratio — aim for >0.7:</span>
+            <span class="cmd-line">sacct -j &lt;jobid&gt; --format=JobID,ReqMem,MaxRSS,CPUTimeRAW,ElapsedRaw --noheader</span>
+            <span class="cmd-line">seff &lt;jobid&gt;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>seff</code> (SLURM efficiency) summarises memory and CPU efficiency in one line — most clusters have it. Over-requesting memory blocks other jobs and may lower your job's priority under fair-share scheduling. Target 70–85% utilisation; below 50% is wasteful, above 90% risks OOM on variance.</td>
+        </tr>
+
+        <tr data-cat="resource">
+          <td class="tool-name">environment &amp; modules</td>
+          <td class="phase"><span class="badge badge-resource">resources</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">module avail</span>
+            <span class="cmd-line">module avail python</span>
+            <span class="cmd-line">module load python/3.12 gcc/13.2</span>
+            <span class="cmd-line">module list</span>
+            <span class="cmd-line">module purge</span>
+            <span class="cmd-line comment"># in job script — always purge then reload explicitly:</span>
+            <span class="cmd-line comment">module purge</span>
+            <span class="cmd-line comment">module load python/3.12 openmpi/4.1</span>
+            <span class="cmd-line">module show python/3.12</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Environment Modules control PATH, LD_LIBRARY_PATH, and compiler toolchain. Always <code>module purge</code> at the top of job scripts — inherited shell modules from the login node cause silent mismatches between interactive and batch environments. <code>module show</code> reveals what a module actually sets.</td>
+        </tr>
+
+        <tr data-cat="resource">
+          <td class="tool-name">CPU affinity &amp; threading</td>
+          <td class="phase"><span class="badge badge-resource">resources</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">sbatch --cpus-per-task=8 --hint=nomultithread job.sh</span>
+            <span class="cmd-line comment"># in job script — bind threads to allocated CPUs:</span>
+            <span class="cmd-line comment">export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK</span>
+            <span class="cmd-line comment">export MKL_NUM_THREADS=$SLURM_CPUS_PER_TASK</span>
+            <span class="cmd-line comment">export OPENBLAS_NUM_THREADS=$SLURM_CPUS_PER_TASK</span>
+            <span class="cmd-line comment">export NUMEXPR_NUM_THREADS=$SLURM_CPUS_PER_TASK</span>
+            <span class="cmd-line">taskset -cp $$ </span>
+            <span class="cmd-line comment"># verify actual CPU affinity of the process</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Without explicit thread binding, NumPy/PyTorch/MKL spawns as many threads as there are cores on the node — not just your allocation. This causes severe interference on shared nodes. Set all four thread-count env vars; different libraries read different ones. <code>taskset</code> confirms the kernel-level CPU affinity mask.</td>
+        </tr>
+
+        <tr data-cat="resource">
+          <td class="tool-name">I/O best practices</td>
+          <td class="phase"><span class="badge badge-resource">resources</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment"># copy input data to local scratch before computation:</span>
+            <span class="cmd-line">cp -r $INPUT_DIR $TMPDIR/input/</span>
+            <span class="cmd-line comment"># work entirely from local scratch:</span>
+            <span class="cmd-line comment">python train.py --data $TMPDIR/input/ --output $TMPDIR/output/</span>
+            <span class="cmd-line comment"># copy results back at end of job:</span>
+            <span class="cmd-line">cp -r $TMPDIR/output/ $RESULTS_DIR/</span>
+            <span class="cmd-line comment"># check I/O load on shared filesystem:</span>
+            <span class="cmd-line">lfs df -h /scratch</span>
+            <span class="cmd-line">lfs quota -u $USER /scratch</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Shared Lustre/GPFS filesystems degrade under random small-file I/O from many concurrent jobs. Copy to <code>$TMPDIR</code> (local NVMe on most clusters) for the compute phase; write back only final outputs. <code>lfs quota</code> checks your scratch quota before a large job fills it mid-run.</td>
+        </tr>
+
+      </tbody>
+    </table>
+    <div class="no-results" id="no-results">No commands match this filter.</div>
+  </div>
+</main>
+
+<footer>
+  ops://cheatsheets &mdash;
+  <a href="https://slurm.schedmd.com/documentation.html" target="_blank" rel="noopener">SLURM docs</a> &middot;
+  <a href="https://slurm.schedmd.com/sbatch.html" target="_blank" rel="noopener">sbatch man</a> &middot;
+  <a href="https://slurm.schedmd.com/sacct.html" target="_blank" rel="noopener">sacct man</a> &middot;
+  <a href="https://slurm.schedmd.com/job_array.html" target="_blank" rel="noopener">job arrays</a>
+</footer>
+
+<script>
+(function () {
+  const btns    = document.querySelectorAll('.f-btn');
+  const rows    = document.querySelectorAll('#tbody tr[data-cat]');
+  const countEl = document.getElementById('count-n');
+  const noRes   = document.getElementById('no-results');
+
+  function filter(cat) {
+    let shown = 0;
+    rows.forEach(r => {
+      const match = cat === 'all' || r.dataset.cat === cat;
+      r.style.display = match ? '' : 'none';
+      if (match) shown++;
+    });
+    countEl.textContent = shown;
+    noRes.style.display = shown === 0 ? 'block' : 'none';
+  }
+
+  btns.forEach(b => {
+    b.addEventListener('click', () => {
+      btns.forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      filter(b.dataset.cat);
+    });
+  });
+
+  window.copyAll = function (btn) {
+    const block = btn.closest('.cmd-block');
+    const lines = Array.from(block.querySelectorAll('.cmd-line'))
+      .map(l => l.textContent)
+      .join('\n');
+    navigator.clipboard.writeText(lines).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1500);
+    });
+  };
+})();
+</script>
+</body>
+</html>

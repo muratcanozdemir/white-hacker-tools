@@ -123,6 +123,8 @@
   .post-card.git:hover            { border-left-color: #a78bfa; }
   .tag-cyan  { background: rgba(34,211,238,.12);  color: #22d3ee; border: 1px solid rgba(34,211,238,.3);  }
   .post-card.network:hover        { border-left-color: #22d3ee; }
+  .tag-yellow{ background: rgba(251,191,36,.12);  color: #fbbf24; border: 1px solid rgba(251,191,36,.3);  }
+  .post-card.slurm:hover          { border-left-color: #fbbf24; }
   .post-date { font-size: 10px; color: var(--muted); }
   .post-title {
     font-family: var(--display);
@@ -306,13 +308,25 @@
       <span class="post-arrow">&#8594;</span>
     </a>
 
+    <a href="slurm.html" class="post-card slurm">
+      <div>
+        <div class="post-meta">
+          <span class="tag tag-yellow">hpc</span>
+          <span class="post-date">2026-05-10</span>
+        </div>
+        <p class="post-title">SLURM &amp; HPC Toolkit</p>
+        <p class="post-desc">Job submission, queue monitoring, failure debugging, array jobs, dependency chains, and resource profiling. CPU-only and GPU clusters.</p>
+        <p class="tool-count"><strong>17</strong> commands &middot; 6 phases</p>
+      </div>
+      <span class="post-arrow">&#8594;</span>
+    </a>
+
   </div>
 
   <p class="section-label">up next</p>
 
   <div class="coming-soon">
     <p class="coming-soon-title">on the roadmap</p>
-    <div class="coming-item">SLURM &amp; HPC — sbatch, squeue, sacct, job arrays, dependency chains, resource debugging</div>
     <div class="coming-item">PostgreSQL Operations — psql, pg_dump, pgbench, explain analyze, pg_stat_*, vacuumdb</div>
   </div>
 
