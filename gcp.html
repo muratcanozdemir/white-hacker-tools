@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GCP CLI (gcloud) — Production Surface Cheat Sheet</title>
+<meta name="description" content="Filterable GCP gcloud reference for engineers with production scars — auth, compute, storage, networking, secrets, observability, data/platform.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #07100a;
+    --bg2:     #0b170d;
+    --bg3:     #101f14;
+    --border:  #182a1c;
+    --border2: #213b27;
+    --text:    #aed4b8;
+    --muted:   #487858;
+    --accent:  #34d058;
+    --cmd:     #7dd3a8;
+    --mono:    'JetBrains Mono', monospace;
+    --display: 'Syne', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+    pointer-events: none; z-index: 999;
+  }
+
+  nav {
+    border-bottom: 1px solid var(--border);
+    padding: .6rem 2rem;
+    display: flex; align-items: center; gap: .5rem;
+    font-size: 11px;
+  }
+  nav a { color: var(--muted); text-decoration: none; transition: color .15s; }
+  nav a:hover { color: var(--accent); }
+  nav .sep { color: var(--border2); }
+  nav .current { color: var(--text); }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 2rem 2rem;
+    position: relative; overflow: hidden;
+  }
+  header::after {
+    content: '';
+    position: absolute; bottom: -1px; left: 0;
+    width: 120px; height: 2px;
+    background: var(--accent);
+  }
+  .header-inner {
+    max-width: 1200px; margin: 0 auto;
+    display: flex; align-items: flex-end;
+    justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  }
+  .prompt { font-size: 11px; color: var(--accent); letter-spacing: .1em; margin-bottom: .5rem; }
+  .prompt::before { content: '$ '; color: var(--muted); }
+  h1 {
+    font-family: var(--display);
+    font-size: clamp(1.6rem, 4vw, 2.6rem);
+    font-weight: 800; color: #c8f0d0;
+    letter-spacing: -.02em; line-height: 1.1;
+  }
+  h1 span { color: var(--accent); }
+  .subtitle { margin-top: .6rem; font-size: 12px; color: var(--muted); max-width: 520px; }
+  .meta { text-align: right; font-size: 11px; color: var(--muted); line-height: 2; }
+  .meta strong { color: var(--text); }
+
+  main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+  .callout {
+    display: flex; align-items: flex-start; gap: .75rem;
+    background: rgba(52,208,88,.05);
+    border: 1px solid rgba(52,208,88,.2);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: .85rem 1rem;
+    margin-bottom: 1.75rem;
+    font-size: 11px; color: var(--muted);
+    line-height: 1.7;
+  }
+  .callout::before { content: '!'; color: var(--accent); font-weight: 700; font-size: 13px; flex-shrink: 0; line-height: 1.5; }
+  .callout strong { color: var(--text); }
+  .callout code { color: var(--accent); font-size: 10.5px; }
+
+  .pinned {
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    margin-bottom: 1.75rem;
+    overflow: hidden;
+  }
+  .pinned-header {
+    background: var(--bg2);
+    padding: .6rem 1rem;
+    font-size: 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .pinned-header::before { content: '📌'; font-size: 11px; }
+  .pinned-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+  .pinned-cell {
+    padding: .9rem 1rem;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .pinned-cell:last-child { border-right: none; }
+  .pinned-cell:nth-last-child(-n+2) { border-bottom: none; }
+  .pinned-label {
+    font-size: 10px; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: .4rem;
+  }
+  .pinned-cell .cmd-line {
+    display: block; color: var(--cmd);
+    font-size: 11px; line-height: 1.9;
+    word-break: break-all;
+  }
+  .pinned-cell .cmd-line::before { content: '$ '; color: var(--muted); user-select: none; }
+  .pinned-cell .cmd-line.comment { color: var(--muted); }
+  .pinned-cell .cmd-line.comment::before { content: ''; }
+
+  .toolbar {
+    display: flex; flex-wrap: wrap;
+    align-items: center; gap: .5rem;
+    margin-bottom: 1.25rem;
+  }
+  .toolbar-label { font-size: 10px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; margin-right: .25rem; }
+  .f-btn {
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: 3px; padding: 3px 10px;
+    font-family: var(--mono); font-size: 11px;
+    color: var(--muted); cursor: pointer;
+    letter-spacing: .06em;
+    transition: color .15s, border-color .15s, background .15s;
+  }
+  .f-btn:hover { color: var(--text); background: var(--bg3); }
+  .f-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(52,208,88,0.07); }
+  .count { margin-left: auto; font-size: 11px; color: var(--muted); }
+  .count strong { color: var(--accent); }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 6px; }
+  table { width: 100%; border-collapse: collapse; min-width: 800px; }
+  thead th {
+    background: var(--bg2); padding: 10px 14px;
+    text-align: left; font-size: 10px;
+    letter-spacing: .12em; text-transform: uppercase;
+    color: var(--muted); border-bottom: 1px solid var(--border);
+    white-space: nowrap; font-weight: 400;
+  }
+  thead th:first-child { border-radius: 6px 0 0 0; }
+  thead th:last-child  { border-radius: 0 6px 0 0; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg2); }
+  td { padding: 10px 14px; vertical-align: top; }
+  td.tool-name { font-weight: 700; font-size: 13px; color: #c8f0d0; white-space: nowrap; min-width: 160px; }
+  td.phase { min-width: 110px; }
+
+  .badge {
+    display: inline-block; font-size: 10px;
+    padding: 2px 8px; border-radius: 2px;
+    letter-spacing: .06em; font-weight: 500; white-space: nowrap;
+  }
+  .badge-auth    { background: rgba(255,95,87,.12);   color: #ff7b75; border: 1px solid rgba(255,95,87,.3);   }
+  .badge-compute { background: rgba(52,208,88,.12);   color: #34d058; border: 1px solid rgba(52,208,88,.3);   }
+  .badge-storage { background: rgba(57,255,130,.10);  color: #39ff82; border: 1px solid rgba(57,255,130,.25); }
+  .badge-network { background: rgba(96,165,250,.12);  color: #60a5fa; border: 1px solid rgba(96,165,250,.3);  }
+  .badge-secrets { background: rgba(192,96,255,.12);  color: #c060ff; border: 1px solid rgba(192,96,255,.3);  }
+  .badge-obs     { background: rgba(45,212,191,.12);  color: #2dd4bf; border: 1px solid rgba(45,212,191,.3);  }
+  .badge-data    { background: rgba(240,180,41,.12);  color: #f0b429; border: 1px solid rgba(240,180,41,.3);  }
+
+  td.commands { min-width: 320px; max-width: 440px; }
+  .cmd-block { position: relative; }
+  .cmd-line {
+    display: block; color: var(--cmd);
+    font-size: 11.5px; line-height: 1.9;
+    word-break: break-all;
+  }
+  .cmd-line::before { content: '$ '; color: var(--muted); user-select: none; }
+  .cmd-line.comment { color: var(--muted); }
+  .cmd-line.comment::before { content: ''; }
+  .copy-btn {
+    position: absolute; top: 0; right: 0;
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: 3px; color: var(--muted);
+    font-family: var(--mono); font-size: 10px;
+    padding: 1px 7px; cursor: pointer;
+    opacity: 0; transition: opacity .15s, color .15s;
+    letter-spacing: .05em;
+  }
+  .cmd-block:hover .copy-btn { opacity: 1; }
+  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .copy-btn.copied { color: var(--accent); border-color: var(--accent); }
+
+  td.usecase { font-size: 12px; color: var(--muted); min-width: 220px; }
+  .no-results { text-align: center; padding: 3rem; color: var(--muted); font-size: 12px; display: none; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    text-align: center; font-size: 11px; color: var(--muted);
+  }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--text); }
+
+  @media (max-width: 640px) {
+    header, main { padding: 1.25rem; }
+    h1 { font-size: 1.5rem; }
+    .meta { display: none; }
+    .pinned-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html">&#8592; ops://cheatsheets</a>
+  <span class="sep">/</span>
+  <span class="current">gcp</span>
+</nav>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <p class="prompt">gcloud auth list && gcloud config get-value project</p>
+      <h1>GCP CLI<br><span>Production Surface</span></h1>
+      <p class="subtitle">~28 entries distilled to what engineers with production scars actually reach for. Honest about what belongs in Terraform or the console.</p>
+    </div>
+    <div class="meta">
+      <strong>28</strong> entries<br>
+      <strong>7</strong> phases<br>
+      gcloud SDK &middot; multi-project
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <div class="callout">
+    <span>
+      <strong>What's not here — and why.</strong>
+      <code>gcloud deployment-manager</code> — Terraform does this better.
+      <code>gcloud builds</code> — Cloud Build is console/YAML territory, not interactive CLI ops.
+      <code>gcloud app</code> — App Engine is legacy; use Cloud Run.
+      <code>bq</code> — BigQuery has its own CLI; it's not a gcloud subcommand.
+      <code>gcloud dataflow / dataproc / bigtable</code> — SDK territory.
+      <code>gcloud beta / alpha</code> commands — not stable enough for a production reference.
+      <strong>gsutil vs gcloud storage:</strong> Google is actively migrating storage ops from <code>gsutil</code> to <code>gcloud storage</code>. This page uses <code>gcloud storage</code> throughout; install the latest SDK to get it.
+    </span>
+  </div>
+
+  <div class="pinned">
+    <div class="pinned-header">cross-cutting — know these before anything else</div>
+    <div class="pinned-grid">
+
+      <div class="pinned-cell">
+        <div class="pinned-label">auth patterns</div>
+        <span class="cmd-line">gcloud auth login</span>
+        <span class="cmd-line">gcloud auth activate-service-account --key-file=sa-key.json</span>
+        <span class="cmd-line">gcloud auth application-default login</span>
+        <span class="cmd-line">gcloud auth list</span>
+        <span class="cmd-line comment"># ADC vs gcloud auth — different credential stores</span>
+        <span class="cmd-line comment"># ADC is used by client libraries; gcloud auth by the CLI</span>
+      </div>
+
+      <div class="pinned-cell">
+        <div class="pinned-label">project / config context</div>
+        <span class="cmd-line">gcloud config set project my-project-id</span>
+        <span class="cmd-line">gcloud config get-value project</span>
+        <span class="cmd-line">gcloud config configurations create prod</span>
+        <span class="cmd-line">gcloud config configurations activate prod</span>
+        <span class="cmd-line">gcloud config configurations list</span>
+        <span class="cmd-line comment"># or per-command: --project=my-project-id</span>
+      </div>
+
+      <div class="pinned-cell">
+        <div class="pinned-label">--format + --filter (not JMESPath)</div>
+        <span class="cmd-line">gcloud compute instances list --format="table(name,zone,status,networkInterfaces[0].networkIP)"</span>
+        <span class="cmd-line">gcloud compute instances list --filter="status=RUNNING AND zone:us-central1"</span>
+        <span class="cmd-line">gcloud compute instances list --format=json | jq '.[].name'</span>
+        <span class="cmd-line comment"># --format: table, json, yaml, csv, value, flattened</span>
+        <span class="cmd-line comment"># --filter uses GCP's own CEL-like syntax, not JMESPath</span>
+      </div>
+
+      <div class="pinned-cell">
+        <div class="pinned-label">named configurations (multi-account)</div>
+        <span class="cmd-line">gcloud config configurations create staging</span>
+        <span class="cmd-line">gcloud config set project staging-project-id</span>
+        <span class="cmd-line">gcloud config set account staging@example.com</span>
+        <span class="cmd-line">gcloud config set compute/region europe-west1</span>
+        <span class="cmd-line comment"># switch configs: gcloud config configurations activate prod</span>
+        <span class="cmd-line comment"># or per-command: --configuration=prod</span>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <span class="toolbar-label">Phase</span>
+    <button class="f-btn active" data-cat="all">all</button>
+    <button class="f-btn" data-cat="auth">auth</button>
+    <button class="f-btn" data-cat="compute">compute</button>
+    <button class="f-btn" data-cat="storage">storage</button>
+    <button class="f-btn" data-cat="network">networking</button>
+    <button class="f-btn" data-cat="secrets">secrets</button>
+    <button class="f-btn" data-cat="obs">observability</button>
+    <button class="f-btn" data-cat="data">data / platform</button>
+    <span class="count" id="count"><strong id="count-n">28</strong> shown</span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Service / Command</th><th>Phase</th><th>Key commands</th><th>Use case</th></tr>
+      </thead>
+      <tbody id="tbody">
+
+        <!-- AUTH -->
+        <tr data-cat="auth">
+          <td class="tool-name">gcloud auth</td>
+          <td class="phase"><span class="badge badge-auth">auth</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">gcloud auth login --update-adc</span>
+            <span class="cmd-line">gcloud auth activate-service-account sa@project.iam.gserviceaccount.com --key-file=sa-key.json</span>
+            <span class="cmd-line">gcloud auth activate-service-account --key-file=sa-key.json</span>
+            <span class="cmd-line">gcloud auth application-default login</span>
+            <span class="cmd-line">gcloud auth application-default set-quota-project my-project</span>
+            <span class="cmd-line">gcloud auth revoke --all</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>--update-adc</code> sets both the gcloud credential and ADC simultaneously — use in local dev to avoid the common mistake of forgetting to run <code>application-default login</code> separately. In CI, always use a service account key file or Workload Identity Federation — never interactive login. <code>set-quota-project</code> is required when ADC would otherwise bill an unexpected project.</td>
+        </tr>
+
+        <tr data-cat="auth">
+          <td class="tool-name">service accounts</td>
+          <td class="phase"><span class="badge badge-auth">auth</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">gcloud iam service-accounts list --project=my-project --format="table(email,displayName,disabled)"</span>
+            <span class="cmd-line">gcloud iam service-accounts describe sa@project.iam.gserviceaccount.com</span>
+            <span class="cmd-line">gcloud iam service-accounts keys list --iam-account=sa@project.iam.gserviceaccount.com --format="table(name.basename(),validAfterTime,validBeforeTime)"</span>
+            <span class="cmd-line">gcloud iam service-accounts keys delete KEY_ID --iam-account=sa@project.iam.gserviceaccount.com</span>
+            <span class="cmd-line">gcloud projects get-iam-policy my-project --format=json | jq '.bindings[] | select(.members[] | contains("serviceAccount:sa@"))'</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Key listing with expiry dates surfaces stale keys — delete any key older than 90 days. <code>get-iam-policy</code> piped through jq audits what a specific service account can do — run this before rotating a key to understand blast radius. Prefer Workload Identity over key files for workloads running in GCP; key files only for external systems.</td>
+        </tr>
+
+        <tr data-cat="auth">
+          <td class="tool-name">gcloud projects / IAM</td>
+          <td class="phase"><span class="badge badge-auth">auth</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">gcloud projects list --format="table(projectId,name,projectNumber,lifecycleState)"</span>
+            <span class="cmd-line">gcloud projects describe my-project</span>
+            <span class="cmd-line">gcloud projects get-iam-policy my-project --format=json | jq '.bindings[] | select(.role | contains("Owner","Editor"))'</span>
+            <span class="cmd-line">gcloud asset search-all-iam-policies --query="policy:sa@project.iam.gserviceaccount.com" --scope=projects/my-project</span>
+            <span class="cmd-line">gcloud auth print-access-token</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">The IAM policy JMESPath query surfaces any binding with Owner or Editor — basic-role bindings should be minimised in production projects. <code>asset search-all-iam-policies</code> finds where a principal has access across the entire project, not just the project-level IAM policy. <code>print-access-token</code> gets a bearer token for direct REST API calls.</td>
+        </tr>
+
+        <!-- COMPUTE -->
+        <tr data-cat="compute">
+          <td class="tool-name">gcloud compute instances</td>
+          <td class="phase"><span class="badge badge-compute">compute</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">gcloud compute instances list --filter="status=RUNNING" --format="table(name,zone,machineType.basename(),networkInterfaces[0].networkIP,status)"</span>
+            <span class="cmd-line">gcloud compute instances describe my-vm --zone=us-central1-a</span>
+            <span class="cmd-line">gcloud compute instances start my-vm --zone=us-central1-a</span>
+            <span class="cmd-line">gcloud compute instances stop my-vm --zone=us-central1-a</span>
+            <span class="cmd-line">gcloud compute instances get-serial-port-output my-vm --zone=us-central1-a</span>
+            <span class="cmd-line">gcloud compute instances set-machine-type my-vm --zone=us-central1-a --machine-type=n2-standard-4</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>get-serial-port-output</code> reads the VM console — the only way to diagnose boot failures on a VM you can't SSH into. <code>set-machine-type</code> resizes a stopped VM without reprovisioning. Provision via Terraform; use the CLI for runtime inspection and incident response. Note <code>machineType.basename()</code> strips the full URL to just the type name in table output.</td>
+        </tr>
+
+        <tr data-cat="compute">
+          <td class="tool-name">gcloud compute ssh / IAP</td>
+          <td class="phase"><span class="badge badge-compute">compute</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">gcloud compute ssh my-vm --zone=us-central1-a</span>
+            <span class="cmd-line">gcloud compute ssh my-vm --zone=us-central1-a --tunnel-through-iap</span>
+            <span class="cmd-line">gcloud compute start-iap-tunnel my-vm 5432 --local-host-port=localhost:15432 --zone=us-central1-a</span>
+            <span class="cmd-line">gcloud compute ssh my-vm --zone=us-central1-a -- "df -h && free -m"</span>
+            <span class="cmd-line">gcloud compute scp my-vm:/tmp/logfile.gz ./logfile.gz --zone=us-central1-a</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">IAP tunnel is the GCP equivalent of AWS SSM Session Manager — SSH without a public IP or open firewall port. Requires the IAP API enabled and appropriate IAM binding (<code>roles/iap.tunnelResourceAccessor</code>). <code>start-iap-tunnel</code> forwards a port through IAP — connects to Cloud SQL, Redis, or internal services without a bastion.</td>
+        </tr>
+
+        <tr data-cat="compute">
+          <td class="tool-name">gcloud container (GKE)</td>
+          <td class="phase"><span class="badge badge-compute">compute</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">gcloud container clusters list --format="table(name,location,currentNodeCount,currentMasterVersion,status)"</span>
+            <span class="cmd-line">gcloud container clusters get-credentials my-cluster --region=us-central1</span>
+            <span class="cmd-line">gcloud container clusters describe my-cluster --region=us-central1 --format="yaml(currentMasterVersion,nodePools[].config.machineType,addonsConfig)"</span>
+            <span class="cmd-line">gcloud container node-pools list --cluster=my-cluster --region=us-central1</span>
+            <span class="cmd-line">gcloud container node-pools update my-pool --cluster=my-cluster --region=us-central1 --enable-autoscaling --min-nodes=1 --max-nodes=10</span>
+            <span class="cmd-line">gcloud container get-server-config --region=us-central1 --format="yaml(validMasterVersions[0:5])"</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>get-credentials</code> writes the kubeconfig entry — <code>--region</code> for regional clusters, <code>--zone</code> for zonal. <code>get-server-config</code> lists available Kubernetes versions in a region — check this before planning an upgrade window. <code>addonsConfig</code> in describe reveals which managed add-ons are enabled.</td>
+        </tr>
+
+        <tr data-cat="compute">
+          <td class="tool-name">gcloud run</td>
+          <td class="phase"><span class="badge badge-compute">compute</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">gcloud run services list --platform=managed --region=us-central1 --format="table(name,status.url,status.latestReadyRevisionName,status.traffic[0].percent)"</span>
+            <span class="cmd-line">gcloud run services describe my-service --region=us-central1</span>
+            <span class="cmd-line">gcloud run services update my-service --region=us-central1 --min-instances=1 --max-instances=10</span>
+            <span class="cmd-line">gcloud run revisions list --service=my-service --region=us-central1 --format="table(name,status.observedGeneration,spec.containerConcurrency,status.conditions[0].status)"</span>
+            <span class="cmd-line">gcloud run services update-traffic my-service --region=us-central1 --to-revisions=my-service-00010-abc=50,my-service-00009-xyz=50</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Traffic splitting between revisions is the canonical Cloud Run canary deploy pattern — <code>update-traffic</code> with two revision names and percentages. <code>revisions list</code> shows which revisions are serving traffic and their concurrency settings. <code>min-instances=1</code> eliminates cold starts for latency-sensitive services at the cost of always-on billing.</td>
+        </tr>
+
+        <tr data-cat="compute">
+          <td class="tool-name">gcloud compute instance-groups</td>
+          <td class="phase"><span class="badge badge-compute">compute</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">gcloud compute instance-groups managed list --format="table(name,zone,targetSize,status.isStable)"</span>
+            <span class="cmd-line">gcloud compute instance-groups managed list-instances my-mig --zone=us-central1-a --format="table(name,instance.basename(),instanceStatus,currentAction)"</span>
+            <span class="cmd-line">gcloud compute instance-groups managed resize my-mig --zone=us-central1-a --size=5</span>
+            <span class="cmd-line">gcloud compute instance-groups managed recreate-instances my-mig --zone=us-central1-a --instances=my-vm-abc1</span>
+            <span class="cmd-line">gcloud compute instance-groups managed describe-instance my-mig --zone=us-central1-a --instance=my-vm-abc1</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>list-instances</code> with <code>currentAction</code> shows what the MIG is actively doing to each instance — <code>RECREATING</code>, <code>DELETING</code>, <code>VERIFYING</code>. <code>recreate-instances</code> replaces a specific unhealthy instance without touching the rest of the group. <code>status.isStable</code> confirms the MIG has converged to desired state.</td>
+        </tr>
+
+        <!-- STORAGE -->
+        <tr data-cat="storage">
+          <td class="tool-name">gcloud storage (buckets)</td>
+          <td class="phase"><span class="badge badge-storage">storage</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">gcloud storage buckets list --format="table(name,location,storageClass,iamConfiguration.publicAccessPrevention)"</span>
+            <span class="cmd-line">gcloud storage buckets describe gs://mybucket</span>
+            <span class="cmd-line">gcloud storage buckets get-iam-policy gs://mybucket --format=json | jq '.bindings[] | select(.members[] | contains("allUsers","allAuthenticatedUsers"))'</span>
+            <span class="cmd-line">gcloud storage buckets update gs://mybucket --no-uniform-bucket-level-access</span>
+            <span class="cmd-line">gcloud storage buckets update gs://mybucket --public-access-prevention=enforced</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">The IAM policy jq query surfaces any binding granting access to <code>allUsers</code> or <code>allAuthenticatedUsers</code> — these are the two values that make a bucket public. <code>public-access-prevention=enforced</code> blocks public access at the bucket level regardless of ACLs or IAM — the GCP equivalent of AWS's block-public-access setting.</td>
+        </tr>
+
+        <tr data-cat="storage">
+          <td class="tool-name">gcloud storage (objects)</td>
+          <td class="phase"><span class="badge badge-storage">storage</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">gcloud storage ls gs://mybucket/prefix/ --recursive --long</span>
+            <span class="cmd-line">gcloud storage cp ./file.tar.gz gs://mybucket/backups/</span>
+            <span class="cmd-line">gcloud storage rsync ./local/ gs://mybucket/prefix/ --recursive --delete-unmatched-destination-objects</span>
+            <span class="cmd-line">gcloud storage sign-url gs://mybucket/private.zip --duration=1h --private-key-file=sa-key.json</span>
+            <span class="cmd-line">gcloud storage rm gs://mybucket/prefix/ --recursive --dry-run</span>
+            <span class="cmd-line">gcloud storage cp gs://mybucket/file.tar.gz - | tar xz</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>rsync --delete-unmatched-destination-objects</code> is the GCS equivalent of <code>aws s3 sync --delete</code> — always run with <code>--dry-run</code> first. <code>sign-url</code> requires a service account key file — Workload Identity Federation can't generate signed URLs directly (a GCP limitation). Pipe <code>cp</code> to stdout for streaming decompression without a temp file.</td>
+        </tr>
+
+        <!-- NETWORKING -->
+        <tr data-cat="network">
+          <td class="tool-name">gcloud compute firewall-rules</td>
+          <td class="phase"><span class="badge badge-network">networking</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">gcloud compute firewall-rules list --format="table(name,network,direction,priority,sourceRanges.list():label=SRC,allowed[].map().firewall_rule().list():label=ALLOW)"</span>
+            <span class="cmd-line">gcloud compute firewall-rules list --filter="sourceRanges:0.0.0.0/0 AND direction=INGRESS" --format="table(name,network,allowed[].map().firewall_rule().list())"</span>
+            <span class="cmd-line">gcloud compute firewall-rules describe my-rule</span>
+            <span class="cmd-line">gcloud compute firewall-rules create allow-https --network=my-vpc --allow=tcp:443 --source-ranges=0.0.0.0/0 --priority=1000</span>
+            <span class="cmd-line">gcloud compute firewall-rules delete my-rule</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">The second command surfaces all ingress rules allowing traffic from any IP — the quick public-exposure audit. GCP firewall rules apply at the VPC level, not per-instance, and are evaluated by priority (lower = higher priority). <code>describe</code> shows target tags and service accounts — understanding these is critical since GCP uses tags, not security group IDs.</td>
+        </tr>
+
+        <tr data-cat="network">
+          <td class="tool-name">gcloud compute networks</td>
+          <td class="phase"><span class="badge badge-network">networking</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">gcloud compute networks list --format="table(name,autoCreateSubnetworks,subnetMode)"</span>
+            <span class="cmd-line">gcloud compute networks subnets list --network=my-vpc --format="table(name,region,ipCidrRange,privateIpGoogleAccess,secondaryIpRanges)"</span>
+            <span class="cmd-line">gcloud compute networks peerings list --network=my-vpc</span>
+            <span class="cmd-line">gcloud compute addresses list --format="table(name,address,addressType,status,region)"</span>
+            <span class="cmd-line">gcloud compute addresses list --filter="addressType=EXTERNAL" --format="table(name,address,status,users)"</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>subnets list</code> with <code>privateIpGoogleAccess</code> confirms Private Google Access is enabled — required for VMs without external IPs to reach Google APIs. External address list with <code>users</code> shows which resources are using each static IP — unattached addresses (<code>status=RESERVED</code>, no users) incur charges and are worth cleaning up.</td>
+        </tr>
+
+        <tr data-cat="network">
+          <td class="tool-name">gcloud compute backend-services</td>
+          <td class="phase"><span class="badge badge-network">networking</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">gcloud compute backend-services list --global --format="table(name,protocol,healthChecks[].basename(),backends[].group.basename())"</span>
+            <span class="cmd-line">gcloud compute backend-services get-health my-backend --global --format=json | jq '.[]|{backend:.backendSummary.uri|split("/")|last,health:.status.healthStatus}'</span>
+            <span class="cmd-line">gcloud compute url-maps list --format="table(name,defaultService)"</span>
+            <span class="cmd-line">gcloud compute target-https-proxies list --format="table(name,urlMap,sslCertificates[].basename())"</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>get-health</code> is the first command during a load balancer incident — shows per-backend health status from the LB's perspective, which may differ from the instance's own view. The URL map and HTTPS proxy chain confirms which SSL certificate is attached and which backend services are in the request path.</td>
+        </tr>
+
+        <tr data-cat="network">
+          <td class="tool-name">gcloud dns</td>
+          <td class="phase"><span class="badge badge-network">networking</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">gcloud dns managed-zones list --format="table(name,dnsName,visibility,dnssecConfig.state)"</span>
+            <span class="cmd-line">gcloud dns record-sets list --zone=my-zone --format="table(name,type,ttl,rrdatas)"</span>
+            <span class="cmd-line">gcloud dns record-sets describe api.example.com. --zone=my-zone --type=A</span>
+            <span class="cmd-line">gcloud dns record-sets transaction start --zone=my-zone</span>
+            <span class="cmd-line">gcloud dns record-sets transaction add 10.0.0.1 --name=api.example.com. --ttl=300 --type=A --zone=my-zone</span>
+            <span class="cmd-line">gcloud dns record-sets transaction execute --zone=my-zone</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Cloud DNS record mutations use a transaction model — <code>start</code>, add/remove operations, <code>execute</code> or <code>abort</code>. This makes the change atomic and auditable. <code>dnssecConfig.state</code> confirms DNSSEC is enabled on the zone — check before debugging why certain resolvers reject the domain. Note the trailing dot on record names — Cloud DNS requires it.</td>
+        </tr>
+
+        <!-- SECRETS -->
+        <tr data-cat="secrets">
+          <td class="tool-name">gcloud secrets</td>
+          <td class="phase"><span class="badge badge-secrets">secrets</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">gcloud secrets list --format="table(name,replication.automatic,createTime)" --project=my-project</span>
+            <span class="cmd-line">gcloud secrets versions access latest --secret=my-secret --project=my-project</span>
+            <span class="cmd-line">gcloud secrets versions access latest --secret=my-secret | jq -r '.password'</span>
+            <span class="cmd-line">gcloud secrets versions list my-secret --format="table(name,state,createTime)"</span>
+            <span class="cmd-line">echo -n "mysecretvalue" | gcloud secrets create new-secret --data-file=- --replication-policy=automatic</span>
+            <span class="cmd-line">gcloud secrets add-iam-policy-binding my-secret --member="serviceAccount:sa@project.iam.gserviceaccount.com" --role="roles/secretmanager.secretAccessor"</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>versions access latest</code> fetches the current value — pipe through jq for structured secrets. The <code>echo -n | --data-file=-</code> pattern creates a secret from stdin without writing to a file or shell history. <code>add-iam-policy-binding</code> grants a specific service account access to a specific secret — prefer this over project-level Secret Accessor bindings.</td>
+        </tr>
+
+        <tr data-cat="secrets">
+          <td class="tool-name">Workload Identity</td>
+          <td class="phase"><span class="badge badge-secrets">secrets</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">gcloud iam service-accounts get-iam-policy sa@project.iam.gserviceaccount.com --format=json | jq '.bindings[] | select(.role=="roles/iam.workloadIdentityUser")'</span>
+            <span class="cmd-line">gcloud iam service-accounts add-iam-policy-binding sa@project.iam.gserviceaccount.com --role="roles/iam.workloadIdentityUser" --member="serviceAccount:my-project.svc.id.goog[namespace/ksa]"</span>
+            <span class="cmd-line">gcloud container clusters describe my-cluster --region=us-central1 --format="value(workloadIdentityConfig.workloadPool)"</span>
+            <span class="cmd-line comment"># verify from inside a pod:</span>
+            <span class="cmd-line">gcloud auth print-access-token --impersonate-service-account=sa@project.iam.gserviceaccount.com</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Workload Identity Federation links a Kubernetes service account to a GCP service account — no key files needed in pods. The IAM binding member format is exactly <code>serviceAccount:PROJECT.svc.id.goog[NAMESPACE/KSA]</code> — any typo silently fails. <code>describe cluster</code> confirms the workload pool is configured before debugging WIF binding issues.</td>
+        </tr>
+
+        <!-- OBSERVABILITY -->
+        <tr data-cat="obs">
+          <td class="tool-name">gcloud logging</td>
+          <td class="phase"><span class="badge badge-obs">observability</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">gcloud logging tail "resource.type=cloud_run_revision AND resource.labels.service_name=my-service" --format="value(timestamp,textPayload)"</span>
+            <span class="cmd-line">gcloud logging read "resource.type=gce_instance AND severity>=ERROR" --limit=50 --format="table(timestamp,resource.labels.instance_id,textPayload)"</span>
+            <span class="cmd-line">gcloud logging read "protoPayload.methodName=SetIamPolicy" --project=my-project --limit=20 --format="table(timestamp,protoPayload.authenticationInfo.principalEmail,protoPayload.request.resource)"</span>
+            <span class="cmd-line">gcloud logging read "resource.type=k8s_container AND resource.labels.cluster_name=my-cluster AND textPayload:\"ERROR\"" --limit=100 --freshness=1h</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>logging tail</code> is the live log equivalent of <code>aws logs tail --follow</code> — works for Cloud Run, GCE, GKE, and any resource type. The IAM audit log query (<code>SetIamPolicy</code>) surfaces who changed permissions and on what — essential for post-incident attribution. <code>--freshness</code> bounds the time range without specifying epoch timestamps.</td>
+        </tr>
+
+        <tr data-cat="obs">
+          <td class="tool-name">gcloud monitoring</td>
+          <td class="phase"><span class="badge badge-obs">observability</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">gcloud monitoring policies list --format="table(name,displayName,enabled,conditions[0].displayName)"</span>
+            <span class="cmd-line">gcloud monitoring policies describe POLICY_NAME</span>
+            <span class="cmd-line">gcloud monitoring dashboards list --format="table(name,displayName)"</span>
+            <span class="cmd-line">gcloud alpha monitoring metrics list --filter="metric.type:compute.googleapis.com" --format="table(metric.type)" | head -20</span>
+            <span class="cmd-line comment"># for metric timeseries, use the Monitoring API directly:</span>
+            <span class="cmd-line">curl -H "Authorization: Bearer $(gcloud auth print-access-token)" "https://monitoring.googleapis.com/v3/projects/my-project/timeSeries?filter=metric.type%3D%22compute.googleapis.com%2Finstance%2Fcpu%2Futilization%22&interval.startTime=$(date -u -d '1 hour ago' +%Y-%m-%dT%H:%M:%SZ)&interval.endTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)"</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">The gcloud monitoring CLI surface is thin — alert policy listing and description only. For metric timeseries, use the REST API with <code>print-access-token</code> for auth — the curl pattern shown is the pragmatic path. <code>policies list</code> during an incident confirms which alerts are configured and enabled before checking if they fired.</td>
+        </tr>
+
+        <tr data-cat="obs">
+          <td class="tool-name">gcloud compute / uptime</td>
+          <td class="phase"><span class="badge badge-obs">observability</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">gcloud compute operations list --filter="status!=DONE" --format="table(name,operationType,status,targetLink.basename())"</span>
+            <span class="cmd-line">gcloud compute operations describe OPERATION_NAME --global</span>
+            <span class="cmd-line">gcloud monitoring uptime list-configs --format="table(name,displayName,monitoredResource.type,period)"</span>
+            <span class="cmd-line">gcloud beta monitoring uptime describe CONFIG_NAME</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">In-progress compute operations (instance creation, disk attachment, snapshot) are visible via <code>operations list --filter="status!=DONE"</code> — useful when a Terraform apply seems stuck and you want to see what GCP is actually doing. Uptime check configs confirm external health monitoring is in place before a production launch.</td>
+        </tr>
+
+        <!-- DATA / PLATFORM -->
+        <tr data-cat="data">
+          <td class="tool-name">gcloud artifacts</td>
+          <td class="phase"><span class="badge badge-data">data / platform</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">gcloud auth configure-docker us-central1-docker.pkg.dev</span>
+            <span class="cmd-line">gcloud artifacts repositories list --location=us-central1 --format="table(name,format,createTime)"</span>
+            <span class="cmd-line">gcloud artifacts docker images list us-central1-docker.pkg.dev/my-project/my-repo --format="table(image,version,createTime)"</span>
+            <span class="cmd-line">gcloud artifacts docker images describe us-central1-docker.pkg.dev/my-project/my-repo/myapp:latest</span>
+            <span class="cmd-line">gcloud artifacts docker images scan us-central1-docker.pkg.dev/my-project/my-repo/myapp:latest --format=json | jq '.response.occurrences[] | select(.vulnerability.severity=="CRITICAL")'</span>
+            <span class="cmd-line">gcloud artifacts docker tags list us-central1-docker.pkg.dev/my-project/my-repo/myapp</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>configure-docker</code> sets up Docker credentials for Artifact Registry — replaces the old <code>gcloud auth configure-docker gcr.io</code> pattern for GCR. <code>images scan</code> triggers Container Analysis vulnerability scanning — pipe through jq to surface CRITICAL findings only. Use Artifact Registry, not GCR (Container Registry) — GCR is deprecated.</td>
+        </tr>
+
+        <tr data-cat="data">
+          <td class="tool-name">gcloud sql</td>
+          <td class="phase"><span class="badge badge-data">data / platform</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">gcloud sql instances list --format="table(name,databaseVersion,region,settings.tier,state)"</span>
+            <span class="cmd-line">gcloud sql instances describe my-instance --format="yaml(state,settings.backupConfiguration,settings.ipConfiguration,failoverReplica)"</span>
+            <span class="cmd-line">gcloud sql connect my-instance --user=postgres --database=mydb</span>
+            <span class="cmd-line">gcloud sql backups list --instance=my-instance --format="table(id,type,status,windowStartTime)"</span>
+            <span class="cmd-line">gcloud sql instances failover my-instance</span>
+            <span class="cmd-line">gcloud sql operations list --instance=my-instance --format="table(name,operationType,status,startTime)"</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>gcloud sql connect</code> uses IAP to open a psql/mysql session without whitelisting your IP — requires <code>cloud_sql_proxy</code> or Cloud SQL Auth Proxy installed. <code>describe</code> with <code>backupConfiguration</code> confirms automated backups are enabled before a risky migration. <code>operations list</code> shows in-progress maintenance or failover operations.</td>
+        </tr>
+
+        <tr data-cat="data">
+          <td class="tool-name">gcloud pubsub</td>
+          <td class="phase"><span class="badge badge-data">data / platform</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">gcloud pubsub topics list --format="table(name)"</span>
+            <span class="cmd-line">gcloud pubsub subscriptions list --format="table(name,topic,pushConfig.pushEndpoint,ackDeadlineSeconds)"</span>
+            <span class="cmd-line">gcloud pubsub topics publish my-topic --message='{"type":"test","payload":"hello"}'</span>
+            <span class="cmd-line">gcloud pubsub subscriptions pull my-subscription --limit=5 --auto-ack</span>
+            <span class="cmd-line">gcloud pubsub subscriptions describe my-subscription --format="yaml(deadLetterPolicy,expirationPolicy,retryPolicy)"</span>
+            <span class="cmd-line">gcloud pubsub snapshots list</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>topics publish</code> from the CLI is the fastest way to inject a test message into an event-driven pipeline. <code>subscriptions pull --auto-ack</code> peeks at messages for debugging without leaving them unacked. <code>describe</code> with <code>deadLetterPolicy</code> confirms a DLQ is configured — Pub/Sub without a DLQ silently drops unprocessable messages after max delivery attempts.</td>
+        </tr>
+
+        <tr data-cat="data">
+          <td class="tool-name">gcloud functions</td>
+          <td class="phase"><span class="badge badge-data">data / platform</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">gcloud functions list --format="table(name,status,trigger,runtime,region)"</span>
+            <span class="cmd-line">gcloud functions describe my-function --region=us-central1</span>
+            <span class="cmd-line">gcloud functions call my-function --region=us-central1 --data='{"key":"value"}'</span>
+            <span class="cmd-line">gcloud functions logs read my-function --region=us-central1 --limit=50</span>
+            <span class="cmd-line">gcloud functions add-invoker-policy-binding my-function --region=us-central1 --member="allUsers"</span>
+            <span class="cmd-line comment"># Gen 2 functions are Cloud Run under the hood -- use gcloud run for traffic splitting</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>functions call</code> invokes synchronously and returns the result — the fastest way to test a function without writing a curl command. <code>logs read</code> is function-scoped log tailing without writing a full Cloud Logging filter. Gen 2 functions run on Cloud Run — <code>gcloud run</code> commands work on them too and offer more operational control.</td>
+        </tr>
+
+        <tr data-cat="data">
+          <td class="tool-name">gcloud resource manager / asset</td>
+          <td class="phase"><span class="badge badge-data">data / platform</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">gcloud asset search-all-resources --scope=projects/my-project --asset-types="compute.googleapis.com/Instance" --format="table(name,location,additionalAttributes.status)"</span>
+            <span class="cmd-line">gcloud asset search-all-resources --scope=projects/my-project --query="labels.env:prod" --format="table(name,assetType,location)"</span>
+            <span class="cmd-line">gcloud resource-manager tags keys list --parent=projects/my-project</span>
+            <span class="cmd-line">gcloud asset list --project=my-project --asset-types="storage.googleapis.com/Bucket" --format="table(name,updateTime)"</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Cloud Asset Inventory is the cross-service resource query API — find any resource type by label, location, or type without querying each service individually. <code>search-all-resources --query="labels.env:prod"</code> is the GCP equivalent of <code>az resource list --tag env=prod</code> — the fastest way to answer "what's running in prod."</td>
+        </tr>
+
+      </tbody>
+    </table>
+    <div class="no-results" id="no-results">No entries match this filter.</div>
+  </div>
+</main>
+
+<footer>
+  ops://cheatsheets &mdash;
+  <a href="https://cloud.google.com/sdk/gcloud/reference" target="_blank" rel="noopener">gcloud reference</a> &middot;
+  <a href="https://cloud.google.com/sdk/docs/cheatsheet" target="_blank" rel="noopener">official cheatsheet</a> &middot;
+  <a href="https://cloud.google.com/iap/docs/using-tcp-forwarding" target="_blank" rel="noopener">IAP TCP forwarding</a> &middot;
+  <a href="https://cloud.google.com/asset-inventory/docs/overview" target="_blank" rel="noopener">asset inventory</a>
+</footer>
+
+<script>
+(function () {
+  const btns    = document.querySelectorAll('.f-btn');
+  const rows    = document.querySelectorAll('#tbody tr[data-cat]');
+  const countEl = document.getElementById('count-n');
+  const noRes   = document.getElementById('no-results');
+
+  function filter(cat) {
+    let shown = 0;
+    rows.forEach(r => {
+      const match = cat === 'all' || r.dataset.cat === cat;
+      r.style.display = match ? '' : 'none';
+      if (match) shown++;
+    });
+    countEl.textContent = shown;
+    noRes.style.display = shown === 0 ? 'block' : 'none';
+  }
+
+  btns.forEach(b => {
+    b.addEventListener('click', () => {
+      btns.forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      filter(b.dataset.cat);
+    });
+  });
+
+  window.copyAll = function (btn) {
+    const block = btn.closest('.cmd-block');
+    const lines = Array.from(block.querySelectorAll('.cmd-line'))
+      .map(l => l.textContent)
+      .join('\n');
+    navigator.clipboard.writeText(lines).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1500);
+    });
+  };
+})();
+</script>
+</body>
+</html>

@@ -133,6 +133,8 @@
   .post-card.azure:hover          { border-left-color: #0ea5e9; }
   .tag-fuchsia{ background: rgba(232,121,249,.12); color: #e879f9; border: 1px solid rgba(232,121,249,.3); }
   .post-card.vps:hover            { border-left-color: #e879f9; }
+  .tag-gcp   { background: rgba(52,208,88,.12);   color: #34d058; border: 1px solid rgba(52,208,88,.3);   }
+  .post-card.gcp:hover            { border-left-color: #34d058; }
   .post-date { font-size: 10px; color: var(--muted); }
   .post-title {
     font-family: var(--display);
@@ -381,13 +383,25 @@
       <span class="post-arrow">&#8594;</span>
     </a>
 
+    <a href="gcp.html" class="post-card gcp">
+      <div>
+        <div class="post-meta">
+          <span class="tag tag-gcp">gcp</span>
+          <span class="post-date">2026-05-10</span>
+        </div>
+        <p class="post-title">GCP CLI — Production Surface</p>
+        <p class="post-desc">~28 entries distilled to what engineers with production scars reach for. Auth, compute, storage, networking, secrets, observability, data/platform. Honest about what's not here.</p>
+        <p class="tool-count"><strong>28</strong> entries &middot; 7 phases</p>
+      </div>
+      <span class="post-arrow">&#8594;</span>
+    </a>
+
   </div>
 
   <p class="section-label">up next</p>
 
   <div class="coming-soon">
     <p class="coming-soon-title">on the roadmap</p>
-    <div class="coming-item">GCP CLI (gcloud) — Production Surface &mdash; auth, compute, storage, networking, secrets, observability, platform</div>
     <div class="coming-item">DigitalOcean CLI (doctl) — Production Surface &mdash; droplets, kubernetes, databases, networking, spaces, functions</div>
     <div class="coming-item">Linode CLI — Production Surface &mdash; linodes, kubernetes, object storage, databases, networking, firewalls</div>
     <div class="coming-item">Hetzner CLI (hcloud) — Production Surface &mdash; servers, networks, volumes, load balancers, firewalls, snapshots</div>
