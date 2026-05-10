@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VPS Hardening — From Fresh Server to Production-Secure</title>
+<meta name="description" content="Ordered, filterable VPS hardening checklist — access, firewall, updates, brute-force protection, hardening, detection, and verification.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #09090c;
+    --bg2:     #0f0f14;
+    --bg3:     #16161e;
+    --border:  #1e1e28;
+    --border2: #2a2a38;
+    --text:    #c4c4d4;
+    --muted:   #606074;
+    --accent:  #e879f9;
+    --cmd:     #7dd3a8;
+    --mono:    'JetBrains Mono', monospace;
+    --display: 'Syne', sans-serif;
+
+    /* phase colours */
+    --c-access:  #60a5fa;
+    --c-fw:      #f97316;
+    --c-updates: #a3e635;
+    --c-brute:   #f43f5e;
+    --c-harden:  #fbbf24;
+    --c-detect:  #a78bfa;
+    --c-verify:  #2dd4bf;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+    pointer-events: none; z-index: 999;
+  }
+
+  nav {
+    border-bottom: 1px solid var(--border);
+    padding: .6rem 2rem;
+    display: flex; align-items: center; gap: .5rem;
+    font-size: 11px;
+  }
+  nav a { color: var(--muted); text-decoration: none; transition: color .15s; }
+  nav a:hover { color: var(--accent); }
+  nav .sep { color: var(--border2); }
+  nav .current { color: var(--text); }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 2rem 2rem;
+    position: relative; overflow: hidden;
+  }
+  header::after {
+    content: '';
+    position: absolute; bottom: -1px; left: 0;
+    width: 120px; height: 2px;
+    background: var(--accent);
+  }
+  .header-inner {
+    max-width: 1200px; margin: 0 auto;
+    display: flex; align-items: flex-end;
+    justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  }
+  .prompt { font-size: 11px; color: var(--accent); letter-spacing: .1em; margin-bottom: .5rem; }
+  .prompt::before { content: '$ '; color: var(--muted); }
+  h1 {
+    font-family: var(--display);
+    font-size: clamp(1.6rem, 4vw, 2.6rem);
+    font-weight: 800; color: #e8e0f8;
+    letter-spacing: -.02em; line-height: 1.1;
+  }
+  h1 span { color: var(--accent); }
+  .subtitle { margin-top: .6rem; font-size: 12px; color: var(--muted); max-width: 520px; }
+  .meta { text-align: right; font-size: 11px; color: var(--muted); line-height: 2; }
+  .meta strong { color: var(--text); }
+
+  main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+  /* ORDER CALLOUT */
+  .callout {
+    display: flex; align-items: flex-start; gap: .75rem;
+    background: rgba(232,121,249,.05);
+    border: 1px solid rgba(232,121,249,.18);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: .85rem 1rem;
+    margin-bottom: 1.75rem;
+    font-size: 11px; color: var(--muted);
+    line-height: 1.7;
+  }
+  .callout::before { content: '↓'; color: var(--accent); font-weight: 700; font-size: 15px; flex-shrink: 0; line-height: 1.4; }
+  .callout strong { color: var(--text); }
+  .callout code { color: var(--accent); font-size: 10.5px; }
+
+  /* PROGRESS */
+  .progress-bar {
+    display: flex; align-items: center; gap: .75rem;
+    margin-bottom: 1.5rem;
+    font-size: 11px; color: var(--muted);
+  }
+  .bar-track {
+    flex: 1; height: 4px;
+    background: var(--border2);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--c-access), var(--c-fw), var(--c-updates), var(--c-brute), var(--c-harden), var(--c-detect), var(--c-verify));
+    width: 0%;
+    border-radius: 2px;
+    transition: width .3s;
+  }
+  .bar-label { white-space: nowrap; }
+  .bar-label strong { color: var(--accent); }
+
+  /* TOOLBAR */
+  .toolbar {
+    display: flex; flex-wrap: wrap;
+    align-items: center; gap: .5rem;
+    margin-bottom: 1.25rem;
+  }
+  .toolbar-label { font-size: 10px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; margin-right: .25rem; }
+  .f-btn {
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: 3px; padding: 3px 10px;
+    font-family: var(--mono); font-size: 11px;
+    color: var(--muted); cursor: pointer;
+    letter-spacing: .06em;
+    transition: color .15s, border-color .15s, background .15s;
+  }
+  .f-btn:hover { color: var(--text); background: var(--bg3); }
+  .f-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(232,121,249,0.07); }
+  .count { margin-left: auto; font-size: 11px; color: var(--muted); }
+  .count strong { color: var(--accent); }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 6px; }
+  table { width: 100%; border-collapse: collapse; min-width: 860px; }
+  thead th {
+    background: var(--bg2); padding: 10px 14px;
+    text-align: left; font-size: 10px;
+    letter-spacing: .12em; text-transform: uppercase;
+    color: var(--muted); border-bottom: 1px solid var(--border);
+    white-space: nowrap; font-weight: 400;
+  }
+  thead th:first-child { border-radius: 6px 0 0 0; width: 36px; }
+  thead th:last-child  { border-radius: 0 6px 0 0; }
+
+  tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg2); }
+  tbody tr.done { opacity: .45; }
+  tbody tr.done td.step-name { text-decoration: line-through; }
+
+  td { padding: 10px 14px; vertical-align: top; }
+
+  /* CHECKBOX COL */
+  td.check-col {
+    width: 36px; text-align: center;
+    padding: 10px 6px;
+    vertical-align: middle;
+  }
+  input[type=checkbox] {
+    width: 15px; height: 15px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  /* STEP NUMBER */
+  td.step-num {
+    width: 36px; text-align: right;
+    font-size: 11px; color: var(--border2);
+    padding-right: 6px; vertical-align: top;
+    padding-top: 12px;
+    white-space: nowrap;
+  }
+
+  td.step-name {
+    font-weight: 700; font-size: 13px; color: #e8e0f8;
+    white-space: nowrap; min-width: 160px;
+  }
+  td.phase-col { min-width: 100px; }
+
+  .badge {
+    display: inline-block; font-size: 10px;
+    padding: 2px 8px; border-radius: 2px;
+    letter-spacing: .06em; font-weight: 500; white-space: nowrap;
+  }
+  .badge-access  { background: rgba(96,165,250,.12);  color: var(--c-access);  border: 1px solid rgba(96,165,250,.3);  }
+  .badge-fw      { background: rgba(249,115,22,.12);  color: var(--c-fw);      border: 1px solid rgba(249,115,22,.3);  }
+  .badge-updates { background: rgba(163,230,53,.10);  color: var(--c-updates); border: 1px solid rgba(163,230,53,.25); }
+  .badge-brute   { background: rgba(244,63,94,.12);   color: var(--c-brute);   border: 1px solid rgba(244,63,94,.3);   }
+  .badge-harden  { background: rgba(251,191,36,.12);  color: var(--c-harden);  border: 1px solid rgba(251,191,36,.3);  }
+  .badge-detect  { background: rgba(167,139,250,.12); color: var(--c-detect);  border: 1px solid rgba(167,139,250,.3); }
+  .badge-verify  { background: rgba(45,212,191,.12);  color: var(--c-verify);  border: 1px solid rgba(45,212,191,.3);  }
+
+  td.commands { min-width: 300px; max-width: 420px; }
+  .cmd-block { position: relative; }
+  .cmd-line {
+    display: block; color: var(--cmd);
+    font-size: 11.5px; line-height: 1.9;
+    word-break: break-all;
+  }
+  .cmd-line::before { content: '$ '; color: var(--muted); user-select: none; }
+  .cmd-line.comment { color: var(--muted); }
+  .cmd-line.comment::before { content: ''; }
+  .cmd-line.file { color: #94a3b8; font-style: italic; }
+  .cmd-line.file::before { content: '# '; color: var(--muted); }
+  .copy-btn {
+    position: absolute; top: 0; right: 0;
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: 3px; color: var(--muted);
+    font-family: var(--mono); font-size: 10px;
+    padding: 1px 7px; cursor: pointer;
+    opacity: 0; transition: opacity .15s, color .15s;
+    letter-spacing: .05em;
+  }
+  .cmd-block:hover .copy-btn { opacity: 1; }
+  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .copy-btn.copied { color: var(--accent); border-color: var(--accent); }
+
+  td.usecase { font-size: 12px; color: var(--muted); min-width: 200px; }
+  .theatre { display: inline-block; font-size: 10px; color: var(--muted); border: 1px solid var(--border2); padding: 0 5px; border-radius: 2px; margin-bottom: 4px; }
+
+  .no-results { text-align: center; padding: 3rem; color: var(--muted); font-size: 12px; display: none; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    text-align: center; font-size: 11px; color: var(--muted);
+  }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--text); }
+
+  @media (max-width: 640px) {
+    header, main { padding: 1.25rem; }
+    h1 { font-size: 1.5rem; }
+    .meta { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html">&#8592; ops://cheatsheets</a>
+  <span class="sep">/</span>
+  <span class="current">vps-hardening</span>
+</nav>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <p class="prompt">ssh root@&lt;fresh-vps-ip&gt;</p>
+      <h1>VPS Hardening<br><span>Fresh to Secure</span></h1>
+      <p class="subtitle">From a blank Debian/Ubuntu VPS to a machine you'd trust running production workloads. Steps are ordered — work top to bottom, filter for reference.</p>
+    </div>
+    <div class="meta">
+      <strong>22</strong> steps<br>
+      <strong>7</strong> phases<br>
+      Debian / Ubuntu &middot; ordered
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <div class="callout">
+    <span>
+      <strong>Order matters here.</strong> Unlike other pages on this site, these phases are sequential — do <code>access</code> before <code>firewall</code>, <code>firewall</code> before <code>updates</code>. Locking yourself out by setting up the firewall before your SSH key is in place is a rite of passage; this page helps you skip it. Checkboxes persist in your browser for this session.
+      <br><br>
+      <strong>Security theatre is labelled.</strong> Some steps are common advice that adds friction without meaningfully improving security. Those are marked so you can make an informed decision rather than cargo-culting every recommendation you've ever seen.
+    </span>
+  </div>
+
+  <div class="progress-bar">
+    <div class="bar-track"><div class="bar-fill" id="bar"></div></div>
+    <div class="bar-label"><strong id="done-count">0</strong> / <span id="total-count">22</span> steps done</div>
+  </div>
+
+  <div class="toolbar">
+    <span class="toolbar-label">Phase</span>
+    <button class="f-btn active" data-cat="all">all</button>
+    <button class="f-btn" data-cat="access">access</button>
+    <button class="f-btn" data-cat="fw">firewall</button>
+    <button class="f-btn" data-cat="updates">updates</button>
+    <button class="f-btn" data-cat="brute">brute-force</button>
+    <button class="f-btn" data-cat="harden">hardening</button>
+    <button class="f-btn" data-cat="detect">detection</button>
+    <button class="f-btn" data-cat="verify">verify</button>
+    <span class="count" id="count"><strong id="count-n">22</strong> steps shown</span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th></th><th>#</th><th>Step</th><th>Phase</th><th>Commands</th><th>Notes</th></tr>
+      </thead>
+      <tbody id="tbody">
+
+        <!-- ACCESS -->
+        <tr data-cat="access" data-step="1">
+          <td class="check-col"><input type="checkbox" title="Mark done"></td>
+          <td class="step-num">1</td>
+          <td class="step-name">Create non-root sudo user</td>
+          <td class="phase-col"><span class="badge badge-access">access</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">adduser deploy</span>
+            <span class="cmd-line">usermod -aG sudo deploy</span>
+            <span class="cmd-line">su - deploy</span>
+            <span class="cmd-line">sudo whoami</span>
+            <span class="cmd-line comment"># confirm sudo works before proceeding</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Never run applications as root. Create a named user now — before changing SSH config — so you have a working non-root login before you lock root out. Confirm sudo works in the same session before continuing.</td>
+        </tr>
+
+        <tr data-cat="access" data-step="2">
+          <td class="check-col"><input type="checkbox" title="Mark done"></td>
+          <td class="step-num">2</td>
+          <td class="step-name">Install your SSH public key</td>
+          <td class="phase-col"><span class="badge badge-access">access</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment"># from your local machine:</span>
+            <span class="cmd-line">ssh-copy-id -i ~/.ssh/id_ed25519.pub deploy@&lt;vps-ip&gt;</span>
+            <span class="cmd-line comment"># or manually on the server:</span>
+            <span class="cmd-line">mkdir -p ~/.ssh && chmod 700 ~/.ssh</span>
+            <span class="cmd-line">echo "ssh-ed25519 AAAA..." >> ~/.ssh/authorized_keys</span>
+            <span class="cmd-line">chmod 600 ~/.ssh/authorized_keys</span>
+            <span class="cmd-line comment"># test key login in a NEW terminal before proceeding</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Test key-based login in a new terminal before disabling password auth. If you lock yourself out here you still have root access and time to fix it. Use Ed25519 — RSA 2048 is legacy, RSA 4096 is slower than Ed25519 with no meaningful security gain.</td>
+        </tr>
+
+        <tr data-cat="access" data-step="3">
+          <td class="check-col"><input type="checkbox" title="Mark done"></td>
+          <td class="step-num">3</td>
+          <td class="step-name">Harden sshd_config</td>
+          <td class="phase-col"><span class="badge badge-access">access</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak</span>
+            <span class="cmd-line">sudo nano /etc/ssh/sshd_config</span>
+            <span class="cmd-line file"># set these values:</span>
+            <span class="cmd-line file">PermitRootLogin no</span>
+            <span class="cmd-line file">PasswordAuthentication no</span>
+            <span class="cmd-line file">PubkeyAuthentication yes</span>
+            <span class="cmd-line file">AuthorizedKeysFile .ssh/authorized_keys</span>
+            <span class="cmd-line file">MaxAuthTries 3</span>
+            <span class="cmd-line file">LoginGraceTime 20</span>
+            <span class="cmd-line file">AllowUsers deploy</span>
+            <span class="cmd-line file">X11Forwarding no</span>
+            <span class="cmd-line file">AllowTcpForwarding no</span>
+            <span class="cmd-line">sudo sshd -t</span>
+            <span class="cmd-line">sudo systemctl reload sshd</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>sshd -t</code> validates config before reloading — never reload without it. Keep your existing session open while testing login in a new terminal. <code>AllowUsers</code> whitelist means even if an attacker creates another user, they can't SSH in. <code>AllowTcpForwarding no</code> prevents your server being used as a tunnel if a key is compromised.</td>
+        </tr>
+
+        <tr data-cat="access" data-step="4">
+          <td class="check-col"><input type="checkbox" title="Mark done"></td>
+          <td class="step-num">4</td>
+          <td class="step-name">Change SSH port <span class="theatre">theatre</span></td>
+          <td class="phase-col"><span class="badge badge-access">access</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line file"># /etc/ssh/sshd_config</span>
+            <span class="cmd-line file">Port 2222</span>
+            <span class="cmd-line">sudo sshd -t && sudo systemctl reload sshd</span>
+            <span class="cmd-line comment"># update firewall before closing session (step 5)</span>
+            <span class="cmd-line comment"># add to ~/.ssh/config on client:</span>
+            <span class="cmd-line file">Host myvps</span>
+            <span class="cmd-line file">  HostName &lt;vps-ip&gt;</span>
+            <span class="cmd-line file">  Port 2222</span>
+            <span class="cmd-line file">  User deploy</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><span class="theatre">Security theatre.</span> Moving SSH off port 22 eliminates noise from unsophisticated scanners but any port scanner running a service probe will find it anyway. Reduces log noise significantly — a legitimate reason to do it. If you do it: update your firewall rule in the same session, or you lock yourself out.</td>
+        </tr>
+
+        <!-- FIREWALL -->
+        <tr data-cat="fw" data-step="5">
+          <td class="check-col"><input type="checkbox" title="Mark done"></td>
+          <td class="step-num">5</td>
+          <td class="step-name">Configure UFW — default deny</td>
+          <td class="phase-col"><span class="badge badge-fw">firewall</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">sudo apt install -y ufw</span>
+            <span class="cmd-line">sudo ufw default deny incoming</span>
+            <span class="cmd-line">sudo ufw default allow outgoing</span>
+            <span class="cmd-line">sudo ufw allow 22/tcp</span>
+            <span class="cmd-line comment"># if you changed SSH port above: sudo ufw allow 2222/tcp</span>
+            <span class="cmd-line">sudo ufw allow 80/tcp</span>
+            <span class="cmd-line">sudo ufw allow 443/tcp</span>
+            <span class="cmd-line">sudo ufw --force enable</span>
+            <span class="cmd-line">sudo ufw status verbose</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Enable UFW only after SSH is allowed — in that order. <code>--force</code> skips the interactive prompt, safe in scripts. Add application ports before enabling, not after. UFW is a frontend for iptables; it persists across reboots. Verify the rules look right before closing your current session.</td>
+        </tr>
+
+        <tr data-cat="fw" data-step="6">
+          <td class="check-col"><input type="checkbox" title="Mark done"></td>
+          <td class="step-num">6</td>
+          <td class="step-name">Verify firewall from outside</td>
+          <td class="phase-col"><span class="badge badge-fw">firewall</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment"># from your local machine or another host — NOT from the VPS itself:</span>
+            <span class="cmd-line">nmap -Pn -sV &lt;vps-ip&gt;</span>
+            <span class="cmd-line">nmap -Pn -p- --min-rate=1000 &lt;vps-ip&gt;</span>
+            <span class="cmd-line comment"># only your allowed ports should appear as open</span>
+            <span class="cmd-line comment"># or use a web-based scanner: nmap.online, pentest-tools.com</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>ss -tlnp</code> on the server shows listening sockets — it does not show what's blocked by the firewall. Always verify from an external host. <code>-p-</code> scans all 65535 ports. Anything unexpected appearing here is a finding — stop and investigate before continuing.</td>
+        </tr>
+
+        <!-- UPDATES -->
+        <tr data-cat="updates" data-step="7">
+          <td class="check-col"><input type="checkbox" title="Mark done"></td>
+          <td class="step-num">7</td>
+          <td class="step-name">Full system update</td>
+          <td class="phase-col"><span class="badge badge-updates">updates</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">sudo apt update && sudo apt upgrade -y</span>
+            <span class="cmd-line">sudo apt dist-upgrade -y</span>
+            <span class="cmd-line">sudo apt autoremove -y && sudo apt autoclean</span>
+            <span class="cmd-line">sudo reboot</span>
+            <span class="cmd-line comment"># reconnect and verify uptime after reboot</span>
+            <span class="cmd-line">uptime && uname -r</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Do a full update immediately on a fresh server — cloud provider images are often weeks behind. <code>dist-upgrade</code> handles dependency changes that <code>upgrade</code> skips. Reboot now to start on the latest kernel before configuring anything that depends on kernel behaviour (like fail2ban netfilter integration).</td>
+        </tr>
+
+        <tr data-cat="updates" data-step="8">
+          <td class="check-col"><input type="checkbox" title="Mark done"></td>
+          <td class="step-num">8</td>
+          <td class="step-name">Enable unattended-upgrades</td>
+          <td class="phase-col"><span class="badge badge-updates">updates</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">sudo apt install -y unattended-upgrades needrestart</span>
+            <span class="cmd-line">sudo dpkg-reconfigure -plow unattended-upgrades</span>
+            <span class="cmd-line file"># /etc/apt/apt.conf.d/50unattended-upgrades — key settings:</span>
+            <span class="cmd-line file">Unattended-Upgrade::Automatic-Reboot "true";</span>
+            <span class="cmd-line file">Unattended-Upgrade::Automatic-Reboot-Time "03:00";</span>
+            <span class="cmd-line file">Unattended-Upgrade::Mail "you@example.com";</span>
+            <span class="cmd-line file">Unattended-Upgrade::Remove-Unused-Dependencies "true";</span>
+            <span class="cmd-line">sudo unattended-upgrades --dry-run --debug</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Security patches only by default — it does not upgrade all packages, only those in the <code>-security</code> suite. <code>Automatic-Reboot</code> applies kernel patches without manual intervention; set a maintenance window time. <code>--dry-run</code> confirms what it would do before it runs live. <code>needrestart</code> detects services using outdated libraries after an update.</td>
+        </tr>
+
+        <tr data-cat="updates" data-step="9">
+          <td class="check-col"><input type="checkbox" title="Mark done"></td>
+          <td class="step-num">9</td>
+          <td class="step-name">Remove unnecessary packages</td>
+          <td class="phase-col"><span class="badge badge-updates">updates</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">sudo apt purge -y telnet rsh-client rsh-redone-client ftp</span>
+            <span class="cmd-line">sudo apt purge -y xinetd nis yp-tools tftpd atftpd tftpd-hpa</span>
+            <span class="cmd-line">dpkg --list | grep -E "^ii" | awk '{print $2}' | less</span>
+            <span class="cmd-line">sudo systemctl list-units --type=service --state=running</span>
+            <span class="cmd-line comment"># disable services you don't need:</span>
+            <span class="cmd-line">sudo systemctl disable --now avahi-daemon cups bluetooth</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Every running service is an attack surface. Review what's running and disable what you don't need. Cloud provider base images are usually lean but it's worth auditing. Legacy protocols like telnet and rsh send credentials in plaintext — remove them even if you're sure you won't use them.</td>
+        </tr>
+
+        <!-- BRUTE FORCE -->
+        <tr data-cat="brute" data-step="10">
+          <td class="check-col"><input type="checkbox" title="Mark done"></td>
+          <td class="step-num">10</td>
+          <td class="step-name">Install and configure fail2ban</td>
+          <td class="phase-col"><span class="badge badge-brute">brute-force</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">sudo apt install -y fail2ban</span>
+            <span class="cmd-line">sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local</span>
+            <span class="cmd-line file"># /etc/fail2ban/jail.local — key settings:</span>
+            <span class="cmd-line file">[DEFAULT]</span>
+            <span class="cmd-line file">bantime  = 1h</span>
+            <span class="cmd-line file">findtime  = 10m</span>
+            <span class="cmd-line file">maxretry = 5</span>
+            <span class="cmd-line file">banaction = ufw</span>
+            <span class="cmd-line file">[sshd]</span>
+            <span class="cmd-line file">enabled = true</span>
+            <span class="cmd-line file">port    = ssh</span>
+            <span class="cmd-line file">logpath = %(sshd_log)s</span>
+            <span class="cmd-line">sudo systemctl enable --now fail2ban</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Always edit <code>jail.local</code>, never <code>jail.conf</code> — the latter gets overwritten on upgrades. <code>banaction = ufw</code> integrates with your firewall. Default <code>bantime</code> of 10 minutes is too short; 1 hour is a reasonable minimum. Set <code>findtime</code> shorter than <code>bantime</code> — 10m/1h means 5 failures in 10 minutes triggers a 1-hour ban.</td>
+        </tr>
+
+        <tr data-cat="brute" data-step="11">
+          <td class="check-col"><input type="checkbox" title="Mark done"></td>
+          <td class="step-num">11</td>
+          <td class="step-name">Verify fail2ban operation</td>
+          <td class="phase-col"><span class="badge badge-brute">brute-force</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">sudo fail2ban-client status</span>
+            <span class="cmd-line">sudo fail2ban-client status sshd</span>
+            <span class="cmd-line">sudo fail2ban-client get sshd bantime</span>
+            <span class="cmd-line">sudo fail2ban-client set sshd banip &lt;ip&gt;</span>
+            <span class="cmd-line">sudo fail2ban-client set sshd unbanip &lt;ip&gt;</span>
+            <span class="cmd-line">sudo tail -f /var/log/fail2ban.log</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Confirm the sshd jail is active and the ban count is incrementing. Manual <code>banip</code>/<code>unbanip</code> is the correct way to test the integration or unblock yourself after a lockout — do not edit iptables/ufw directly while fail2ban is running. <code>tail -f</code> shows live banning activity.</td>
+        </tr>
+
+        <!-- HARDENING -->
+        <tr data-cat="harden" data-step="12">
+          <td class="check-col"><input type="checkbox" title="Mark done"></td>
+          <td class="step-num">12</td>
+          <td class="step-name">Kernel sysctl hardening</td>
+          <td class="phase-col"><span class="badge badge-harden">hardening</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">sudo nano /etc/sysctl.d/99-hardening.conf</span>
+            <span class="cmd-line file"># network hardening:</span>
+            <span class="cmd-line file">net.ipv4.tcp_syncookies = 1</span>
+            <span class="cmd-line file">net.ipv4.conf.all.rp_filter = 1</span>
+            <span class="cmd-line file">net.ipv4.conf.all.accept_redirects = 0</span>
+            <span class="cmd-line file">net.ipv6.conf.all.accept_redirects = 0</span>
+            <span class="cmd-line file">net.ipv4.conf.all.send_redirects = 0</span>
+            <span class="cmd-line file">net.ipv4.conf.all.accept_source_route = 0</span>
+            <span class="cmd-line file">net.ipv4.icmp_echo_ignore_broadcasts = 1</span>
+            <span class="cmd-line file"># kernel hardening:</span>
+            <span class="cmd-line file">kernel.dmesg_restrict = 1</span>
+            <span class="cmd-line file">kernel.kptr_restrict = 2</span>
+            <span class="cmd-line file">fs.protected_hardlinks = 1</span>
+            <span class="cmd-line file">fs.protected_symlinks = 1</span>
+            <span class="cmd-line">sudo sysctl --system</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">SYN cookies protect against SYN flood attacks. Disabling ICMP redirects prevents route injection. <code>kptr_restrict = 2</code> hides kernel pointers from <code>/proc</code> — limits information available to local exploit code. <code>dmesg_restrict</code> stops unprivileged users reading kernel ring buffer. These apply immediately and persist via <code>/etc/sysctl.d/</code>.</td>
+        </tr>
+
+        <tr data-cat="harden" data-step="13">
+          <td class="check-col"><input type="checkbox" title="Mark done"></td>
+          <td class="step-num">13</td>
+          <td class="step-name">Secure shared memory</td>
+          <td class="phase-col"><span class="badge badge-harden">hardening</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">sudo nano /etc/fstab</span>
+            <span class="cmd-line file"># add this line:</span>
+            <span class="cmd-line file">tmpfs /run/shm tmpfs defaults,noexec,nosuid,nodev 0 0</span>
+            <span class="cmd-line">sudo mount -a</span>
+            <span class="cmd-line">mount | grep shm</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Shared memory mounted with <code>noexec,nosuid</code> prevents attackers from writing and executing shellcode through <code>/dev/shm</code> or <code>/run/shm</code>. A simple mitigation for a class of local privilege escalation techniques. Verify the mount flags appear in <code>mount | grep shm</code> output.</td>
+        </tr>
+
+        <tr data-cat="harden" data-step="14">
+          <td class="check-col"><input type="checkbox" title="Mark done"></td>
+          <td class="step-num">14</td>
+          <td class="step-name">Lock down cron access</td>
+          <td class="phase-col"><span class="badge badge-harden">hardening</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">sudo bash -c 'echo "root" > /etc/cron.allow'</span>
+            <span class="cmd-line">sudo bash -c 'echo "deploy" >> /etc/cron.allow'</span>
+            <span class="cmd-line">sudo rm -f /etc/cron.deny</span>
+            <span class="cmd-line">sudo chmod 600 /etc/crontab</span>
+            <span class="cmd-line">sudo chmod 700 /etc/cron.d /etc/cron.daily /etc/cron.hourly /etc/cron.weekly /etc/cron.monthly</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">If <code>cron.allow</code> exists, only users listed in it can use cron — all others are denied regardless of <code>cron.deny</code>. Restricting cron directory permissions prevents unprivileged users from inspecting scheduled tasks. List only the users that genuinely need scheduled jobs.</td>
+        </tr>
+
+        <tr data-cat="harden" data-step="15">
+          <td class="check-col"><input type="checkbox" title="Mark done"></td>
+          <td class="step-num">15</td>
+          <td class="step-name">Disable IPv6 <span class="theatre">optional</span></td>
+          <td class="phase-col"><span class="badge badge-harden">hardening</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line file"># /etc/sysctl.d/99-hardening.conf — add if not using IPv6:</span>
+            <span class="cmd-line file">net.ipv6.conf.all.disable_ipv6 = 1</span>
+            <span class="cmd-line file">net.ipv6.conf.default.disable_ipv6 = 1</span>
+            <span class="cmd-line file">net.ipv6.conf.lo.disable_ipv6 = 1</span>
+            <span class="cmd-line">sudo sysctl --system</span>
+            <span class="cmd-line">ip addr | grep inet6</span>
+            <span class="cmd-line comment"># should return no output if disabled</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Only disable IPv6 if you're not using it and your application doesn't need it. Reduces attack surface by eliminating an entire protocol stack from exposure, and simplifies firewall rules. Skip this if your provider assigns an IPv6 address you rely on or if you're running dual-stack applications.</td>
+        </tr>
+
+        <!-- DETECTION -->
+        <tr data-cat="detect" data-step="16">
+          <td class="check-col"><input type="checkbox" title="Mark done"></td>
+          <td class="step-num">16</td>
+          <td class="step-name">Install and baseline AIDE</td>
+          <td class="phase-col"><span class="badge badge-detect">detection</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">sudo apt install -y aide</span>
+            <span class="cmd-line">sudo aideinit</span>
+            <span class="cmd-line comment"># takes a few minutes — building baseline hash database</span>
+            <span class="cmd-line">sudo mv /var/lib/aide/aide.db.new /var/lib/aide/aide.db</span>
+            <span class="cmd-line comment"># run a check against baseline:</span>
+            <span class="cmd-line">sudo aide --check</span>
+            <span class="cmd-line comment"># schedule daily checks via cron:</span>
+            <span class="cmd-line">echo "0 3 * * * root /usr/bin/aide --check | mail -s 'AIDE report' you@example.com" | sudo tee /etc/cron.d/aide</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">AIDE (Advanced Intrusion Detection Environment) hashes every file in the filesystem and alerts on changes. Run <code>aideinit</code> immediately after hardening — before deploying any applications — so the baseline reflects a known-good state. Update the baseline after legitimate system changes with <code>aide --update</code>.</td>
+        </tr>
+
+        <tr data-cat="detect" data-step="17">
+          <td class="check-col"><input type="checkbox" title="Mark done"></td>
+          <td class="step-num">17</td>
+          <td class="step-name">Install rkhunter</td>
+          <td class="phase-col"><span class="badge badge-detect">detection</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">sudo apt install -y rkhunter</span>
+            <span class="cmd-line">sudo rkhunter --update</span>
+            <span class="cmd-line">sudo rkhunter --propupd</span>
+            <span class="cmd-line">sudo rkhunter --check --sk</span>
+            <span class="cmd-line comment"># --sk: skip key press prompts</span>
+            <span class="cmd-line comment"># review /var/log/rkhunter.log for warnings</span>
+            <span class="cmd-line">echo "0 4 * * * root rkhunter --check --sk --report-warnings-only | mail -s 'rkhunter' you@example.com" | sudo tee /etc/cron.d/rkhunter</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">rkhunter checks for known rootkits, suspicious files, hidden processes, and common backdoor signatures. Run <code>--propupd</code> immediately after install to baseline your binary properties — before it finds false positives on your own legit binaries. Expect some false positives; review warnings rather than treating all output as findings.</td>
+        </tr>
+
+        <tr data-cat="detect" data-step="18">
+          <td class="check-col"><input type="checkbox" title="Mark done"></td>
+          <td class="step-num">18</td>
+          <td class="step-name">Configure auditd basics</td>
+          <td class="phase-col"><span class="badge badge-detect">detection</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">sudo apt install -y auditd audispd-plugins</span>
+            <span class="cmd-line">sudo systemctl enable --now auditd</span>
+            <span class="cmd-line comment"># watch sensitive files:</span>
+            <span class="cmd-line">sudo auditctl -w /etc/passwd -p wa -k passwd_changes</span>
+            <span class="cmd-line">sudo auditctl -w /etc/sudoers -p wa -k sudoers_changes</span>
+            <span class="cmd-line">sudo auditctl -w /etc/ssh/sshd_config -p wa -k sshd_config</span>
+            <span class="cmd-line">sudo auditctl -w /var/log/auth.log -p wa -k auth_log</span>
+            <span class="cmd-line comment"># query audit log:</span>
+            <span class="cmd-line">sudo ausearch -k passwd_changes</span>
+            <span class="cmd-line">sudo aureport --summary</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">auditd gives a kernel-level audit trail of who changed what and when. Watching <code>/etc/passwd</code>, <code>/etc/sudoers</code>, and <code>sshd_config</code> catches the most dangerous configuration changes. Rules added with <code>auditctl</code> are ephemeral — persist them in <code>/etc/audit/rules.d/hardening.rules</code>.</td>
+        </tr>
+
+        <tr data-cat="detect" data-step="19">
+          <td class="check-col"><input type="checkbox" title="Mark done"></td>
+          <td class="step-num">19</td>
+          <td class="step-name">Set up log monitoring</td>
+          <td class="phase-col"><span class="badge badge-detect">detection</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">sudo apt install -y logwatch</span>
+            <span class="cmd-line file"># /etc/logwatch/conf/logwatch.conf:</span>
+            <span class="cmd-line file">MailTo = you@example.com</span>
+            <span class="cmd-line file">Detail = Med</span>
+            <span class="cmd-line file">Range = yesterday</span>
+            <span class="cmd-line">sudo logwatch --output stdout --range today --detail med</span>
+            <span class="cmd-line comment"># key logs to check manually:</span>
+            <span class="cmd-line">sudo tail -f /var/log/auth.log</span>
+            <span class="cmd-line">sudo grep "Failed password\|Accepted publickey\|Invalid user" /var/log/auth.log | tail -20</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">logwatch sends a daily summary of auth events, failed logins, and service anomalies. The grep pattern on <code>auth.log</code> is the fastest manual triage — <code>Invalid user</code> entries show which usernames bots are trying, <code>Failed password</code> shows successful connection attempts that failed auth, <code>Accepted publickey</code> confirms legitimate logins.</td>
+        </tr>
+
+        <!-- VERIFY -->
+        <tr data-cat="verify" data-step="20">
+          <td class="check-col"><input type="checkbox" title="Mark done"></td>
+          <td class="step-num">20</td>
+          <td class="step-name">Run lynis security audit</td>
+          <td class="phase-col"><span class="badge badge-verify">verify</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">sudo apt install -y lynis</span>
+            <span class="cmd-line">sudo lynis audit system</span>
+            <span class="cmd-line">sudo lynis audit system --quick 2>/dev/null | grep -E "Hardening index|Warning|Suggestion" | head -30</span>
+            <span class="cmd-line comment"># full report in /var/log/lynis.log</span>
+            <span class="cmd-line comment"># target hardening index > 70 for a basic server</span>
+            <span class="cmd-line">sudo lynis show details &lt;TEST-ID&gt;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">lynis runs 200+ checks and produces a scored hardening index — the authoritative "how did we do" answer. Work through Warnings before Suggestions. A score above 70 is reasonable for a general-purpose server; above 80 requires more invasive measures. <code>show details</code> explains the remediation for any specific test ID.</td>
+        </tr>
+
+        <tr data-cat="verify" data-step="21">
+          <td class="check-col"><input type="checkbox" title="Mark done"></td>
+          <td class="step-num">21</td>
+          <td class="step-name">Full port scan from outside</td>
+          <td class="phase-col"><span class="badge badge-verify">verify</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment"># run from a DIFFERENT machine, not the VPS itself:</span>
+            <span class="cmd-line">nmap -Pn -p- --min-rate=2000 -sV &lt;vps-ip&gt;</span>
+            <span class="cmd-line">nmap -Pn -sU --top-ports 100 &lt;vps-ip&gt;</span>
+            <span class="cmd-line comment"># expected: only 22 (or custom SSH port), 80, 443 open</span>
+            <span class="cmd-line comment"># UDP scan for common exposed services: DNS (53), NTP (123)</span>
+            <span class="cmd-line">sudo nmap -Pn -sV --script=banner &lt;vps-ip&gt;</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">The definitive check — what does the internet actually see? Run from outside the VPS; local <code>ss</code> or <code>netstat</code> does not account for firewall rules. The banner script reveals software versions exposed to the world — anything unexpected is a finding. UDP scan catches services that TCP scans miss.</td>
+        </tr>
+
+        <tr data-cat="verify" data-step="22">
+          <td class="check-col"><input type="checkbox" title="Mark done"></td>
+          <td class="step-num">22</td>
+          <td class="step-name">Final checklist closure</td>
+          <td class="phase-col"><span class="badge badge-verify">verify</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">sudo ufw status verbose</span>
+            <span class="cmd-line">sudo fail2ban-client status sshd</span>
+            <span class="cmd-line">sudo systemctl is-active unattended-upgrades fail2ban auditd aide</span>
+            <span class="cmd-line">sudo last -10</span>
+            <span class="cmd-line">sudo lastb -10</span>
+            <span class="cmd-line">sudo aide --check 2>&1 | tail -5</span>
+            <span class="cmd-line">sudo lynis audit system --quick 2>/dev/null | grep "Hardening index"</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><code>last</code> shows recent successful logins; <code>lastb</code> shows failed attempts — compare the two. All four services should report <code>active</code>. AIDE check on a fresh system should report no changes. Keep this block in a runbook — run it after any system change to confirm nothing was inadvertently broken.</td>
+        </tr>
+
+      </tbody>
+    </table>
+    <div class="no-results" id="no-results">No steps match this filter.</div>
+  </div>
+</main>
+
+<footer>
+  ops://cheatsheets &mdash;
+  <a href="https://cisofy.com/lynis/" target="_blank" rel="noopener">lynis</a> &middot;
+  <a href="https://www.fail2ban.org/wiki/index.php/Main_Page" target="_blank" rel="noopener">fail2ban</a> &middot;
+  <a href="https://aide.github.io" target="_blank" rel="noopener">AIDE</a> &middot;
+  <a href="https://www.debian.org/doc/manuals/securing-debian-manual/" target="_blank" rel="noopener">Debian securing guide</a>
+</footer>
+
+<script>
+(function () {
+  const btns    = document.querySelectorAll('.f-btn');
+  const rows    = document.querySelectorAll('#tbody tr[data-cat]');
+  const countEl = document.getElementById('count-n');
+  const noRes   = document.getElementById('no-results');
+  const bar     = document.getElementById('bar');
+  const doneEl  = document.getElementById('done-count');
+  const totalEl = document.getElementById('total-count');
+
+  const TOTAL = rows.length;
+  totalEl.textContent = TOTAL;
+
+  // restore checkboxes from sessionStorage
+  rows.forEach(r => {
+    const step = r.dataset.step;
+    const cb = r.querySelector('input[type=checkbox]');
+    if (sessionStorage.getItem('vps-step-' + step) === '1') {
+      cb.checked = true;
+      r.classList.add('done');
+    }
+    cb.addEventListener('change', () => {
+      r.classList.toggle('done', cb.checked);
+      sessionStorage.setItem('vps-step-' + step, cb.checked ? '1' : '0');
+      updateProgress();
+    });
+  });
+
+  function updateProgress() {
+    const done = document.querySelectorAll('#tbody input[type=checkbox]:checked').length;
+    doneEl.textContent = done;
+    bar.style.width = (done / TOTAL * 100) + '%';
+  }
+  updateProgress();
+
+  function filter(cat) {
+    let shown = 0;
+    rows.forEach(r => {
+      const match = cat === 'all' || r.dataset.cat === cat;
+      r.style.display = match ? '' : 'none';
+      if (match) shown++;
+    });
+    countEl.textContent = shown;
+    noRes.style.display = shown === 0 ? 'block' : 'none';
+  }
+
+  btns.forEach(b => {
+    b.addEventListener('click', () => {
+      btns.forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      filter(b.dataset.cat);
+    });
+  });
+
+  window.copyAll = function (btn) {
+    const block = btn.closest('.cmd-block');
+    const lines = Array.from(block.querySelectorAll('.cmd-line'))
+      .map(l => l.textContent)
+      .join('\n');
+    navigator.clipboard.writeText(lines).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1500);
+    });
+  };
+})();
+</script>
+</body>
+</html>

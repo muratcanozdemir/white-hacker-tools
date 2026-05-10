@@ -131,6 +131,8 @@
   .post-card.aws:hover            { border-left-color: #ff9900; }
   .tag-azure { background: rgba(14,165,233,.12);  color: #0ea5e9; border: 1px solid rgba(14,165,233,.3);  }
   .post-card.azure:hover          { border-left-color: #0ea5e9; }
+  .tag-fuchsia{ background: rgba(232,121,249,.12); color: #e879f9; border: 1px solid rgba(232,121,249,.3); }
+  .post-card.vps:hover            { border-left-color: #e879f9; }
   .post-date { font-size: 10px; color: var(--muted); }
   .post-title {
     font-family: var(--display);
@@ -366,6 +368,19 @@
       <span class="post-arrow">&#8594;</span>
     </a>
 
+    <a href="vps-hardening.html" class="post-card vps">
+      <div>
+        <div class="post-meta">
+          <span class="tag tag-fuchsia">security</span>
+          <span class="post-date">2026-05-10</span>
+        </div>
+        <p class="post-title">VPS Hardening — Fresh to Secure</p>
+        <p class="post-desc">From a blank Debian/Ubuntu VPS to a machine you'd trust running production workloads. 22 ordered steps, filterable by phase, with a progress bar and checkboxes.</p>
+        <p class="tool-count"><strong>22</strong> steps &middot; 7 phases &middot; ordered</p>
+      </div>
+      <span class="post-arrow">&#8594;</span>
+    </a>
+
   </div>
 
   <p class="section-label">up next</p>
@@ -379,7 +394,7 @@
     <div class="coming-item" style="margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border);">Kong — API gateway ops, deck config-as-code, plugin management, admin API, routing patterns</div>
     <div class="coming-item">MuleSoft — anypoint-cli + Mule Maven Plugin; deploy, promote, CI/CD, API Manager, runtime, observability, governance</div>
     <div class="coming-item">Nginx as API Gateway — upstream blocks, rate limiting, JWT via auth_request, mTLS, health checks, config validation</div>
-    <div class="coming-item" style="margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border);">Productionizing a New Server Pipeline &mdash; from first commit to load-balanced, monitored, secured, observable service in production</div>
+
   </div>
 
 </main>
