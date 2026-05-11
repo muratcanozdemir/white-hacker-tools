@@ -23,6 +23,15 @@ Live at: `https://<you>.github.io/<repo>/`
 | `slurm.html` | SLURM & HPC Toolkit | 17 | submit · monitor · debug · arrays · dependencies · resources |
 | `postgres.html` | PostgreSQL Operations | 18 | psql · backup · performance · maintenance · security · replication |
 | `aws.html` | AWS CLI — Production Surface | 28 | auth · compute · storage · networking · secrets · observability · data/platform |
+| `azure.html` | Azure CLI — Production Surface | 28 | auth · compute · storage · networking · secrets · observability · data/platform |
+| `gcp.html` | GCP CLI — Production Surface | 28 | auth · compute · storage · networking · secrets · observability · data/platform |
+| `digitalocean.html` | DigitalOcean CLI — Production Surface | 24 | auth · droplets · kubernetes · storage · networking · databases · apps |
+| `linode.html` | Linode CLI — Production Surface | 22 | auth · linodes · kubernetes · storage · networking · databases |
+| `hetzner.html` | Hetzner CLI — Production Surface | 22 | auth · servers · networks · storage · load balancers · firewalls |
+| `vps-hardening.html` | VPS Hardening — Fresh to Secure | 23 | access · firewall · updates · brute-force · hardening · detection · verify |
+| `kong.html` | Kong API Gateway | 22 | connect · services · routes · plugins · upstreams · deck · inspect |
+| `mulesoft.html` | MuleSoft — Production Surface | 20 | deploy · ci/cd · api manager · runtime · observability · governance |
+| `nginx.html` | Nginx as API Gateway | 20 | config · upstream · rate limiting · auth · tls/mtls · observability |
 
 ---
 
@@ -69,6 +78,16 @@ python3 -m http.server 8080
 ├── network.html
 ├── slurm.html
 ├── postgres.html
+├── aws.html
+├── azure.html
+├── gcp.html
+├── digitalocean.html
+├── linode.html
+├── hetzner.html
+├── vps-hardening.html
+├── kong.html
+├── mulesoft.html
+├── nginx.html
 ├── README.md
 └── .github/
     └── workflows/
@@ -86,4 +105,6 @@ python3 -m http.server 8080
 - Single self-contained HTML files — no build step, no framework, no CDN beyond one Google Fonts request
 - Each page has a distinct accent colour — visual identity per domain
 - Filter by phase, copy-to-clipboard per command block
+- Ordered steps where sequence matters (VPS hardening), unordered elsewhere
 - Commands that get used, not commands that fill space
+- Honest about what doesn't belong — every page has an explicit exclusion callout
