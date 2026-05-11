@@ -270,7 +270,7 @@
       <p class="subtitle">From a blank Debian/Ubuntu VPS to a machine you'd trust running production workloads. Steps are ordered — work top to bottom, filter for reference.</p>
     </div>
     <div class="meta">
-      <strong>22</strong> steps<br>
+      <strong>23</strong> steps<br>
       <strong>7</strong> phases<br>
       Debian / Ubuntu &middot; ordered
     </div>
@@ -302,7 +302,7 @@
     <button class="f-btn" data-cat="harden">hardening</button>
     <button class="f-btn" data-cat="detect">detection</button>
     <button class="f-btn" data-cat="verify">verify</button>
-    <span class="count" id="count"><strong id="count-n">22</strong> steps shown</span>
+    <span class="count" id="count"><strong id="count-n">23</strong> steps shown</span>
   </div>
 
   <div class="table-wrap">
@@ -328,10 +328,31 @@
           </div></td>
           <td class="usecase">Never run applications as root. Create a named user now — before changing SSH config — so you have a working non-root login before you lock root out. Confirm sudo works in the same session before continuing.</td>
         </tr>
-
         <tr data-cat="access" data-step="2">
           <td class="check-col"><input type="checkbox" title="Mark done"></td>
           <td class="step-num">2</td>
+          <td class="step-name">Verify host key before first connection</td>
+          <td class="phase-col"><span class="badge badge-access">access</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment"># install ssh-init-vm (requires Python 3, OpenSSH client):</span>
+            <span class="cmd-line">curl -fsSL https://raw.githubusercontent.com/JoachimSchipper/ssh-init-vm/main/ssh-init-vm -o ssh-init-vm && chmod +x ssh-init-vm</span>
+            <span class="cmd-line comment"># at VPS provisioning — inject a temporary host key via cloud-init user-data:</span>
+            <span class="cmd-line">./ssh-init-vm generate-cloud-config > cloud-init.yaml</span>
+            <span class="cmd-line comment"># pass cloud-init.yaml as user-data when creating the server</span>
+            <span class="cmd-line comment"># once the server is up, bootstrap the trusted connection:</span>
+            <span class="cmd-line">./ssh-init-vm connect root@&lt;vps-ip&gt;</span>
+            <span class="cmd-line comment"># real host keys are now in ~/.ssh/known_hosts via OpenSSH key rotation</span>
+            <span class="cmd-line comment"># temp key material is deleted — metadata service leak is now harmless</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase"><strong>Prevents MITM on the very first connection.</strong> The default "yes to fingerprint" (TOFU) leaves you open to a network attacker rerouting your traffic. Injecting a long-term key via cloud-init is worse — the private key sits at <code>http://169.254.169.254/</code>, readable by any process on the VM and provider systems. <code>ssh-init-vm</code> injects a throwaway temporary key, uses it to bootstrap, retrieves the real host keys via OpenSSH key rotation, then discards the temp material. By the time you log in normally, the temp key is worthless even if an attacker reads it from the metadata service. Requires cloud-init support at the provider — Hetzner, DigitalOcean, Linode, AWS, GCP, Azure all support it.</td>
+        </tr>
+
+
+
+        <tr data-cat="access" data-step="3">
+          <td class="check-col"><input type="checkbox" title="Mark done"></td>
+          <td class="step-num">3</td>
           <td class="step-name">Install your SSH public key</td>
           <td class="phase-col"><span class="badge badge-access">access</span></td>
           <td class="commands"><div class="cmd-block">
@@ -347,9 +368,9 @@
           <td class="usecase">Test key-based login in a new terminal before disabling password auth. If you lock yourself out here you still have root access and time to fix it. Use Ed25519 — RSA 2048 is legacy, RSA 4096 is slower than Ed25519 with no meaningful security gain.</td>
         </tr>
 
-        <tr data-cat="access" data-step="3">
+        <tr data-cat="access" data-step="4">
           <td class="check-col"><input type="checkbox" title="Mark done"></td>
-          <td class="step-num">3</td>
+          <td class="step-num">4</td>
           <td class="step-name">Harden sshd_config</td>
           <td class="phase-col"><span class="badge badge-access">access</span></td>
           <td class="commands"><div class="cmd-block">
@@ -372,9 +393,9 @@
           <td class="usecase"><code>sshd -t</code> validates config before reloading — never reload without it. Keep your existing session open while testing login in a new terminal. <code>AllowUsers</code> whitelist means even if an attacker creates another user, they can't SSH in. <code>AllowTcpForwarding no</code> prevents your server being used as a tunnel if a key is compromised.</td>
         </tr>
 
-        <tr data-cat="access" data-step="4">
+        <tr data-cat="access" data-step="5">
           <td class="check-col"><input type="checkbox" title="Mark done"></td>
-          <td class="step-num">4</td>
+          <td class="step-num">5</td>
           <td class="step-name">Change SSH port <span class="theatre">theatre</span></td>
           <td class="phase-col"><span class="badge badge-access">access</span></td>
           <td class="commands"><div class="cmd-block">
@@ -393,9 +414,9 @@
         </tr>
 
         <!-- FIREWALL -->
-        <tr data-cat="fw" data-step="5">
+        <tr data-cat="fw" data-step="6">
           <td class="check-col"><input type="checkbox" title="Mark done"></td>
-          <td class="step-num">5</td>
+          <td class="step-num">6</td>
           <td class="step-name">Configure UFW — default deny</td>
           <td class="phase-col"><span class="badge badge-fw">firewall</span></td>
           <td class="commands"><div class="cmd-block">
@@ -413,9 +434,9 @@
           <td class="usecase">Enable UFW only after SSH is allowed — in that order. <code>--force</code> skips the interactive prompt, safe in scripts. Add application ports before enabling, not after. UFW is a frontend for iptables; it persists across reboots. Verify the rules look right before closing your current session.</td>
         </tr>
 
-        <tr data-cat="fw" data-step="6">
+        <tr data-cat="fw" data-step="7">
           <td class="check-col"><input type="checkbox" title="Mark done"></td>
-          <td class="step-num">6</td>
+          <td class="step-num">7</td>
           <td class="step-name">Verify firewall from outside</td>
           <td class="phase-col"><span class="badge badge-fw">firewall</span></td>
           <td class="commands"><div class="cmd-block">
@@ -430,9 +451,9 @@
         </tr>
 
         <!-- UPDATES -->
-        <tr data-cat="updates" data-step="7">
+        <tr data-cat="updates" data-step="8">
           <td class="check-col"><input type="checkbox" title="Mark done"></td>
-          <td class="step-num">7</td>
+          <td class="step-num">8</td>
           <td class="step-name">Full system update</td>
           <td class="phase-col"><span class="badge badge-updates">updates</span></td>
           <td class="commands"><div class="cmd-block">
@@ -447,9 +468,9 @@
           <td class="usecase">Do a full update immediately on a fresh server — cloud provider images are often weeks behind. <code>dist-upgrade</code> handles dependency changes that <code>upgrade</code> skips. Reboot now to start on the latest kernel before configuring anything that depends on kernel behaviour (like fail2ban netfilter integration).</td>
         </tr>
 
-        <tr data-cat="updates" data-step="8">
+        <tr data-cat="updates" data-step="9">
           <td class="check-col"><input type="checkbox" title="Mark done"></td>
-          <td class="step-num">8</td>
+          <td class="step-num">9</td>
           <td class="step-name">Enable unattended-upgrades</td>
           <td class="phase-col"><span class="badge badge-updates">updates</span></td>
           <td class="commands"><div class="cmd-block">
@@ -466,9 +487,9 @@
           <td class="usecase">Security patches only by default — it does not upgrade all packages, only those in the <code>-security</code> suite. <code>Automatic-Reboot</code> applies kernel patches without manual intervention; set a maintenance window time. <code>--dry-run</code> confirms what it would do before it runs live. <code>needrestart</code> detects services using outdated libraries after an update.</td>
         </tr>
 
-        <tr data-cat="updates" data-step="9">
+        <tr data-cat="updates" data-step="10">
           <td class="check-col"><input type="checkbox" title="Mark done"></td>
-          <td class="step-num">9</td>
+          <td class="step-num">10</td>
           <td class="step-name">Remove unnecessary packages</td>
           <td class="phase-col"><span class="badge badge-updates">updates</span></td>
           <td class="commands"><div class="cmd-block">
@@ -484,9 +505,9 @@
         </tr>
 
         <!-- BRUTE FORCE -->
-        <tr data-cat="brute" data-step="10">
+        <tr data-cat="brute" data-step="11">
           <td class="check-col"><input type="checkbox" title="Mark done"></td>
-          <td class="step-num">10</td>
+          <td class="step-num">11</td>
           <td class="step-name">Install and configure fail2ban</td>
           <td class="phase-col"><span class="badge badge-brute">brute-force</span></td>
           <td class="commands"><div class="cmd-block">
@@ -508,9 +529,9 @@
           <td class="usecase">Always edit <code>jail.local</code>, never <code>jail.conf</code> — the latter gets overwritten on upgrades. <code>banaction = ufw</code> integrates with your firewall. Default <code>bantime</code> of 10 minutes is too short; 1 hour is a reasonable minimum. Set <code>findtime</code> shorter than <code>bantime</code> — 10m/1h means 5 failures in 10 minutes triggers a 1-hour ban.</td>
         </tr>
 
-        <tr data-cat="brute" data-step="11">
+        <tr data-cat="brute" data-step="12">
           <td class="check-col"><input type="checkbox" title="Mark done"></td>
-          <td class="step-num">11</td>
+          <td class="step-num">12</td>
           <td class="step-name">Verify fail2ban operation</td>
           <td class="phase-col"><span class="badge badge-brute">brute-force</span></td>
           <td class="commands"><div class="cmd-block">
@@ -526,9 +547,9 @@
         </tr>
 
         <!-- HARDENING -->
-        <tr data-cat="harden" data-step="12">
+        <tr data-cat="harden" data-step="13">
           <td class="check-col"><input type="checkbox" title="Mark done"></td>
-          <td class="step-num">12</td>
+          <td class="step-num">13</td>
           <td class="step-name">Kernel sysctl hardening</td>
           <td class="phase-col"><span class="badge badge-harden">hardening</span></td>
           <td class="commands"><div class="cmd-block">
@@ -552,9 +573,9 @@
           <td class="usecase">SYN cookies protect against SYN flood attacks. Disabling ICMP redirects prevents route injection. <code>kptr_restrict = 2</code> hides kernel pointers from <code>/proc</code> — limits information available to local exploit code. <code>dmesg_restrict</code> stops unprivileged users reading kernel ring buffer. These apply immediately and persist via <code>/etc/sysctl.d/</code>.</td>
         </tr>
 
-        <tr data-cat="harden" data-step="13">
+        <tr data-cat="harden" data-step="14">
           <td class="check-col"><input type="checkbox" title="Mark done"></td>
-          <td class="step-num">13</td>
+          <td class="step-num">14</td>
           <td class="step-name">Secure shared memory</td>
           <td class="phase-col"><span class="badge badge-harden">hardening</span></td>
           <td class="commands"><div class="cmd-block">
@@ -568,9 +589,9 @@
           <td class="usecase">Shared memory mounted with <code>noexec,nosuid</code> prevents attackers from writing and executing shellcode through <code>/dev/shm</code> or <code>/run/shm</code>. A simple mitigation for a class of local privilege escalation techniques. Verify the mount flags appear in <code>mount | grep shm</code> output.</td>
         </tr>
 
-        <tr data-cat="harden" data-step="14">
+        <tr data-cat="harden" data-step="15">
           <td class="check-col"><input type="checkbox" title="Mark done"></td>
-          <td class="step-num">14</td>
+          <td class="step-num">15</td>
           <td class="step-name">Lock down cron access</td>
           <td class="phase-col"><span class="badge badge-harden">hardening</span></td>
           <td class="commands"><div class="cmd-block">
@@ -584,9 +605,9 @@
           <td class="usecase">If <code>cron.allow</code> exists, only users listed in it can use cron — all others are denied regardless of <code>cron.deny</code>. Restricting cron directory permissions prevents unprivileged users from inspecting scheduled tasks. List only the users that genuinely need scheduled jobs.</td>
         </tr>
 
-        <tr data-cat="harden" data-step="15">
+        <tr data-cat="harden" data-step="16">
           <td class="check-col"><input type="checkbox" title="Mark done"></td>
-          <td class="step-num">15</td>
+          <td class="step-num">16</td>
           <td class="step-name">Disable IPv6 <span class="theatre">optional</span></td>
           <td class="phase-col"><span class="badge badge-harden">hardening</span></td>
           <td class="commands"><div class="cmd-block">
@@ -603,9 +624,9 @@
         </tr>
 
         <!-- DETECTION -->
-        <tr data-cat="detect" data-step="16">
+        <tr data-cat="detect" data-step="17">
           <td class="check-col"><input type="checkbox" title="Mark done"></td>
-          <td class="step-num">16</td>
+          <td class="step-num">17</td>
           <td class="step-name">Install and baseline AIDE</td>
           <td class="phase-col"><span class="badge badge-detect">detection</span></td>
           <td class="commands"><div class="cmd-block">
@@ -622,9 +643,9 @@
           <td class="usecase">AIDE (Advanced Intrusion Detection Environment) hashes every file in the filesystem and alerts on changes. Run <code>aideinit</code> immediately after hardening — before deploying any applications — so the baseline reflects a known-good state. Update the baseline after legitimate system changes with <code>aide --update</code>.</td>
         </tr>
 
-        <tr data-cat="detect" data-step="17">
+        <tr data-cat="detect" data-step="18">
           <td class="check-col"><input type="checkbox" title="Mark done"></td>
-          <td class="step-num">17</td>
+          <td class="step-num">18</td>
           <td class="step-name">Install rkhunter</td>
           <td class="phase-col"><span class="badge badge-detect">detection</span></td>
           <td class="commands"><div class="cmd-block">
@@ -640,9 +661,9 @@
           <td class="usecase">rkhunter checks for known rootkits, suspicious files, hidden processes, and common backdoor signatures. Run <code>--propupd</code> immediately after install to baseline your binary properties — before it finds false positives on your own legit binaries. Expect some false positives; review warnings rather than treating all output as findings.</td>
         </tr>
 
-        <tr data-cat="detect" data-step="18">
+        <tr data-cat="detect" data-step="19">
           <td class="check-col"><input type="checkbox" title="Mark done"></td>
-          <td class="step-num">18</td>
+          <td class="step-num">19</td>
           <td class="step-name">Configure auditd basics</td>
           <td class="phase-col"><span class="badge badge-detect">detection</span></td>
           <td class="commands"><div class="cmd-block">
@@ -661,9 +682,9 @@
           <td class="usecase">auditd gives a kernel-level audit trail of who changed what and when. Watching <code>/etc/passwd</code>, <code>/etc/sudoers</code>, and <code>sshd_config</code> catches the most dangerous configuration changes. Rules added with <code>auditctl</code> are ephemeral — persist them in <code>/etc/audit/rules.d/hardening.rules</code>.</td>
         </tr>
 
-        <tr data-cat="detect" data-step="19">
+        <tr data-cat="detect" data-step="20">
           <td class="check-col"><input type="checkbox" title="Mark done"></td>
-          <td class="step-num">19</td>
+          <td class="step-num">20</td>
           <td class="step-name">Set up log monitoring</td>
           <td class="phase-col"><span class="badge badge-detect">detection</span></td>
           <td class="commands"><div class="cmd-block">
@@ -682,9 +703,9 @@
         </tr>
 
         <!-- VERIFY -->
-        <tr data-cat="verify" data-step="20">
+        <tr data-cat="verify" data-step="21">
           <td class="check-col"><input type="checkbox" title="Mark done"></td>
-          <td class="step-num">20</td>
+          <td class="step-num">21</td>
           <td class="step-name">Run lynis security audit</td>
           <td class="phase-col"><span class="badge badge-verify">verify</span></td>
           <td class="commands"><div class="cmd-block">
@@ -699,9 +720,9 @@
           <td class="usecase">lynis runs 200+ checks and produces a scored hardening index — the authoritative "how did we do" answer. Work through Warnings before Suggestions. A score above 70 is reasonable for a general-purpose server; above 80 requires more invasive measures. <code>show details</code> explains the remediation for any specific test ID.</td>
         </tr>
 
-        <tr data-cat="verify" data-step="21">
+        <tr data-cat="verify" data-step="22">
           <td class="check-col"><input type="checkbox" title="Mark done"></td>
-          <td class="step-num">21</td>
+          <td class="step-num">22</td>
           <td class="step-name">Full port scan from outside</td>
           <td class="phase-col"><span class="badge badge-verify">verify</span></td>
           <td class="commands"><div class="cmd-block">
@@ -716,9 +737,9 @@
           <td class="usecase">The definitive check — what does the internet actually see? Run from outside the VPS; local <code>ss</code> or <code>netstat</code> does not account for firewall rules. The banner script reveals software versions exposed to the world — anything unexpected is a finding. UDP scan catches services that TCP scans miss.</td>
         </tr>
 
-        <tr data-cat="verify" data-step="22">
+        <tr data-cat="verify" data-step="23">
           <td class="check-col"><input type="checkbox" title="Mark done"></td>
-          <td class="step-num">22</td>
+          <td class="step-num">23</td>
           <td class="step-name">Final checklist closure</td>
           <td class="phase-col"><span class="badge badge-verify">verify</span></td>
           <td class="commands"><div class="cmd-block">
