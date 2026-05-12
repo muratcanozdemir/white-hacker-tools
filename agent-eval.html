@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Evaluation — White Hat Cheatsheet</title>
+<style>
+  :root {
+    --bg:      #0d0f12;
+    --bg2:     #13161b;
+    --bg3:     #1a1e25;
+    --bg4:     #20252e;
+    --border:  #252a34;
+    --border2: #2e3440;
+    --text:    #cdd6e0;
+    --muted:   #556070;
+    --accent:  #58a6ff;
+    --mono:    'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+
+    /* layer colors */
+    --framework: #79c0ff;
+    --benchmark: #ffa657;
+    --pattern:   #d2a8ff;
+    --outcome:   #56d364;
+    --trajectory:#e3b341;
+    --online:    #ff7b72;
+    --cost:      #39d353;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 2rem 2.5rem 1.75rem;
+  }
+
+  .header-inner {
+    max-width: 1260px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 2rem;
+  }
+
+  .prompt {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: .6rem;
+    letter-spacing: .05em;
+  }
+  .prompt::before { content: '$ '; color: var(--accent); }
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    line-height: 1.15;
+    color: #e6edf3;
+    margin-bottom: .5rem;
+  }
+  h1 span { color: var(--pattern); }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 11.5px;
+    max-width: 540px;
+    line-height: 1.7;
+  }
+
+  .meta {
+    text-align: right;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 2;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .meta strong { color: var(--text); }
+
+  /* ── TAXONOMY BAR ── */
+  .taxonomy {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: .75rem 2.5rem;
+  }
+  .taxonomy-inner {
+    max-width: 1260px;
+    margin: 0 auto;
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .tax-group {
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+  }
+  .tax-label {
+    font-size: 9px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: .1rem;
+  }
+  .tax-items {
+    display: flex;
+    gap: .4rem;
+    flex-wrap: wrap;
+  }
+  .tax-chip {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .tc-framework { background: rgba(121,192,255,.1);  color: var(--framework); border: 1px solid rgba(121,192,255,.2); }
+  .tc-benchmark  { background: rgba(255,166,87,.1);  color: var(--benchmark); border: 1px solid rgba(255,166,87,.2);  }
+  .tc-pattern    { background: rgba(210,168,255,.1); color: var(--pattern);   border: 1px solid rgba(210,168,255,.2); }
+
+  /* ── MAIN ── */
+  main {
+    max-width: 1260px;
+    margin: 0 auto;
+    padding: 1.5rem 2.5rem 4rem;
+  }
+
+  /* ── FILTERS ── */
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    margin-bottom: 1.25rem;
+    align-items: center;
+  }
+
+  .count { margin-left: auto; font-size: 11px; color: var(--muted); }
+
+  .f-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 3px;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    padding: 3px 10px;
+    letter-spacing: .04em;
+    transition: color .12s, border-color .12s, background .12s;
+  }
+  .f-btn:hover { color: var(--text); border-color: var(--muted); }
+  .f-btn.active { color: var(--bg); border-color: transparent; }
+
+  .f-btn[data-cat="all"].active        { background: var(--text);       color: var(--bg); }
+  .f-btn[data-cat="framework"].active  { background: var(--framework);  color: var(--bg); }
+  .f-btn[data-cat="benchmark"].active  { background: var(--benchmark);  color: var(--bg); }
+  .f-btn[data-cat="outcome"].active    { background: var(--outcome);    color: var(--bg); }
+  .f-btn[data-cat="trajectory"].active { background: var(--trajectory); color: var(--bg); }
+  .f-btn[data-cat="online"].active     { background: var(--online);     color: var(--bg); }
+  .f-btn[data-cat="cost"].active       { background: var(--cost);       color: var(--bg); }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  thead th {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .1em;
+    color: var(--muted);
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    padding: .5rem .75rem;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background .08s;
+  }
+  tbody tr:hover { background: var(--bg2); }
+
+  td { padding: .7rem .75rem; vertical-align: top; }
+
+  /* layer tag */
+  .layer-tag {
+    display: inline-block;
+    border-radius: 3px;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    white-space: nowrap;
+  }
+  .lt-framework { background: rgba(121,192,255,.12); color: var(--framework); border: 1px solid rgba(121,192,255,.25); }
+  .lt-benchmark { background: rgba(255,166,87,.12);  color: var(--benchmark); border: 1px solid rgba(255,166,87,.25);  }
+  .lt-outcome   { background: rgba(86,211,100,.12);  color: var(--outcome);   border: 1px solid rgba(86,211,100,.25);  }
+  .lt-trajectory{ background: rgba(227,179,65,.12);  color: var(--trajectory);border: 1px solid rgba(227,179,65,.25);  }
+  .lt-online    { background: rgba(255,123,114,.12); color: var(--online);    border: 1px solid rgba(255,123,114,.25); }
+  .lt-cost      { background: rgba(57,211,83,.1);    color: var(--cost);      border: 1px solid rgba(57,211,83,.2);    }
+
+  /* tool badge */
+  .tool-badge {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: rgba(88,166,255,.1);
+    color: var(--accent);
+    border: 1px solid rgba(88,166,255,.2);
+    margin-bottom: 3px;
+    white-space: nowrap;
+  }
+
+  td.technique {
+    color: #e6edf3;
+    font-size: 12px;
+    font-weight: 600;
+    min-width: 170px;
+  }
+  td.technique small {
+    display: block;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 400;
+    margin-top: 2px;
+  }
+
+  /* command block */
+  .cmd-block {
+    position: relative;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    padding: .55rem .75rem;
+    padding-right: 3.5rem;
+    min-width: 280px;
+  }
+
+  .cmd-line {
+    display: block;
+    font-family: var(--mono);
+    font-size: 11px;
+    line-height: 1.85;
+    word-break: break-all;
+    white-space: pre-wrap;
+  }
+  .cmd-line.cmd     { color: #58d68d; }
+  .cmd-line.note    { color: var(--muted); font-style: italic; }
+  .cmd-line.val     { color: var(--framework); }
+  .cmd-line.warn    { color: var(--online); }
+  .cmd-line.good    { color: var(--outcome); }
+  .cmd-line.py      { color: var(--pattern); }
+  .cmd-line.flag    { color: var(--trajectory); }
+
+  .cmd-sep {
+    display: block;
+    border: none;
+    border-top: 1px solid var(--border2);
+    margin: .4rem 0;
+  }
+
+  .copy-btn {
+    position: absolute;
+    top: 4px;
+    right: 5px;
+    background: var(--bg4);
+    border: 1px solid var(--border2);
+    border-radius: 3px;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 9.5px;
+    padding: 1px 7px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity .15s, color .15s;
+    letter-spacing: .05em;
+  }
+  .cmd-block:hover .copy-btn { opacity: 1; }
+  .copy-btn:hover  { color: var(--accent); border-color: var(--accent); }
+  .copy-btn.copied { color: var(--accent); border-color: var(--accent); }
+
+  td.notes {
+    font-size: 11.5px;
+    color: var(--muted);
+    min-width: 210px;
+    max-width: 330px;
+    line-height: 1.75;
+  }
+  td.notes em     { color: var(--trajectory); font-style: normal; }
+  td.notes strong { color: var(--text); }
+  td.notes code   { background: var(--bg3); border: 1px solid var(--border2); border-radius: 2px; padding: 0 4px; font-size: 10.5px; color: var(--framework); }
+
+  .no-results {
+    text-align: center;
+    padding: 3rem;
+    color: var(--muted);
+    font-size: 12px;
+    display: none;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 1.5rem 2.5rem;
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--text); }
+
+  @media (max-width: 700px) {
+    header, main, .taxonomy { padding: 1.25rem; }
+    h1 { font-size: 1.5rem; }
+    .meta { display: none; }
+    .taxonomy-inner { gap: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <p class="prompt">agent-eval --layer=all --mode=red-team</p>
+      <h1>Agent<br><span>Evaluation</span></h1>
+      <p class="subtitle">Three-layer reference: eval frameworks, benchmark suites, and eval patterns — with concrete commands, failure modes, and local-first alternatives.</p>
+    </div>
+    <div class="meta">
+      <strong>34</strong> techniques<br>
+      <strong>3</strong> layers · <strong>6</strong> patterns<br>
+      Inspect · DeepEval · Braintrust<br>
+      AgentBench · GAIA · τ²-Bench
+    </div>
+  </div>
+</header>
+
+<div class="taxonomy">
+  <div class="taxonomy-inner">
+    <div class="tax-group">
+      <div class="tax-label">Layer 1 — Run evals</div>
+      <div class="tax-items">
+        <span class="tax-chip tc-framework">Inspect AI</span>
+        <span class="tax-chip tc-framework">DeepEval</span>
+        <span class="tax-chip tc-framework">Braintrust</span>
+      </div>
+    </div>
+    <div class="tax-group">
+      <div class="tax-label">Layer 2 — What tasks</div>
+      <div class="tax-items">
+        <span class="tax-chip tc-benchmark">AgentBench</span>
+        <span class="tax-chip tc-benchmark">GAIA (AMD)</span>
+        <span class="tax-chip tc-benchmark">τ²-Bench</span>
+      </div>
+    </div>
+    <div class="tax-group">
+      <div class="tax-label">Layer 3 — What to measure</div>
+      <div class="tax-items">
+        <span class="tax-chip tc-pattern">E2E outcome</span>
+        <span class="tax-chip tc-pattern">Trajectory</span>
+        <span class="tax-chip tc-pattern">Online/prod</span>
+        <span class="tax-chip tc-pattern">Cost-bounded</span>
+        <span class="tax-chip tc-pattern">Adversarial</span>
+        <span class="tax-chip tc-pattern">Multi-turn</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main>
+  <div class="filters">
+    <button class="f-btn active" data-cat="all">all</button>
+    <button class="f-btn" data-cat="framework">framework</button>
+    <button class="f-btn" data-cat="benchmark">benchmark</button>
+    <button class="f-btn" data-cat="outcome">outcome</button>
+    <button class="f-btn" data-cat="trajectory">trajectory</button>
+    <button class="f-btn" data-cat="online">online / prod</button>
+    <button class="f-btn" data-cat="cost">cost / budget</button>
+    <span class="count"><span id="count-n">34</span> shown</span>
+  </div>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Layer</th>
+        <th>Tool</th>
+        <th>Technique</th>
+        <th>Command / Code</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody id="tbody">
+
+      <!-- ══════════════════════════════════════════════════ -->
+      <!-- LAYER 1 — FRAMEWORKS                              -->
+      <!-- ══════════════════════════════════════════════════ -->
+
+      <tr data-cat="framework">
+        <td><span class="layer-tag lt-framework">framework</span></td>
+        <td><span class="tool-badge">Inspect AI</span></td>
+        <td class="technique">Install &amp; first eval<small>AISI / UK Gov — fully open, no SaaS</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line cmd">pip install inspect-ai --break-system-packages</span>
+            <span class="cmd-line cmd">inspect eval inspect_evals/mmlu --model openai/gpt-4o</span>
+            <span class="cmd-line cmd">inspect eval inspect_evals/mmlu --model ollama/llama3.1</span>
+            <span class="cmd-line note"># local model via ollama — no outbound API key needed</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes">Architecture: task → solver → scorer pipeline. Deterministic, reproducible, CI-friendly. No SaaS dependency. <strong>Best fit</strong> for teams that want to write and own eval logic. You write the evals; Inspect runs them.</td>
+      </tr>
+
+      <tr data-cat="framework">
+        <td><span class="layer-tag lt-framework">framework</span></td>
+        <td><span class="tool-badge">Inspect AI</span></td>
+        <td class="technique">Write a custom task<small>task / solver / scorer pattern</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line py">from inspect_ai import task, Task</span>
+            <span class="cmd-line py">from inspect_ai.dataset import json_dataset</span>
+            <span class="cmd-line py">from inspect_ai.scorer import exact</span>
+            <span class="cmd-line py">from inspect_ai.solver import generate</span>
+            <span class="cmd-line py"></span>
+            <span class="cmd-line py">@task</span>
+            <span class="cmd-line py">def my_agent_eval():</span>
+            <span class="cmd-line py">    return Task(</span>
+            <span class="cmd-line py">        dataset=json_dataset("cases.json"),</span>
+            <span class="cmd-line py">        solver=generate(),   # swap for your agent</span>
+            <span class="cmd-line py">        scorer=exact(),</span>
+            <span class="cmd-line py">    )</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes"><code>solver</code> is where your agent under test plugs in. <code>scorer</code> is deterministic (exact, regex) or LLM-as-judge. Dataset is a list of <code>{input, target}</code> records. Swap <code>generate()</code> for a custom solver that drives your agent harness.</td>
+      </tr>
+
+      <tr data-cat="framework">
+        <td><span class="layer-tag lt-framework">framework</span></td>
+        <td><span class="tool-badge">Inspect AI</span></td>
+        <td class="technique">LLM-as-judge scorer<small>local judge — no API key</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line py">from inspect_ai.scorer import model_graded_fact</span>
+            <span class="cmd-line py"></span>
+            <span class="cmd-line py">scorer = model_graded_fact(</span>
+            <span class="cmd-line py">    model="ollama/qwen2.5:7b",  # local judge</span>
+            <span class="cmd-line py">    template="Did the agent correctly {criterion}? "
+</span>
+            <span class="cmd-line py">              "Answer CORRECT or INCORRECT only.",</span>
+            <span class="cmd-line py">)</span>
+            <span class="cmd-line note"># never use the same model as judge and subject</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes"><em>Critical:</em> judge model must differ from model under test — same-model self-evaluation inflates scores by ~15-20% (self-consistency bias). Local judge on CPU: Qwen2.5-7B-Q4_K_M is cost-free and auditable.</td>
+      </tr>
+
+      <tr data-cat="framework">
+        <td><span class="layer-tag lt-framework">framework</span></td>
+        <td><span class="tool-badge">Inspect AI</span></td>
+        <td class="technique">Run in CI (GitHub Actions)<small>regression gate on every PR</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line note"># .github/workflows/eval.yml</span>
+            <span class="cmd-line val">- name: Run evals</span>
+            <span class="cmd-line val">  run: |</span>
+            <span class="cmd-line val">    inspect eval my_eval.py \</span>
+            <span class="cmd-line val">      --model ollama/llama3.1 \</span>
+            <span class="cmd-line val">      --limit 50 \</span>
+            <span class="cmd-line val">      --log-dir ./eval-logs \</span>
+            <span class="cmd-line val">      --fail-on-error</span>
+            <span class="cmd-line note"># --limit 50: fast gate; full suite on merge to main</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes">Run a fast subset (50 cases) on every PR; full suite on merge. <code>--fail-on-error</code> makes the step fail on uncaught exceptions — not on low scores. Add a score threshold check in a post-step script.</td>
+      </tr>
+
+      <tr data-cat="framework">
+        <td><span class="layer-tag lt-framework">framework</span></td>
+        <td><span class="tool-badge">DeepEval</span></td>
+        <td class="technique">pytest-style eval runner<small>LLMTestCase + metrics as classes</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line cmd">pip install deepeval --break-system-packages</span>
+            <span class="cmd-line py">from deepeval import evaluate</span>
+            <span class="cmd-line py">from deepeval.test_case import LLMTestCase</span>
+            <span class="cmd-line py">from deepeval.metrics import (</span>
+            <span class="cmd-line py">    AnswerRelevancyMetric, HallucinationMetric,</span>
+            <span class="cmd-line py">    ToolCorrectnessMetric)</span>
+            <span class="cmd-line py"></span>
+            <span class="cmd-line py">tc = LLMTestCase(</span>
+            <span class="cmd-line py">    input="Book a flight to Oslo",</span>
+            <span class="cmd-line py">    actual_output=agent_response,</span>
+            <span class="cmd-line py">    tools_called=agent_tool_log,</span>
+            <span class="cmd-line py">    expected_tools=["search_flights","book_ticket"])</span>
+            <span class="cmd-line py">evaluate([tc], [ToolCorrectnessMetric()])</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes"><code>ToolCorrectnessMetric</code> checks tool call sequence — the most useful agent-specific metric here. 50+ built-in metrics; choose ≤5 per run (DeepEval's own advice). SaaS backend optional — results print locally without <code>deepeval login</code>.</td>
+      </tr>
+
+      <tr data-cat="framework">
+        <td><span class="layer-tag lt-framework">framework</span></td>
+        <td><span class="tool-badge">DeepEval</span></td>
+        <td class="technique">E2E vs component split<small>black-box vs per-step eval</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line note"># E2E: treat agent as black box — single LLMTestCase</span>
+            <span class="cmd-line py">tc_e2e = LLMTestCase(input=q, actual_output=final_ans)</span>
+            <span class="cmd-line note"></span>
+            <span class="cmd-line note"># Component: grade each step independently</span>
+            <span class="cmd-line py">tc_retrieval = LLMTestCase(</span>
+            <span class="cmd-line py">    input=q, actual_output=retrieved_chunks,</span>
+            <span class="cmd-line py">    expected_output=gold_chunks)</span>
+            <span class="cmd-line py">tc_gen = LLMTestCase(</span>
+            <span class="cmd-line py">    input=q, actual_output=final_ans,</span>
+            <span class="cmd-line py">    retrieval_context=retrieved_chunks)</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes"><strong>Rule of thumb:</strong> E2E for simple/flat pipelines; component for multi-step agents where errors compound. If E2E score is low, component eval tells you <em>which step</em> broke. Don't skip component grading and wonder why the agent fails.</td>
+      </tr>
+
+      <tr data-cat="framework">
+        <td><span class="layer-tag lt-framework">framework</span></td>
+        <td><span class="tool-badge">DeepEval</span></td>
+        <td class="technique">Multi-turn conversational eval<small>ConversationSimulator</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line py">from deepeval.dataset import ConversationalGolden</span>
+            <span class="cmd-line py">from deepeval.test_case import Turn</span>
+            <span class="cmd-line py"></span>
+            <span class="cmd-line py">async def agent_callback(input, turns, thread_id):</span>
+            <span class="cmd-line py">    return Turn(role="assistant",</span>
+            <span class="cmd-line py">                content=your_agent(input, turns))</span>
+            <span class="cmd-line py"></span>
+            <span class="cmd-line py">golden = ConversationalGolden(</span>
+            <span class="cmd-line py">    scenario="User wants refund for delayed flight",</span>
+            <span class="cmd-line py">    expected_outcome="Refund issued or escalated",</span>
+            <span class="cmd-line py">    user_description="Frustrated, concise, refuses workarounds")</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes">Scenario drives a synthetic user; agent_callback wraps your system under test. Expected outcome is natural language — graded by LLM judge. <em>Persona matters:</em> "frustrated + refuses workarounds" hits different edge cases than "cooperative user."</td>
+      </tr>
+
+      <tr data-cat="framework">
+        <td><span class="layer-tag lt-framework">framework</span></td>
+        <td><span class="tool-badge">Braintrust</span></td>
+        <td class="technique">Offline experiment run<small>dataset → task → scorer → immutable snapshot</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line cmd">pip install braintrust autoevals --break-system-packages</span>
+            <span class="cmd-line py">from braintrust import Eval</span>
+            <span class="cmd-line py">from autoevals import Factuality</span>
+            <span class="cmd-line py"></span>
+            <span class="cmd-line py">Eval("agent-booking",</span>
+            <span class="cmd-line py">    data=lambda: [{"input": q, "expected": a}</span>
+            <span class="cmd-line py">                  for q, a in test_pairs],</span>
+            <span class="cmd-line py">    task=lambda x: your_agent(x["input"]),</span>
+            <span class="cmd-line py">    scores=[Factuality],</span>
+            <span class="cmd-line py">)</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes">Each run is immutable — Braintrust captures the snapshot for regression comparison. <strong>Vendor dependency is real:</strong> regression dashboards, dataset versioning, and trace diffing require their SaaS. Offline eval alone is usable without it, but degraded.</td>
+      </tr>
+
+      <tr data-cat="framework">
+        <td><span class="layer-tag lt-framework">framework</span></td>
+        <td><span class="tool-badge">Braintrust</span></td>
+        <td class="technique">Hyperparameter sweep<small>find best model config systematically</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line py">from deepeval.evaluate import DisplayConfig</span>
+            <span class="cmd-line note"># (DeepEval variant — avoids Braintrust SaaS lock-in)</span>
+            <span class="cmd-line py">for temp in [0.0, 0.3, 0.7]:</span>
+            <span class="cmd-line py">    evaluate(</span>
+            <span class="cmd-line py">        test_cases=cases,</span>
+            <span class="cmd-line py">        metrics=metrics,</span>
+            <span class="cmd-line py">        hyperparameters={"model": "llama3.1:8b", "temp": temp},</span>
+            <span class="cmd-line py">        display_config=DisplayConfig(</span>
+            <span class="cmd-line py">            results_folder="./evals/temp-sweep"))</span>
+            <span class="cmd-line note"># each run saved as test_run_<timestamp>.json</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes">Temperature, model version, system prompt variant — sweep systematically, not by intuition. Results folder makes runs comparable across sessions without a SaaS backend. <em>Don't tune on your eval set</em> — hold out 20% as a final check.</td>
+      </tr>
+
+      <!-- ══════════════════════════════════════════════════ -->
+      <!-- LAYER 2 — BENCHMARKS                              -->
+      <!-- ══════════════════════════════════════════════════ -->
+
+      <tr data-cat="benchmark">
+        <td><span class="layer-tag lt-benchmark">benchmark</span></td>
+        <td><span class="tool-badge">AgentBench</span></td>
+        <td class="technique">Environment task suite<small>OS / DB / KG / Web — ICLR'24</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line cmd">git clone https://github.com/THUDM/AgentBench</span>
+            <span class="cmd-line cmd">cd AgentBench &amp;&amp; pip install -r requirements.txt \</span>
+            <span class="cmd-line cmd">    --break-system-packages</span>
+            <span class="cmd-line note"># 8 environments: OS bash, DB SQL, KG, HouseHolding,</span>
+            <span class="cmd-line note"># WebArena, WebShop, Mind2Web, AlfWorld</span>
+            <span class="cmd-line cmd">python eval.py --task os --model your-model</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes"><strong>Use as a reference point, not a living tool.</strong> Last substantive commit ~2024. Key finding: most LLMs collapse in real-tool environments vs. chat. OS and DB tasks are the most transferable to internal agent work. Web tasks are noisy and environment-fragile.</td>
+      </tr>
+
+      <tr data-cat="benchmark">
+        <td><span class="layer-tag lt-benchmark">benchmark</span></td>
+        <td><span class="tool-badge">AgentBench</span></td>
+        <td class="technique">Red-flag checklist from results<small>what AgentBench failure tells you</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line warn"># common failure modes (from paper):</span>
+            <span class="cmd-line warn">1. hallucinated tool outputs — model assumes success</span>
+            <span class="cmd-line warn">2. lost state after 5+ turns — context degrades</span>
+            <span class="cmd-line warn">3. retry loop — no exit condition on tool failure</span>
+            <span class="cmd-line warn">4. off-by-one in SQL — never validated against schema</span>
+            <span class="cmd-line warn">5. web agent: clicks non-existent element, ignores error</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes">These failure modes are more useful than the benchmark scores. If your agent does any of these on manual testing, it will fail systematically at scale. Build explicit checks: tool-call result validation, retry caps, state serialisation checkpoints.</td>
+      </tr>
+
+      <tr data-cat="benchmark">
+        <td><span class="layer-tag lt-benchmark">benchmark</span></td>
+        <td><span class="tool-badge">τ²-Bench</span></td>
+        <td class="technique">Dual-control eval setup<small>agent + user both use tools in shared world</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line cmd">git clone https://github.com/sierra-research/tau2-bench</span>
+            <span class="cmd-line cmd">cd tau2-bench &amp;&amp; uv sync</span>
+            <span class="cmd-line cmd">tau2 run \</span>
+            <span class="cmd-line cmd">  --domain airline \</span>
+            <span class="cmd-line cmd">  --agent-llm ollama/llama3.1 \</span>
+            <span class="cmd-line cmd">  --user-llm ollama/qwen2.5:7b \</span>
+            <span class="cmd-line cmd">  --num-trials 4 \</span>
+            <span class="cmd-line cmd">  --num-tasks 10</span>
+            <span class="cmd-line note"># domains: airline, retail, telecom, banking_knowledge</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes"><strong>Key insight:</strong> every other benchmark makes the user a passive text source. τ² gives the user tools too — both agent and user modify shared state (Dec-POMDP). This is how real support/service agents actually fail. Uses <code>uv</code>. Actively maintained into 2026.</td>
+      </tr>
+
+      <tr data-cat="benchmark">
+        <td><span class="layer-tag lt-benchmark">benchmark</span></td>
+        <td><span class="tool-badge">τ²-Bench</span></td>
+        <td class="technique">Task composition &amp; verification<small>programmatic task generation, not hand-crafted</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line note"># τ² tasks are compositionally generated — verifiable</span>
+            <span class="cmd-line note"># example airline task (from data/tau2/domains/):</span>
+            <span class="cmd-line val">{</span>
+            <span class="cmd-line val">  "reason_for_call": "Cancel flights XEHM4B + 59XX6W",</span>
+            <span class="cmd-line val">  "known_info": "user_id: daiki_muller_1116",</span>
+            <span class="cmd-line val">  "task_instructions": "If basic economy: ask to upgrade</span>
+            <span class="cmd-line val">    first. After 3rd agent msg: ask about other flights</span>
+            <span class="cmd-line val">    + total cost.",</span>
+            <span class="cmd-line val">  "expected_actions": ["cancel_reservation XEHM4B", ...]</span>
+            <span class="cmd-line val">}</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes">Tasks have <strong>verifiable expected actions</strong> — ground truth is a tool call sequence, not a natural language description. User persona includes behavioural constraints ("persistent + terse", "refuses workarounds"). Compositional generation ensures domain coverage without hand-labelling every case.</td>
+      </tr>
+
+      <tr data-cat="benchmark">
+        <td><span class="layer-tag lt-benchmark">benchmark</span></td>
+        <td><span class="tool-badge">τ²-Bench</span></td>
+        <td class="technique">Local-model eval run<small>no external API — fully air-gapped</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line note"># pull models first:</span>
+            <span class="cmd-line cmd">ollama pull llama3.1:8b-instruct-q4_K_M  # agent</span>
+            <span class="cmd-line cmd">ollama pull qwen2.5:7b-instruct-q4_K_M   # user sim</span>
+            <span class="cmd-line cmd">tau2 run \</span>
+            <span class="cmd-line cmd">  --domain telecom \</span>
+            <span class="cmd-line cmd">  --agent-llm ollama/llama3.1:8b-instruct-q4_K_M \</span>
+            <span class="cmd-line cmd">  --user-llm ollama/qwen2.5:7b-instruct-q4_K_M \</span>
+            <span class="cmd-line cmd">  --num-trials 2 --max-concurrency 2</span>
+            <span class="cmd-line note"># results saved to data/tau2/simulations/</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes">Fully local: agent model + user simulator model both via Ollama. CPU-only i9/64GB can handle this at batch=1. Keep <code>--max-concurrency 2</code> on CPU — higher values thrash memory. Use different models for agent and user sim — same-model creates cooperative bias.</td>
+      </tr>
+
+      <tr data-cat="benchmark">
+        <td><span class="layer-tag lt-benchmark">benchmark</span></td>
+        <td><span class="tool-badge">GAIA (AMD)</span></td>
+        <td class="technique">Scenario YAML structure<small>54 scenarios, 10 categories, 7-dim rubric</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line note"># scenario YAML anatomy (from gaia/eval/scenarios/):</span>
+            <span class="cmd-line val">name: rag_quality_basic</span>
+            <span class="cmd-line val">category: rag_quality</span>
+            <span class="cmd-line val">documents: ["policy.pdf"]</span>
+            <span class="cmd-line val">turns:</span>
+            <span class="cmd-line val">  - objective: "Find refund policy section"</span>
+            <span class="cmd-line val">    persona: "Direct user, expects exact quotes"</span>
+            <span class="cmd-line note"># 7-dim rubric: correctness, relevance, completeness,</span>
+            <span class="cmd-line note"># conciseness, tool_use, hallucination, coherence</span>
+            <span class="cmd-line note"># score recomputed deterministically — LLM arithmetic overridden</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes"><strong>Borrow the pattern, not the tool.</strong> GAIA evaluates AMD's specific Agent UI — not portable without rework. The <strong>deterministic score recomputation</strong> is the idea worth stealing: never trust LLM-produced arithmetic; recompute from raw scores using your own weights.</td>
+      </tr>
+
+      <tr data-cat="benchmark">
+        <td><span class="layer-tag lt-benchmark">benchmark</span></td>
+        <td><span class="tool-badge">GAIA (AMD)</span></td>
+        <td class="technique">BLOCKED_BY_ARCHITECTURE status<small>structural failures vs eval failures</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line note"># GAIA status taxonomy (steal this for your own harness):</span>
+            <span class="cmd-line good">PASS          — all turns: correctness≥4 AND score≥6.0</span>
+            <span class="cmd-line warn">FAIL          — any turn below threshold</span>
+            <span class="cmd-line warn">BLOCKED_BY_ARCHITECTURE — structural limitation detected</span>
+            <span class="cmd-line flag">TIMEOUT       — wall-clock exceeded per-scenario limit</span>
+            <span class="cmd-line flag">BUDGET_EXCEEDED — API cost cap hit</span>
+            <span class="cmd-line flag">INFRA_ERROR   — MCP/tool error before eval could run</span>
+            <span class="cmd-line flag">SETUP_ERROR   — indexing returned 0 chunks</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes"><code>BLOCKED_BY_ARCHITECTURE</code> is never auto-upgraded — it requires human review. This distinction matters: a FAIL can be fixed by prompt engineering; a BLOCKED means the architecture can't do the task at all. Conflating these hides real problems.</td>
+      </tr>
+
+      <!-- ══════════════════════════════════════════════════ -->
+      <!-- OUTCOME EVAL                                       -->
+      <!-- ══════════════════════════════════════════════════ -->
+
+      <tr data-cat="outcome">
+        <td><span class="layer-tag lt-outcome">outcome</span></td>
+        <td><span class="tool-badge">pattern</span></td>
+        <td class="technique">Binary task completion<small>did it finish correctly — yes/no</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line py">def check_outcome(expected_state: dict, actual_state: dict) -> bool:</span>
+            <span class="cmd-line py">    """Compare world state before/after agent run."""</span>
+            <span class="cmd-line py">    for key, expected_val in expected_state.items():</span>
+            <span class="cmd-line py">        if actual_state.get(key) != expected_val:</span>
+            <span class="cmd-line py">            return False</span>
+            <span class="cmd-line py">    return True</span>
+            <span class="cmd-line note"></span>
+            <span class="cmd-line note"># not: "did it say the right thing"</span>
+            <span class="cmd-line note"># yes: "did the reservation get cancelled in the DB"</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes"><strong>Outcome eval requires a verifiable world state.</strong> SQL query result, API response code, file presence, DB row value — not natural language output. If you can't check the world state, you're grading prose, not agent behaviour. Build world-state snapshots into your test harness.</td>
+      </tr>
+
+      <tr data-cat="outcome">
+        <td><span class="layer-tag lt-outcome">outcome</span></td>
+        <td><span class="tool-badge">pattern</span></td>
+        <td class="technique">Tool call sequence validation<small>expected vs actual call order</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line py">from deepeval.metrics import ToolCorrectnessMetric</span>
+            <span class="cmd-line py"></span>
+            <span class="cmd-line py">tc = LLMTestCase(</span>
+            <span class="cmd-line py">    input="Book cheapest flight Oslo→Berlin 15 June",</span>
+            <span class="cmd-line py">    actual_output=agent.last_response,</span>
+            <span class="cmd-line py">    tools_called=agent.tool_log,          # actual</span>
+            <span class="cmd-line py">    expected_tools=[                       # required</span>
+            <span class="cmd-line py">        "search_flights",</span>
+            <span class="cmd-line py">        "compare_prices",</span>
+            <span class="cmd-line py">        "book_ticket"])</span>
+            <span class="cmd-line note"># order matters — booking before searching = wrong</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes">Tool call order is not always strict — define partial-order constraints where needed (search must precede book; compare is optional). Log every tool call with timestamp and arguments. <em>Hallucinated tool calls</em> (model claims it called a tool but didn't) are a distinct failure class from wrong-order calls.</td>
+      </tr>
+
+      <tr data-cat="outcome">
+        <td><span class="layer-tag lt-outcome">outcome</span></td>
+        <td><span class="tool-badge">pattern</span></td>
+        <td class="technique">Ground truth from real repos<small>hamel.dev pattern — not synthetic</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line note"># build test set from repos with known correct outputs:</span>
+            <span class="cmd-line cmd">gh repo list org --json name,url \</span>
+            <span class="cmd-line cmd">  | jq '.[] | .url' \</span>
+            <span class="cmd-line cmd">  | xargs -I{} gh api {}/contents/.github/workflows</span>
+            <span class="cmd-line note"># existing pipelines = ground truth for CI/CD agent</span>
+            <span class="cmd-line note"># run agent on the same repos, diff the YAML output</span>
+            <span class="cmd-line py">diff expected_workflow.yml agent_output.yml</span>
+            <span class="cmd-line py"># structural diff, not string match</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes">Let's say you're building a CI/CD wizard: Your repos with good, existing pipelines are the ground truth. Run the agent against the same repos and diff structurally — not string equality. <strong>Don't generate synthetic repos</strong> — synthetic inputs don't surface the edge cases that real repos do.</td>
+      </tr>
+
+      <tr data-cat="outcome">
+        <td><span class="layer-tag lt-outcome">outcome</span></td>
+        <td><span class="tool-badge">pattern</span></td>
+        <td class="technique">Pass@k metric<small>reliability over N independent trials</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line py">import math</span>
+            <span class="cmd-line py"></span>
+            <span class="cmd-line py">def pass_at_k(n: int, c: int, k: int) -> float:</span>
+            <span class="cmd-line py">    """n=total trials, c=correct, k=budget"""</span>
+            <span class="cmd-line py">    if n - c &lt; k: return 1.0</span>
+            <span class="cmd-line py">    return 1.0 - math.comb(n-c, k) / math.comb(n, k)</span>
+            <span class="cmd-line py"></span>
+            <span class="cmd-line py">pass_at_1  = pass_at_k(n=10, c=7, k=1)   # 0.7</span>
+            <span class="cmd-line py">pass_at_3  = pass_at_k(n=10, c=7, k=3)   # 0.917</span>
+            <span class="cmd-line note"># τ²-Bench uses 4 trials per task for the same reason</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes">Single-trial eval of a stochastic agent is noise. Pass@1 with n=10 trials tells you reliability — the probability of success on a single attempt. Pass@k with k>1 tells you if the agent can succeed given retries. <em>Report both:</em> an agent that only passes with 3 attempts is not production-ready at k=1.</td>
+      </tr>
+
+      <!-- ══════════════════════════════════════════════════ -->
+      <!-- TRAJECTORY EVAL                                   -->
+      <!-- ══════════════════════════════════════════════════ -->
+
+      <tr data-cat="trajectory">
+        <td><span class="layer-tag lt-trajectory">trajectory</span></td>
+        <td><span class="tool-badge">pattern</span></td>
+        <td class="technique">Step-level grading<small>decompose: which step broke</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line note"># grade each step independently, not just final output:</span>
+            <span class="cmd-line py">steps = agent.trace  # list of {step, input, output, tool}</span>
+            <span class="cmd-line py">for step in steps:</span>
+            <span class="cmd-line py">    score = grade_step(</span>
+            <span class="cmd-line py">        step_name=step["name"],</span>
+            <span class="cmd-line py">        output=step["output"],</span>
+            <span class="cmd-line py">        expected=ground_truth[step["name"]])</span>
+            <span class="cmd-line py">    results.append({**step, "score": score})</span>
+            <span class="cmd-line note"># bad retrieval poisons generation — you need to know which</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes">E2E score of 0.3 tells you the agent is bad. Step-level tells you it's bad at <em>retrieval specifically</em>, and generation given good context scores 0.8. These require completely different fixes. Never skip step-level grading for multi-step agents.</td>
+      </tr>
+
+      <tr data-cat="trajectory">
+        <td><span class="layer-tag lt-trajectory">trajectory</span></td>
+        <td><span class="tool-badge">GAIA (AMD)</span></td>
+        <td class="technique">7-dimension rubric (steal it)<small>deterministic weighted scoring</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line py">SCORE_WEIGHTS = {</span>
+            <span class="cmd-line py">    "correctness":   0.35,  # highest weight</span>
+            <span class="cmd-line py">    "relevance":     0.20,</span>
+            <span class="cmd-line py">    "completeness":  0.15,</span>
+            <span class="cmd-line py">    "tool_use":      0.15,</span>
+            <span class="cmd-line py">    "hallucination": 0.10,  # fail-gate: &lt;4 = FAIL regardless</span>
+            <span class="cmd-line py">    "conciseness":   0.03,</span>
+            <span class="cmd-line py">    "coherence":     0.02,</span>
+            <span class="cmd-line py">}</span>
+            <span class="cmd-line note"># recompute deterministically — never trust LLM arithmetic</span>
+            <span class="cmd-line py">score = sum(dim_scores[k]*w for k,w in SCORE_WEIGHTS.items())</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes">Hallucination is a <strong>fail-gate</strong>: score 9.8 on six dimensions and 3.9 on hallucination → FAIL. Never aggregate hallucination into an average — it masks the worst failure mode. Cap FAILed scenario scores at 5.99 before computing benchmark averages to preserve signal.</td>
+      </tr>
+
+      <tr data-cat="trajectory">
+        <td><span class="layer-tag lt-trajectory">trajectory</span></td>
+        <td><span class="tool-badge">pattern</span></td>
+        <td class="technique">Trace logging schema<small>structured output — not free text</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line py">import json, time</span>
+            <span class="cmd-line py"></span>
+            <span class="cmd-line py">trace = {</span>
+            <span class="cmd-line py">    "scenario_id":   "flight_cancel_001",</span>
+            <span class="cmd-line py">    "model":         "llama3.1:8b-q4_K_M",</span>
+            <span class="cmd-line py">    "turns": [</span>
+            <span class="cmd-line py">        {"turn": 1,</span>
+            <span class="cmd-line py">         "user_input": "...",</span>
+            <span class="cmd-line py">         "tools_called": [{"name":"search","args":{...},"result":{...}}],</span>
+            <span class="cmd-line py">         "agent_output": "...",</span>
+            <span class="cmd-line py">         "latency_ms": 1240,</span>
+            <span class="cmd-line py">         "tokens_in": 512, "tokens_out": 89}</span>
+            <span class="cmd-line py">    ]}</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes">Log tool call arguments and results, not just names. Latency and token counts per turn are essential for cost analysis. Store as JSONL — append-friendly, grep-friendly, no schema migration required. One file per scenario run.</td>
+      </tr>
+
+      <tr data-cat="trajectory">
+        <td><span class="layer-tag lt-trajectory">trajectory</span></td>
+        <td><span class="tool-badge">Inspect AI</span></td>
+        <td class="technique">Trajectory eval with Inspect<small>custom scorer over full turn history</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line py">from inspect_ai.scorer import scorer, Score, CORRECT, INCORRECT</span>
+            <span class="cmd-line py"></span>
+            <span class="cmd-line py">@scorer(metrics=[accuracy()])</span>
+            <span class="cmd-line py">def tool_order_scorer():</span>
+            <span class="cmd-line py">    async def score(state, target):</span>
+            <span class="cmd-line py">        calls = [m.tool for m in state.messages</span>
+            <span class="cmd-line py">                 if hasattr(m, 'tool')]</span>
+            <span class="cmd-line py">        expected = target.text.split(",")</span>
+            <span class="cmd-line py">        ok = all(e in calls for e in expected)</span>
+            <span class="cmd-line py">        return Score(value=CORRECT if ok else INCORRECT)</span>
+            <span class="cmd-line py">    return score</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes">Inspect gives you the full <code>state.messages</code> history in the scorer — every turn, tool call, and model output. This is the hook for trajectory grading: inspect the path, not just the destination.</td>
+      </tr>
+
+      <!-- ══════════════════════════════════════════════════ -->
+      <!-- ONLINE / PROD EVAL                                -->
+      <!-- ══════════════════════════════════════════════════ -->
+
+      <tr data-cat="online">
+        <td><span class="layer-tag lt-online">online / prod</span></td>
+        <td><span class="tool-badge">pattern</span></td>
+        <td class="technique">Production trace sampling<small>interesting traces → new test cases</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line py">import random, json</span>
+            <span class="cmd-line py"></span>
+            <span class="cmd-line py">def sample_for_labelling(traces: list, n: int = 50) -> list:</span>
+            <span class="cmd-line py">    """Stratified sample: failures + low-confidence + random."""</span>
+            <span class="cmd-line py">    failures   = [t for t in traces if t["status"] == "FAIL"]</span>
+            <span class="cmd-line py">    low_conf   = [t for t in traces if t["score"] &lt; 0.6]</span>
+            <span class="cmd-line py">    rand_sample= random.sample(traces, min(n//3, len(traces)))</span>
+            <span class="cmd-line py">    pool = failures + low_conf + rand_sample</span>
+            <span class="cmd-line py">    return list({t["id"]: t for t in pool}.values())[:n]</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes">Production traces are your best source of new test cases. Don't sample uniformly — over-index on failures and low-confidence outputs. <strong>50 labelled production traces outperform 500 synthetic ones</strong> for finding real failure modes. Feed back into your offline dataset monthly.</td>
+      </tr>
+
+      <tr data-cat="online">
+        <td><span class="layer-tag lt-online">online / prod</span></td>
+        <td><span class="tool-badge">Braintrust</span></td>
+        <td class="technique">Online scoring rule<small>async LLM judge on live traffic</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line note"># Braintrust online scoring — runs async, no latency impact</span>
+            <span class="cmd-line note"># configure via UI: Project → Online Scoring → Add Rule</span>
+            <span class="cmd-line py">from braintrust import traced</span>
+            <span class="cmd-line py"></span>
+            <span class="cmd-line py">@traced  # instrument your agent call</span>
+            <span class="cmd-line py">def run_agent(user_input: str) -> str:</span>
+            <span class="cmd-line py">    return your_agent(user_input)</span>
+            <span class="cmd-line note"># scoring rule fires on each logged trace</span>
+            <span class="cmd-line note"># no ground truth available — LLM judge only</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes">Online scoring has no ground truth — it's LLM-as-judge on live output. Useful for regression detection, not absolute quality measurement. <em>Critical limitation:</em> judge consistency degrades over time as model updates; re-calibrate the judge against human labels quarterly.</td>
+      </tr>
+
+      <tr data-cat="online">
+        <td><span class="layer-tag lt-online">online / prod</span></td>
+        <td><span class="tool-badge">pattern</span></td>
+        <td class="technique">Self-hosted trace store<small>JSONL + DuckDB — no SaaS needed</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line cmd">pip install duckdb --break-system-packages</span>
+            <span class="cmd-line py">import duckdb, json, pathlib</span>
+            <span class="cmd-line py"></span>
+            <span class="cmd-line py"># write traces as JSONL</span>
+            <span class="cmd-line py">with open("traces.jsonl", "a") as f:</span>
+            <span class="cmd-line py">    f.write(json.dumps(trace) + "\n")</span>
+            <span class="cmd-line py"></span>
+            <span class="cmd-line py"># query with DuckDB — no schema, no migrations</span>
+            <span class="cmd-line py">duckdb.sql("""</span>
+            <span class="cmd-line py">    SELECT model, AVG(score), COUNT(*)</span>
+            <span class="cmd-line py">    FROM read_ndjson('traces.jsonl')</span>
+            <span class="cmd-line py">    WHERE timestamp &gt; NOW() - INTERVAL 7 DAYS</span>
+            <span class="cmd-line py">    GROUP BY model""")</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes">JSONL + DuckDB is the self-hosted alternative to Braintrust's trace store. No schema migrations, appends are atomic, SQL queries on raw JSON. Sufficient for teams that don't need real-time dashboards. Add a weekly cron to compute summary stats and alert on regression.</td>
+      </tr>
+
+      <tr data-cat="online">
+        <td><span class="layer-tag lt-online">online / prod</span></td>
+        <td><span class="tool-badge">pattern</span></td>
+        <td class="technique">Regression alert threshold<small>score drop detection over rolling window</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line py">def regression_alert(current_week: float,</span>
+            <span class="cmd-line py">                     baseline: float,</span>
+            <span class="cmd-line py">                     threshold: float = 0.05) -> bool:</span>
+            <span class="cmd-line py">    """Alert if score drops >5% from baseline."""</span>
+            <span class="cmd-line py">    drop = (baseline - current_week) / baseline</span>
+            <span class="cmd-line py">    return drop &gt; threshold</span>
+            <span class="cmd-line py"></span>
+            <span class="cmd-line note"># set baseline from first 2 weeks of prod traffic</span>
+            <span class="cmd-line note"># 5% drop threshold: tune to your variance</span>
+            <span class="cmd-line note"># alert on: score drop, latency spike, cost spike</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes">Alert on relative drop, not absolute score — absolute varies too much across domains. Three signals worth alerting on independently: quality score drop (model/prompt regression), latency spike (retrieval or tool call degradation), cost spike (runaway tool loops or context bloat).</td>
+      </tr>
+
+      <!-- ══════════════════════════════════════════════════ -->
+      <!-- COST / BUDGET EVAL                                -->
+      <!-- ══════════════════════════════════════════════════ -->
+
+      <tr data-cat="cost">
+        <td><span class="layer-tag lt-cost">cost / budget</span></td>
+        <td><span class="tool-badge">pattern</span></td>
+        <td class="technique">Token cost per task<small>measure before you optimise</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line py">from dataclasses import dataclass, field</span>
+            <span class="cmd-line py"></span>
+            <span class="cmd-line py">@dataclass</span>
+            <span class="cmd-line py">class TaskCost:</span>
+            <span class="cmd-line py">    task_id:     str</span>
+            <span class="cmd-line py">    tokens_in:   int = 0</span>
+            <span class="cmd-line py">    tokens_out:  int = 0</span>
+            <span class="cmd-line py">    tool_calls:  int = 0</span>
+            <span class="cmd-line py">    turns:       int = 0</span>
+            <span class="cmd-line py">    wall_sec:    float = 0.0</span>
+            <span class="cmd-line py"></span>
+            <span class="cmd-line py">    @property</span>
+            <span class="cmd-line py">    def cost_usd(self) -> float:</span>
+            <span class="cmd-line py">        return self.tokens_in * 3e-6 + self.tokens_out * 15e-6</span>
+            <span class="cmd-line note"># Sonnet 4 pricing — update when model changes</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes">Token cost per task is not optional instrumentation — it's how you detect runaway loops, context bloat, and unnecessarily large system prompts. <strong>Measure first, optimise second.</strong> A 10-turn agent consuming 50K tokens per task is broken before it's expensive.</td>
+      </tr>
+
+      <tr data-cat="cost">
+        <td><span class="layer-tag lt-cost">cost / budget</span></td>
+        <td><span class="tool-badge">GAIA (AMD)</span></td>
+        <td class="technique">Per-scenario budget cap<small>cost-bounded eval, not open-ended</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line note"># GAIA timeout formula (adapt for your harness):</span>
+            <span class="cmd-line py">def effective_timeout(num_docs: int, num_turns: int) -> int:</span>
+            <span class="cmd-line py">    base     = 300                        # 5 min minimum</span>
+            <span class="cmd-line py">    startup  = 120                        # agent init</span>
+            <span class="cmd-line py">    per_doc  = num_docs  * 90             # indexing</span>
+            <span class="cmd-line py">    per_turn = num_turns * 200            # eval latency</span>
+            <span class="cmd-line py">    return min(max(base, startup + per_doc + per_turn), 7200)</span>
+            <span class="cmd-line py"></span>
+            <span class="cmd-line note"># API budget cap (claude -p subprocess per scenario):</span>
+            <span class="cmd-line flag">--max-budget-usd 0.50   # cost bounded per scenario</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes">Never run evals without a budget cap. Agentic loops with tool-calling models can spend $10 on a single runaway scenario. GAIA's design of one subprocess per scenario + per-scenario budget cap is the right pattern — isolates cost and prevents one bad scenario from burning the whole run.</td>
+      </tr>
+
+      <tr data-cat="cost">
+        <td><span class="layer-tag lt-cost">cost / budget</span></td>
+        <td><span class="tool-badge">pattern</span></td>
+        <td class="technique">Local judge cost model<small>free judge vs API judge tradeoff</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line note"># API judge cost at scale (1000 eval runs/month):</span>
+            <span class="cmd-line warn">gpt-4.1: ~$0.008/eval × 1000 = $8/month</span>
+            <span class="cmd-line warn">claude-sonnet-4: ~$0.006/eval × 1000 = $6/month</span>
+            <span class="cmd-line good">qwen2.5:7b local: $0.00/eval (electricity only)</span>
+            <span class="cmd-line note"></span>
+            <span class="cmd-line note"># local judge calibration check:</span>
+            <span class="cmd-line cmd">python calibrate_judge.py \</span>
+            <span class="cmd-line cmd">  --judge ollama/qwen2.5:7b \</span>
+            <span class="cmd-line cmd">  --reference gpt-4.1 \</span>
+            <span class="cmd-line cmd">  --sample 50   # spot-check agreement rate</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes">Local judge is free but needs calibration. Run agreement-rate check against a reference judge on 50 human-labelled cases before trusting it. Target: >85% agreement on PASS/FAIL classification. Below that, local judge is introducing noise, not saving money.</td>
+      </tr>
+
+      <tr data-cat="cost">
+        <td><span class="layer-tag lt-cost">cost / budget</span></td>
+        <td><span class="tool-badge">pattern</span></td>
+        <td class="technique">Eval pyramid<small>fast/cheap gate → slow/expensive suite</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line note"># run in order, abort early on failure:</span>
+            <span class="cmd-line good">TIER 1 — unit: deterministic scorer, 50 cases, &lt;2 min</span>
+            <span class="cmd-line flag">TIER 2 — integration: local judge, 200 cases, &lt;15 min</span>
+            <span class="cmd-line warn">TIER 3 — full: API judge + τ²-Bench, 1000 cases, &lt;2 hr</span>
+            <span class="cmd-line py"></span>
+            <span class="cmd-line note"># CI: tier 1 on every PR</span>
+            <span class="cmd-line note"># CI: tier 2 on merge to main</span>
+            <span class="cmd-line note"># scheduled: tier 3 weekly or before release</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes">The eval pyramid is a cost control structure, not just a speed optimisation. Tier 1 must be deterministic (no LLM judge, no flakiness). Don't run Tier 3 on every PR — that's how eval costs exceed infrastructure costs. Early abort: Tier 1 failure blocks Tier 2.</td>
+      </tr>
+
+      <tr data-cat="cost">
+        <td><span class="layer-tag lt-cost">cost / budget</span></td>
+        <td><span class="tool-badge">pattern</span></td>
+        <td class="technique">Eval variance — why k≥4 trials<small>stochastic agents need repeat runs</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line py">import numpy as np</span>
+            <span class="cmd-line py"></span>
+            <span class="cmd-line py">scores_1trial  = [0, 1, 1, 0, 1]      # n=1: high variance</span>
+            <span class="cmd-line py">scores_4trials = [0.75, 1.0, 0.75, 0.25, 1.0]  # n=4: stable</span>
+            <span class="cmd-line py"></span>
+            <span class="cmd-line py">print(np.std(scores_1trial))   # 0.49 — coin flip noise</span>
+            <span class="cmd-line py">print(np.std(scores_4trials))  # 0.27 — still noisy</span>
+            <span class="cmd-line py"></span>
+            <span class="cmd-line note"># τ²-Bench recommendation: 4 trials minimum</span>
+            <span class="cmd-line note"># SWE-bench uses 3; HumanEval reports pass@1 with n=20</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes">A single eval run of a stochastic agent is noise. At n=1, standard deviation is ~0.49 for binary tasks — you cannot distinguish a 50% agent from a 70% agent without more trials. <strong>Minimum: 4 trials per task.</strong> Report mean and std. An agent with high variance is unreliable regardless of mean score.</td>
+      </tr>
+
+      <tr data-cat="cost">
+        <td><span class="layer-tag lt-cost">cost / budget</span></td>
+        <td><span class="tool-badge">pattern</span></td>
+        <td class="technique">Self-judge inflation guard<small>prevent same-model bias</small></td>
+        <td>
+          <div class="cmd-block">
+            <span class="cmd-line warn"># self-evaluation inflation: same model as judge + subject</span>
+            <span class="cmd-line warn"># inflates PASS rate by ~15-20% (documented in literature)</span>
+            <span class="cmd-line py"></span>
+            <span class="cmd-line py">SUBJECT_MODEL = "llama3.1:8b"</span>
+            <span class="cmd-line py">JUDGE_MODEL   = "qwen2.5:7b"  # must differ</span>
+            <span class="cmd-line py"></span>
+            <span class="cmd-line note"># calibrate judge before using:</span>
+            <span class="cmd-line py">agreement = measure_agreement(</span>
+            <span class="cmd-line py">    judge=JUDGE_MODEL,</span>
+            <span class="cmd-line py">    human_labels=gold_labels_50,</span>
+            <span class="cmd-line py">    threshold=0.85)  # reject if below</span>
+            <button class="copy-btn" onclick="copyBlock(this)">copy</button>
+          </div>
+        </td>
+        <td class="notes">GAIA explicitly states: judge model must differ from model under test. Same-model self-evaluation inflates PASS rate — the model grades its own output charitably. This is not speculation: it's documented across multiple eval papers. Enforce this structurally, not by convention.</td>
+      </tr>
+
+    </tbody>
+  </table>
+  <div class="no-results" id="no-results">No techniques match this filter.</div>
+  </div>
+</main>
+
+<footer>
+  ops://cheatsheets &mdash;
+  <a href="https://inspect.aisi.org.uk" target="_blank" rel="noopener">Inspect AI (AISI)</a> &middot;
+  <a href="https://deepeval.com/docs" target="_blank" rel="noopener">DeepEval</a> &middot;
+  <a href="https://www.braintrust.dev/docs/evaluate" target="_blank" rel="noopener">Braintrust</a> &middot;
+  <a href="https://github.com/THUDM/AgentBench" target="_blank" rel="noopener">AgentBench</a> &middot;
+  <a href="https://github.com/sierra-research/tau2-bench" target="_blank" rel="noopener">τ²-Bench</a> &middot;
+  <a href="https://amd-gaia.ai/docs/eval" target="_blank" rel="noopener">GAIA (AMD)</a>
+</footer>
+
+<script>
+(function () {
+  const btns    = document.querySelectorAll('.f-btn');
+  const rows    = document.querySelectorAll('#tbody tr[data-cat]');
+  const countEl = document.getElementById('count-n');
+  const noRes   = document.getElementById('no-results');
+
+  function filter(cat) {
+    let shown = 0;
+    rows.forEach(r => {
+      const match = cat === 'all' || r.dataset.cat === cat;
+      r.style.display = match ? '' : 'none';
+      if (match) shown++;
+    });
+    countEl.textContent = shown;
+    noRes.style.display = shown === 0 ? 'block' : 'none';
+  }
+
+  btns.forEach(b => {
+    b.addEventListener('click', () => {
+      btns.forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      filter(b.dataset.cat);
+    });
+  });
+
+  window.copyBlock = function (btn) {
+    const block = btn.closest('.cmd-block');
+    const lines = Array.from(block.querySelectorAll('.cmd-line'))
+      .map(l => l.textContent).join('\n');
+    navigator.clipboard.writeText(lines).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1500);
+    });
+  };
+})();
+</script>
+</body>
+</html>
