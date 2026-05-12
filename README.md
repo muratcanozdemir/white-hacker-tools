@@ -12,6 +12,7 @@ Live at: `https://<you>.github.io/<repo>/`
 | File | Topic | Tools | Phases |
 |---|---|---|---|
 | `pentest.html` | White Hat Hacker Tools | 23 | recon · web · network · exploit · post-exploit · password · wireless |
+| `llm-attach-surface.html` | LLM Attack Surface | 40 | recon · injection · rag poison · context · agent · evasion · defense |
 | `kubernetes.html` | Kubernetes Debugging Toolkit | 18 | inspect · network · security · health · rbac · storage |
 | `terraform.html` | IaC & Terraform Ecosystem | 14 | validate · plan · security · cost · state · docs |
 | `observability.html` | Observability & SRE Toolkit | 17 | metrics · logs · traces · profiling · ebpf · incident |
