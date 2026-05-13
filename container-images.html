@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Container Base Images — Cheat Sheet</title>
+<meta name="description" content="Filterable cheat sheet for container base images — scratch, Alpine, Wolfi, Distroless, multi-stage builds, compatibility, hardening, and debugging minimal containers.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #0d0f12;
+    --bg2:     #13161b;
+    --bg3:     #1a1e25;
+    --bg4:     #20252e;
+    --border:  #252a34;
+    --border2: #2e3440;
+    --text:    #cdd6e0;
+    --muted:   #556070;
+    --accent:  #d4a053;
+    --mono:    'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+
+    /* phase colours */
+    --base:    #d4a053;
+    --build:   #79c0ff;
+    --inspect: #d2a8ff;
+    --compat:  #ff7b72;
+    --harden:  #56d364;
+    --debug:   #e3b341;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ── NAV ── */
+  nav {
+    border-bottom: 1px solid var(--border);
+    padding: .6rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: 11px;
+  }
+  nav a {
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: .05em;
+  }
+  nav a:hover { color: var(--accent); }
+  nav .sep { color: var(--border2); }
+  nav .current { color: var(--text); }
+
+  /* ── HEADER ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 2rem 2.5rem 1.75rem;
+  }
+
+  .header-inner {
+    max-width: 1260px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 2rem;
+  }
+
+  .prompt {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: .6rem;
+    letter-spacing: .05em;
+  }
+  .prompt::before { content: '$ '; color: var(--accent); }
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    line-height: 1.15;
+    color: #e6edf3;
+    margin-bottom: .5rem;
+  }
+  h1 span { color: var(--accent); }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 11.5px;
+    max-width: 540px;
+    line-height: 1.7;
+  }
+
+  .meta {
+    text-align: right;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 2;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .meta strong { color: var(--text); }
+
+  /* ── CALLOUT ── */
+  .callout {
+    max-width: 1260px;
+    margin: 1.25rem auto 0;
+    padding: 1rem 2.5rem;
+  }
+  .callout-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: 1rem 1.25rem;
+    font-size: 11.5px;
+    color: var(--muted);
+    line-height: 1.8;
+  }
+  .callout-box strong { color: var(--text); }
+  .callout-box code {
+    background: var(--bg3);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 11px;
+    color: var(--accent);
+  }
+
+  /* ── TOOLBAR ── */
+  main {
+    max-width: 1260px;
+    margin: 0 auto;
+    padding: 0 2.5rem 3rem;
+  }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: 1.25rem 0 1rem;
+    flex-wrap: wrap;
+  }
+
+  .toolbar-label {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-right: .25rem;
+  }
+
+  .f-btn {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: .3rem .7rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .f-btn:hover { border-color: var(--border2); color: var(--text); }
+  .f-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 700; }
+
+  .count {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  thead th {
+    text-align: left;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: .6rem .75rem;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    z-index: 2;
+  }
+  th:nth-child(1) { width: 14%; }
+  th:nth-child(2) { width: 9%; }
+  th:nth-child(3) { width: 38%; }
+  th:nth-child(4) { width: 39%; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background .1s;
+  }
+  tbody tr:hover { background: var(--bg2); }
+
+  td {
+    padding: .75rem;
+    vertical-align: top;
+  }
+
+  .tool-name {
+    font-weight: 700;
+    color: #e6edf3;
+    font-size: 12.5px;
+    white-space: nowrap;
+  }
+
+  .phase { white-space: nowrap; }
+
+  .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    padding: 2px 8px;
+    border-radius: 3px;
+  }
+  .badge-base    { background: rgba(212,160,83,.12); color: var(--base);    border: 1px solid rgba(212,160,83,.3); }
+  .badge-build   { background: rgba(121,192,255,.12); color: var(--build);   border: 1px solid rgba(121,192,255,.3); }
+  .badge-inspect { background: rgba(210,168,255,.12); color: var(--inspect); border: 1px solid rgba(210,168,255,.3); }
+  .badge-compat  { background: rgba(255,123,114,.12); color: var(--compat);  border: 1px solid rgba(255,123,114,.3); }
+  .badge-harden  { background: rgba(86,211,100,.12);  color: var(--harden);  border: 1px solid rgba(86,211,100,.3); }
+  .badge-debug   { background: rgba(227,179,65,.12);  color: var(--debug);   border: 1px solid rgba(227,179,65,.3); }
+
+  .commands { font-size: 12px; }
+
+  .cmd-block {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: .6rem .75rem;
+    position: relative;
+  }
+
+  .cmd-line {
+    display: block;
+    white-space: pre-wrap;
+    word-break: break-all;
+    padding: 1px 0;
+    color: var(--text);
+  }
+
+  .cmd-line.comment {
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .copy-btn {
+    position: absolute;
+    top: .4rem;
+    right: .4rem;
+    background: var(--bg4);
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .copy-btn:hover { color: var(--text); border-color: var(--accent); }
+  .copy-btn.copied { color: var(--harden); border-color: var(--harden); }
+
+  .usecase {
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+  .usecase code {
+    background: var(--bg3);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 11px;
+    color: var(--accent);
+  }
+
+  .no-results {
+    display: none;
+    text-align: center;
+    padding: 2rem;
+    color: var(--muted);
+  }
+
+  footer {
+    text-align: center;
+    padding: 2rem;
+    font-size: 11px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+  }
+  footer a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  footer a:hover { text-decoration: underline; }
+
+  @media (max-width: 900px) {
+    header { padding: 1.5rem 1rem 1.25rem; }
+    .header-inner { flex-direction: column; }
+    .meta { text-align: left; }
+    main { padding: 0 1rem 2rem; }
+    .callout { padding: .75rem 1rem; }
+    table { font-size: 11.5px; }
+    th:nth-child(1) { width: 18%; }
+    th:nth-child(2) { width: 12%; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html">&#8592; ops://cheatsheets</a>
+  <span class="sep">/</span>
+  <span class="current">container-images</span>
+</nav>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <div class="prompt">cat /etc/os-release | head -1</div>
+      <h1>Container Base <span>Images</span></h1>
+      <div class="subtitle">
+        Filterable reference for container base image selection, build patterns, compatibility traps, and debugging minimal containers.
+        Written for engineers who've been burned by musl, confused by distroless, or spent an hour shelling into scratch.
+      </div>
+    </div>
+    <div class="meta">
+      <strong>22</strong> entries<br>
+      <strong>6</strong> phases<br>
+      base · build · inspect<br>
+      compat · harden · debug
+    </div>
+  </div>
+</header>
+
+<div class="callout">
+  <div class="callout-box">
+    <strong>Scope.</strong> This page covers base image selection for production containers — not orchestration, not registries, not runtime security (those have their own pages).
+    The honest framing: there is no universally correct base image. Every option trades image size against compatibility, debuggability, or vendor independence.
+    If you're building Go or Rust static binaries, start from <code>scratch</code> and work upward only when forced.
+    If you're building Python, read the compat section before choosing Alpine.
+  </div>
+</div>
+
+<main>
+  <div class="toolbar">
+    <span class="toolbar-label">Phase</span>
+    <button class="f-btn active" data-cat="all">all</button>
+    <button class="f-btn" data-cat="base">base</button>
+    <button class="f-btn" data-cat="build">build</button>
+    <button class="f-btn" data-cat="inspect">inspect</button>
+    <button class="f-btn" data-cat="compat">compat</button>
+    <button class="f-btn" data-cat="harden">harden</button>
+    <button class="f-btn" data-cat="debug">debug</button>
+    <span class="count" id="count"><strong id="count-n">22</strong> shown</span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Image / Pattern</th><th>Phase</th><th>Key commands</th><th>Use case</th></tr>
+      </thead>
+      <tbody id="tbody">
+
+        <!-- ════ BASE ════ -->
+
+        <tr data-cat="base">
+          <td class="tool-name">scratch</td>
+          <td class="phase"><span class="badge badge-base">base</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">FROM scratch</span>
+            <span class="cmd-line">COPY --from=builder /app /app</span>
+            <span class="cmd-line">COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/</span>
+            <span class="cmd-line">ENTRYPOINT ["/app"]</span>
+            <span class="cmd-line comment"># no shell, no libc, no nothing</span>
+            <span class="cmd-line comment"># Go: CGO_ENABLED=0 go build -ldflags='-s -w'</span>
+            <span class="cmd-line comment"># Rust: cargo build --release --target x86_64-unknown-linux-musl</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Empty filesystem. The smallest possible image — your binary is literally all that's in it. Requires statically linked binaries (Go with <code>CGO_ENABLED=0</code>, Rust with musl target). You must manually <code>COPY</code> CA certs, timezone data, and anything else the binary needs. No package manager, no shell, no debugging tools. If you can use it, use it — nothing has a smaller attack surface than nothing.</td>
+        </tr>
+
+        <tr data-cat="base">
+          <td class="tool-name">BusyBox</td>
+          <td class="phase"><span class="badge badge-base">base</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">FROM busybox:1.37-uclibc</span>
+            <span class="cmd-line comment"># variants: uclibc (default), glibc, musl</span>
+            <span class="cmd-line comment"># ~1.2MB — single binary, ~400 commands via symlinks</span>
+            <span class="cmd-line">docker run --rm busybox:1.37-uclibc du -sh /bin/busybox</span>
+            <span class="cmd-line comment"># no package manager — what's in the image is all you get</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">One static binary providing a Unix userland. Useful when you need a shell for entrypoint scripts but nothing else. The <code>glibc</code> variant is underappreciated — it gives you glibc compat in ~5MB. No package manager means no CVE patching without rebuilding the image. In practice, BusyBox is most useful as a debug sidecar or init container, not as a production base. If you need a package manager, you've already outgrown it.</td>
+        </tr>
+
+        <tr data-cat="base">
+          <td class="tool-name">Alpine</td>
+          <td class="phase"><span class="badge badge-base">base</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">FROM alpine:3.21</span>
+            <span class="cmd-line">RUN apk add --no-cache python3 py3-pip</span>
+            <span class="cmd-line comment"># ~7MB base, musl libc, BusyBox userland</span>
+            <span class="cmd-line">apk search py3- | head -20</span>
+            <span class="cmd-line">apk info -L python3</span>
+            <span class="cmd-line comment"># pin versions: apk add python3=3.12.8-r1</span>
+            <span class="cmd-line">apk audit --system</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">The default "small container" base for most teams. musl libc keeps it tiny but causes real problems — see the compat section below. <code>apk</code> is fast and simple but the package catalog is thinner than apt/dnf, and some packages lag upstream by weeks. Good default for Go services (no CGO), nginx, and tools that don't link against glibc. Not ideal for Python workloads with compiled extensions. <code>apk audit</code> checks installed packages against known CVEs — useful in CI.</td>
+        </tr>
+
+        <tr data-cat="base">
+          <td class="tool-name">Wolfi</td>
+          <td class="phase"><span class="badge badge-base">base</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">FROM cgr.dev/chainguard/wolfi-base:latest</span>
+            <span class="cmd-line">RUN apk add --no-cache python-3.12 py3-pip</span>
+            <span class="cmd-line comment"># glibc-based, apk package manager</span>
+            <span class="cmd-line comment"># distroless variants: cgr.dev/chainguard/python:latest</span>
+            <span class="cmd-line comment"># ^^ no shell, no apk — runtime only</span>
+            <span class="cmd-line">apk update &amp;&amp; apk list --installed</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Chainguard's container-native distro. glibc + apk — solves Alpine's musl pain without the bloat of Debian. Built-in SBOM generation, provenance attestations, and aggressive CVE patching cadence. The catch: Chainguard controls the package repository. Free tier gives you <code>wolfi-base</code> and <code>:latest</code> tags only — pinned versions and most language-specific images require a paid subscription. Evaluate whether <code>:latest</code> is acceptable for your reproducibility requirements before committing. Good engineering, real vendor dependency.</td>
+        </tr>
+
+        <tr data-cat="base">
+          <td class="tool-name">Distroless (Google)</td>
+          <td class="phase"><span class="badge badge-base">base</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">FROM gcr.io/distroless/static-debian12:nonroot</span>
+            <span class="cmd-line comment"># variants: static, base, cc, python3, java, nodejs</span>
+            <span class="cmd-line comment"># static: CA certs + tzdata only (~2MB)</span>
+            <span class="cmd-line comment"># base: + glibc</span>
+            <span class="cmd-line comment"># cc: + libstdc++</span>
+            <span class="cmd-line">FROM gcr.io/distroless/python3-debian12</span>
+            <span class="cmd-line comment"># :nonroot tag runs as uid 65534</span>
+            <span class="cmd-line comment"># :debug tag includes busybox shell for troubleshooting</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Debian-based minimal images with no shell, no package manager, no OS distribution. glibc compat without the musl headaches. The <code>static</code> variant rivals <code>scratch</code> but includes CA certs and tzdata. Downsides: built with Bazel upstream (opaque build process), harder to customize, and Google controls the publishing pipeline. The <code>:debug</code> tag with a BusyBox shell is essential for troubleshooting — use it in staging, strip it in prod. Python variant includes the interpreter but <code>pip install</code> at runtime is not possible.</td>
+        </tr>
+
+        <tr data-cat="base">
+          <td class="tool-name">Debian slim</td>
+          <td class="phase"><span class="badge badge-base">base</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">FROM debian:bookworm-slim</span>
+            <span class="cmd-line">RUN apt-get update &amp;&amp; apt-get install -y --no-install-recommends \</span>
+            <span class="cmd-line">    python3 python3-pip ca-certificates \</span>
+            <span class="cmd-line">    &amp;&amp; rm -rf /var/lib/apt/lists/*</span>
+            <span class="cmd-line comment"># ~75MB base — large, but everything works</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">The boring, reliable choice. glibc, full apt ecosystem, every Python wheel works, no musl surprises. ~75MB is large compared to Alpine but irrelevant if your application layer is 500MB+ anyway. <code>--no-install-recommends</code> and cleaning the apt cache are non-negotiable — without them the image balloons. When you're debugging a production issue at 3am, having <code>apt-get install strace</code> available is worth the extra 68MB over Alpine. Honest assessment: this is the right default for Python workloads unless image size is a hard constraint.</td>
+        </tr>
+
+        <tr data-cat="base">
+          <td class="tool-name">Ubuntu minimal</td>
+          <td class="phase"><span class="badge badge-base">base</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">FROM ubuntu:24.04</span>
+            <span class="cmd-line comment"># ubuntu images are already "minimal" since 18.04</span>
+            <span class="cmd-line comment"># ~78MB — marginally larger than debian slim</span>
+            <span class="cmd-line comment"># canonical publishes chisel-based "ultra-minimal" images:</span>
+            <span class="cmd-line comment"># FROM ubuntu/dotnet-runtime:8.0-chiseled</span>
+            <span class="cmd-line">unminimize</span>
+            <span class="cmd-line comment"># ^^ restores man pages/docs if debugging interactively</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Near-identical tradeoffs to Debian slim. Use Ubuntu when your team already standardizes on it or when you need PPAs for specific packages. Canonical's "chiseled" images (their distroless equivalent) are interesting but ecosystem coverage is narrow — mostly .NET and Java runtimes. <code>unminimize</code> is useful knowledge for when you <code>docker exec</code> into a running container and nothing has man pages. In practice, choose Debian slim or Ubuntu and standardize — the difference is organizational, not technical.</td>
+        </tr>
+
+        <tr data-cat="base">
+          <td class="tool-name">Chimera Linux</td>
+          <td class="phase"><span class="badge badge-base">base</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment"># musl + apk + LLVM/Clang toolchain</span>
+            <span class="cmd-line comment"># no GNU components — BSD userland (FreeBSD tools)</span>
+            <span class="cmd-line comment"># container images: chimera-linux/chimera:latest</span>
+            <span class="cmd-line comment"># apk add main/python3</span>
+            <span class="cmd-line comment"># status: beta — not production-ready as of mid-2026</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Worth watching, not worth deploying. musl + apk like Alpine but entirely non-GNU — LLVM toolchain, BSD coreutils, dinit init system. Interesting technically (proves you can build a full distro without GNU) but the package catalog is thin, community is small, and there's no CVE response SLA. Mentioning it here because it shows where the ecosystem is heading, not because you should use it in production today.</td>
+        </tr>
+
+        <!-- ════ BUILD ════ -->
+
+        <tr data-cat="build">
+          <td class="tool-name">multi-stage build</td>
+          <td class="phase"><span class="badge badge-build">build</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">FROM golang:1.23-alpine AS builder</span>
+            <span class="cmd-line">WORKDIR /src</span>
+            <span class="cmd-line">COPY go.mod go.sum ./</span>
+            <span class="cmd-line">RUN go mod download</span>
+            <span class="cmd-line">COPY . .</span>
+            <span class="cmd-line">RUN CGO_ENABLED=0 go build -ldflags='-s -w' -o /app</span>
+            <span class="cmd-line"></span>
+            <span class="cmd-line">FROM scratch</span>
+            <span class="cmd-line">COPY --from=builder /etc/ssl/certs/ /etc/ssl/certs/</span>
+            <span class="cmd-line">COPY --from=builder /app /app</span>
+            <span class="cmd-line">ENTRYPOINT ["/app"]</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">The foundational pattern. Build in a fat image with compilers and toolchains; copy only the artifact into a minimal runtime image. The <code>go mod download</code> layer before <code>COPY . .</code> is the key caching trick — dependency downloads are cached until <code>go.mod</code> changes. For Python: build wheels in a builder stage, then <code>COPY --from=builder /usr/local/lib/python3/dist-packages</code> into a slim runtime. This is not optional — shipping compiler toolchains in production images is a CVE surface and a waste.</td>
+        </tr>
+
+        <tr data-cat="build">
+          <td class="tool-name">apko</td>
+          <td class="phase"><span class="badge badge-build">build</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment"># declarative OCI images from YAML — no Dockerfile</span>
+            <span class="cmd-line">apko build image.yaml myimage:latest output.tar</span>
+            <span class="cmd-line">docker load &lt; output.tar</span>
+            <span class="cmd-line comment"># image.yaml:</span>
+            <span class="cmd-line comment"># contents:</span>
+            <span class="cmd-line comment">#   repositories:</span>
+            <span class="cmd-line comment">#     - https://packages.wolfi.dev/os</span>
+            <span class="cmd-line comment">#   packages:</span>
+            <span class="cmd-line comment">#     - wolfi-baselayout</span>
+            <span class="cmd-line comment">#     - python-3.12</span>
+            <span class="cmd-line comment"># accounts:</span>
+            <span class="cmd-line comment">#   run-as: 65534</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Chainguard's Dockerfile replacement. Produces minimal, reproducible OCI images from a YAML spec — no <code>RUN</code> commands, no shell, no layer caching to reason about. Images are bit-for-bit reproducible and include SBOMs by default. The tradeoff: you can only install apk packages (Alpine or Wolfi repos), so anything requiring <code>pip install</code>, <code>make</code>, or compilation at build time needs a hybrid approach. Useful for base image construction; less useful for application images with build steps.</td>
+        </tr>
+
+        <tr data-cat="build">
+          <td class="tool-name">ko</td>
+          <td class="phase"><span class="badge badge-build">build</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">ko build ./cmd/server</span>
+            <span class="cmd-line">KO_DOCKER_REPO=registry.example.com/app ko build ./cmd/server --push</span>
+            <span class="cmd-line">ko build ./cmd/server --sbom=spdx --platform=linux/amd64,linux/arm64</span>
+            <span class="cmd-line">ko apply -f k8s/deployment.yaml</span>
+            <span class="cmd-line comment"># resolves ko:// image refs in manifests and deploys</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Go-specific: builds a Go binary and packages it into a distroless image without a Dockerfile. Multi-arch and SBOM generation built in. <code>ko apply</code> replaces image references in Kubernetes manifests and deploys in one step — eliminates an entire class of "forgot to push the new image" mistakes. Only works for Go binaries. If you write Go services, there's no reason not to use this.</td>
+        </tr>
+
+        <tr data-cat="build">
+          <td class="tool-name">multi-stage Python</td>
+          <td class="phase"><span class="badge badge-build">build</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">FROM python:3.12-slim AS builder</span>
+            <span class="cmd-line">RUN pip install --prefix=/install --no-cache-dir \</span>
+            <span class="cmd-line">    fastapi uvicorn[standard] pydantic</span>
+            <span class="cmd-line"></span>
+            <span class="cmd-line">FROM python:3.12-slim</span>
+            <span class="cmd-line">COPY --from=builder /install /usr/local</span>
+            <span class="cmd-line">COPY . /app</span>
+            <span class="cmd-line">USER 65534</span>
+            <span class="cmd-line">CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0"]</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">The clean pattern for Python containers. Build deps and wheels in a builder stage, copy only the installed packages into the runtime. <code>--prefix=/install</code> isolates pip's output so the <code>COPY</code> is surgical. Use <code>python:3.12-slim</code> (Debian-based) not <code>python:3.12-alpine</code> unless you've verified every dependency builds against musl. The runtime image has no pip, no gcc, no build tools — only what's needed to run.</td>
+        </tr>
+
+        <!-- ════ INSPECT ════ -->
+
+        <tr data-cat="inspect">
+          <td class="tool-name">dive</td>
+          <td class="phase"><span class="badge badge-inspect">inspect</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">dive myimage:latest</span>
+            <span class="cmd-line comment"># interactive: browse each layer, see added/removed/modified files</span>
+            <span class="cmd-line">CI=true dive myimage:latest</span>
+            <span class="cmd-line comment"># non-interactive: exits non-zero if efficiency below threshold</span>
+            <span class="cmd-line">dive myimage:latest --ci-config=.dive-ci.yaml</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">TUI for exploring image layers. Shows exactly what each Dockerfile instruction added to the filesystem and highlights wasted space (files added then deleted in a later layer). The CI mode is underused — gates builds on image efficiency, catching the "forgot to clean up apt cache" mistake automatically. Essential when optimizing image size; run it once on every production image and you'll find something embarrassing.</td>
+        </tr>
+
+        <tr data-cat="inspect">
+          <td class="tool-name">skopeo</td>
+          <td class="phase"><span class="badge badge-inspect">inspect</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">skopeo inspect docker://alpine:3.21</span>
+            <span class="cmd-line">skopeo inspect --raw docker://alpine:3.21 | python3 -m json.tool</span>
+            <span class="cmd-line">skopeo copy docker://source/image:tag docker://dest/image:tag</span>
+            <span class="cmd-line">skopeo copy docker://alpine:3.21 oci:alpine-local:3.21</span>
+            <span class="cmd-line">skopeo list-tags docker://cgr.dev/chainguard/python</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Inspect and copy container images without the Docker daemon. Works directly against registries — no pull required, no local storage consumed. <code>list-tags</code> is invaluable for checking what versions a registry publishes (Chainguard/Wolfi images especially, where the web UI is sparse). <code>--raw</code> gives you the actual manifest, which is what you need when debugging multi-arch image issues or verifying signatures.</td>
+        </tr>
+
+        <tr data-cat="inspect">
+          <td class="tool-name">crane</td>
+          <td class="phase"><span class="badge badge-inspect">inspect</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">crane manifest alpine:3.21 | python3 -m json.tool</span>
+            <span class="cmd-line">crane digest alpine:3.21</span>
+            <span class="cmd-line">crane ls cgr.dev/chainguard/python</span>
+            <span class="cmd-line">crane config alpine:3.21 | python3 -m json.tool</span>
+            <span class="cmd-line comment"># shows CMD, ENV, labels, layer history</span>
+            <span class="cmd-line">crane export alpine:3.21 - | tar tf - | head -50</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Google's image manipulation tool. Overlaps with skopeo but <code>crane export</code> + <code>tar tf</code> is the fastest way to list every file in an image without pulling or running it. <code>crane config</code> shows the image configuration (CMD, ENV, exposed ports) which is what you want when evaluating an unfamiliar base image. Choose crane or skopeo and standardize — having both is redundant.</td>
+        </tr>
+
+        <!-- ════ COMPAT ════ -->
+
+        <tr data-cat="compat">
+          <td class="tool-name">musl vs glibc</td>
+          <td class="phase"><span class="badge badge-compat">compat</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment"># check which libc a binary was linked against:</span>
+            <span class="cmd-line">ldd /usr/bin/python3</span>
+            <span class="cmd-line">file /usr/bin/python3</span>
+            <span class="cmd-line comment"># Alpine (musl): "dynamically linked, musl"</span>
+            <span class="cmd-line comment"># Debian (glibc): "dynamically linked, GNU/Linux"</span>
+            <span class="cmd-line comment"># check at runtime:</span>
+            <span class="cmd-line">getconf GNU_LIBC_VERSION 2>/dev/null || echo "not glibc"</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">The core compatibility question. musl (Alpine, Chimera) is smaller and simpler but differs from glibc in: DNS resolution (no full <code>nsswitch.conf</code> support), locale handling (minimal), <code>dlopen</code> behavior, thread stack defaults, and <code>malloc</code> performance under contention. Binaries compiled against glibc will <em>not</em> run on musl without recompilation. This is why pre-built Python wheels (manylinux) fail on Alpine — they're glibc-linked. If you're unsure, <code>ldd</code> the binary and read the output.</td>
+        </tr>
+
+        <tr data-cat="compat">
+          <td class="tool-name">Python wheels on musl</td>
+          <td class="phase"><span class="badge badge-compat">compat</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment"># on Alpine, compiled packages build from source:</span>
+            <span class="cmd-line">apk add gcc musl-dev python3-dev libffi-dev</span>
+            <span class="cmd-line">pip install cryptography</span>
+            <span class="cmd-line comment"># ^^ compiles from source — slow, needs compiler in image</span>
+            <span class="cmd-line comment"># vs on Debian:</span>
+            <span class="cmd-line">pip install cryptography</span>
+            <span class="cmd-line comment"># ^^ installs pre-built manylinux wheel — fast, no compiler</span>
+            <span class="cmd-line comment"># musllinux wheels exist for some packages since PEP 656:</span>
+            <span class="cmd-line">pip install --only-binary=:all: cryptography</span>
+            <span class="cmd-line comment"># ^^ fails if no musllinux wheel is published</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">The #1 reason not to use Alpine for Python. PyPI <code>manylinux</code> wheels are glibc-linked — they don't install on Alpine. You either install build deps (gcc, musl-dev) and compile from source (slow, bloats image, defeats the purpose of Alpine's small size), or rely on <code>musllinux</code> wheels which not all packages publish. <code>cryptography</code>, <code>numpy</code>, <code>pandas</code>, and <code>grpcio</code> all hit this. The image size savings from Alpine vanish once you add a compiler toolchain. Use <code>python:3.12-slim</code> (Debian) and skip the pain.</td>
+        </tr>
+
+        <tr data-cat="compat">
+          <td class="tool-name">musl DNS resolution</td>
+          <td class="phase"><span class="badge badge-compat">compat</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment"># musl resolves DNS differently from glibc:</span>
+            <span class="cmd-line comment"># - sends A and AAAA queries in parallel (not serial)</span>
+            <span class="cmd-line comment"># - no nsswitch.conf — /etc/hosts then DNS only</span>
+            <span class="cmd-line comment"># - short default timeout, limited retry logic</span>
+            <span class="cmd-line comment"># Kubernetes-specific: ndots:5 + musl = query storm</span>
+            <span class="cmd-line comment"># mitigate in pod spec:</span>
+            <span class="cmd-line comment"># dnsConfig:</span>
+            <span class="cmd-line comment">#   options:</span>
+            <span class="cmd-line comment">#     - name: ndots</span>
+            <span class="cmd-line comment">#       value: "1"</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">In Kubernetes, the default <code>ndots:5</code> setting causes musl-based containers to generate 5+ DNS queries per lookup (trying each search domain before the FQDN). glibc is smarter about short-circuiting. The result: increased DNS latency and load on CoreDNS. Setting <code>ndots: 1</code> or using FQDNs with trailing dots (<code>api.example.com.</code>) mitigates this. This is a real production issue — not theoretical — and it only manifests under load when DNS latency starts mattering.</td>
+        </tr>
+
+        <tr data-cat="compat">
+          <td class="tool-name">locale &amp; i18n</td>
+          <td class="phase"><span class="badge badge-compat">compat</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment"># Alpine / musl:</span>
+            <span class="cmd-line">locale</span>
+            <span class="cmd-line comment"># POSIX only — no UTF-8 locale generation</span>
+            <span class="cmd-line comment"># Python on musl:</span>
+            <span class="cmd-line comment"># locale.getlocale() returns ('C', 'UTF-8') not ('en_US', 'UTF-8')</span>
+            <span class="cmd-line comment"># Debian:</span>
+            <span class="cmd-line">apt-get install -y locales</span>
+            <span class="cmd-line">sed -i 's/# en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen &amp;&amp; locale-gen</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">musl supports only C/POSIX and C.UTF-8 locales. No <code>en_US.UTF-8</code>, no locale generation, no <code>LC_COLLATE</code> beyond byte ordering. This affects string sorting, case folding, and any application that relies on locale-aware behavior. Most modern Python/Go applications are fine with C.UTF-8. Legacy applications or anything doing locale-dependent sorting will break silently — results will be technically correct but ordered differently than expected.</td>
+        </tr>
+
+        <!-- ════ HARDEN ════ -->
+
+        <tr data-cat="harden">
+          <td class="tool-name">non-root USER</td>
+          <td class="phase"><span class="badge badge-harden">harden</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment"># create user in the image:</span>
+            <span class="cmd-line">RUN addgroup -S app &amp;&amp; adduser -S -G app -s /sbin/nologin app</span>
+            <span class="cmd-line">USER app</span>
+            <span class="cmd-line comment"># or use numeric UID (no /etc/passwd needed):</span>
+            <span class="cmd-line">USER 65534</span>
+            <span class="cmd-line comment"># for distroless, use the :nonroot tag variant</span>
+            <span class="cmd-line comment"># verify at runtime:</span>
+            <span class="cmd-line">docker run --rm myimage:latest id</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Running as root inside a container is still root on the host kernel (unless user namespaces are enabled, and they usually aren't). <code>USER 65534</code> (the <code>nobody</code> UID) works without <code>/etc/passwd</code> — useful for scratch and distroless. Place the <code>USER</code> directive after all <code>RUN</code> commands that need write access, before <code>CMD</code>/<code>ENTRYPOINT</code>. Kubernetes <code>runAsNonRoot: true</code> enforces this at the cluster level — set it in your PodSecurityStandards.</td>
+        </tr>
+
+        <tr data-cat="harden">
+          <td class="tool-name">.dockerignore</td>
+          <td class="phase"><span class="badge badge-harden">harden</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment"># .dockerignore — blocklist approach:</span>
+            <span class="cmd-line">.git</span>
+            <span class="cmd-line">.env</span>
+            <span class="cmd-line">*.pem</span>
+            <span class="cmd-line">*.key</span>
+            <span class="cmd-line">__pycache__</span>
+            <span class="cmd-line">node_modules</span>
+            <span class="cmd-line">**/*.pyc</span>
+            <span class="cmd-line comment"># allowlist approach (safer):</span>
+            <span class="cmd-line">*</span>
+            <span class="cmd-line">!src/</span>
+            <span class="cmd-line">!pyproject.toml</span>
+            <span class="cmd-line">!requirements.txt</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Controls what enters the build context. The allowlist approach (<code>*</code> then <code>!</code> exceptions) is safer than blocklisting — new files are excluded by default, preventing accidental inclusion of secrets, credentials, or <code>.env</code> files. A missing <code>.dockerignore</code> sends everything to the daemon, including <code>.git</code> (which contains your entire commit history and possibly secrets). Check build context size: <code>docker build</code> prints "Sending build context" — if it's >10MB, something's wrong.</td>
+        </tr>
+
+        <tr data-cat="harden">
+          <td class="tool-name">read-only rootfs</td>
+          <td class="phase"><span class="badge badge-harden">harden</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">docker run --read-only --tmpfs /tmp myimage:latest</span>
+            <span class="cmd-line comment"># Kubernetes:</span>
+            <span class="cmd-line comment"># securityContext:</span>
+            <span class="cmd-line comment">#   readOnlyRootFilesystem: true</span>
+            <span class="cmd-line comment"># volumes:</span>
+            <span class="cmd-line comment">#   - name: tmp</span>
+            <span class="cmd-line comment">#     emptyDir: {}</span>
+            <span class="cmd-line comment"># volumeMounts:</span>
+            <span class="cmd-line comment">#   - name: tmp</span>
+            <span class="cmd-line comment">#     mountPath: /tmp</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Prevents the container from writing to its own filesystem. Forces explicit declaration of writable paths via <code>tmpfs</code> or volume mounts. Breaks malware that writes to disk, catch-all log dumpers, and accidental state accumulation. Many applications need <code>/tmp</code> — mount it as <code>tmpfs</code>. Some need <code>/var/run</code> for PID files. Test with <code>--read-only</code> locally before enforcing in production — the failures are immediate and obvious.</td>
+        </tr>
+
+        <tr data-cat="harden">
+          <td class="tool-name">image pinning</td>
+          <td class="phase"><span class="badge badge-harden">harden</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment"># bad — tag floats:</span>
+            <span class="cmd-line comment"># FROM python:3.12-slim</span>
+            <span class="cmd-line comment"># better — pin to digest:</span>
+            <span class="cmd-line">FROM python:3.12-slim@sha256:abcdef123456...</span>
+            <span class="cmd-line comment"># get the digest:</span>
+            <span class="cmd-line">crane digest python:3.12-slim</span>
+            <span class="cmd-line">skopeo inspect docker://python:3.12-slim | python3 -c "import sys,json;print(json.load(sys.stdin)['Digest'])"</span>
+            <span class="cmd-line comment"># renovate/dependabot can auto-update digest pins</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Tags are mutable — <code>python:3.12-slim</code> today is not the same image as next week. Digest pinning (<code>@sha256:...</code>) guarantees reproducibility. The operational cost is keeping pins updated — use Renovate or Dependabot to automate this. Without digest pinning, a rebuilt upstream image can introduce regressions, break your build, or change security posture without any change to your code. This is supply chain security 101.</td>
+        </tr>
+
+        <!-- ════ DEBUG ════ -->
+
+        <tr data-cat="debug">
+          <td class="tool-name">cdebug</td>
+          <td class="phase"><span class="badge badge-debug">debug</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">cdebug exec -it --image=busybox mycontainer</span>
+            <span class="cmd-line">cdebug exec -it --image=nicolaka/netshoot mycontainer</span>
+            <span class="cmd-line comment"># injects a debug sidecar into running container's namespaces</span>
+            <span class="cmd-line comment"># works with Docker, containerd, Kubernetes</span>
+            <span class="cmd-line">cdebug exec -it --privileged --image=ubuntu mycontainer</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Debug distroless and scratch containers without rebuilding. Injects a debug image into the target container's PID/network/mount namespaces — you get a full shell and toolset while seeing the target's processes and filesystem. <code>nicolaka/netshoot</code> as the debug image gives you tcpdump, curl, dig, strace, and everything else missing from minimal images. This is the answer to "I can't shell into my distroless container."</td>
+        </tr>
+
+        <tr data-cat="debug">
+          <td class="tool-name">kubectl debug</td>
+          <td class="phase"><span class="badge badge-debug">debug</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">kubectl debug -it pod/mypod --image=busybox --target=mycontainer</span>
+            <span class="cmd-line comment"># ephemeral container shares PID namespace with target</span>
+            <span class="cmd-line">kubectl debug -it pod/mypod --image=nicolaka/netshoot --target=mycontainer -- sh</span>
+            <span class="cmd-line comment"># copy the pod with a debug image replacing the original:</span>
+            <span class="cmd-line">kubectl debug pod/mypod --copy-to=debug-pod --set-image=mycontainer=ubuntu</span>
+            <span class="cmd-line comment"># node-level debugging:</span>
+            <span class="cmd-line">kubectl debug node/mynode -it --image=ubuntu</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Kubernetes-native ephemeral containers. <code>--target</code> shares the PID namespace so you can see the target's processes with <code>ps</code>. The <code>--copy-to</code> variant clones the pod spec with modifications — useful when you need to change the image or add capabilities without touching the running pod. Requires <code>EphemeralContainers</code> feature gate (enabled by default since 1.25). The node debug variant gives you a privileged pod on a specific node — useful for host-level debugging but requires RBAC permissions you shouldn't hand out broadly.</td>
+        </tr>
+
+        <tr data-cat="debug">
+          <td class="tool-name">docker debug</td>
+          <td class="phase"><span class="badge badge-debug">debug</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line">docker debug mycontainer</span>
+            <span class="cmd-line comment"># Docker Desktop only — attaches a shell + tools to a running container</span>
+            <span class="cmd-line comment"># includes vim, nano, htop, curl, ip, ss</span>
+            <span class="cmd-line comment"># works on stopped containers too:</span>
+            <span class="cmd-line">docker debug --shell /bin/bash mycontainer</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">Docker Desktop's built-in debug command. Attaches a toolkit to any container — including stopped ones and containers without a shell. Requires Docker Desktop (not available in Docker Engine / Docker CE on Linux servers). Useful for local development debugging but not for production containers on remote hosts. For production, use <code>cdebug</code> or <code>kubectl debug</code> instead.</td>
+        </tr>
+
+        <tr data-cat="debug">
+          <td class="tool-name">nsenter</td>
+          <td class="phase"><span class="badge badge-debug">debug</span></td>
+          <td class="commands"><div class="cmd-block">
+            <span class="cmd-line comment"># enter all namespaces of container PID:</span>
+            <span class="cmd-line">PID=$(docker inspect --format '{{.State.Pid}}' mycontainer)</span>
+            <span class="cmd-line">nsenter -t $PID -m -u -i -n -p -- /bin/sh</span>
+            <span class="cmd-line comment"># network namespace only (useful for tcpdump):</span>
+            <span class="cmd-line">nsenter -t $PID -n -- ss -tlnp</span>
+            <span class="cmd-line">nsenter -t $PID -n -- tcpdump -i eth0 -nn</span>
+            <button class="copy-btn" onclick="copyAll(this)">copy</button>
+          </div></td>
+          <td class="usecase">The low-level escape hatch. Enters a container's Linux namespaces from the host — requires root on the host and the container PID. No dependency on Docker CLI or Kubernetes — works with any container runtime. The <code>-n</code> (network namespace only) pattern is the most common: enter just the network namespace to run <code>tcpdump</code> or <code>ss</code> without entering the mount namespace where your tools might not exist. This is what <code>cdebug</code> and <code>kubectl debug</code> are doing under the hood.</td>
+        </tr>
+
+      </tbody>
+    </table>
+    <div class="no-results" id="no-results">No entries match this filter.</div>
+  </div>
+</main>
+
+<footer>
+  ops://cheatsheets &mdash;
+  <a href="https://github.com/wagoodman/dive" target="_blank" rel="noopener">dive</a> &middot;
+  <a href="https://github.com/chainguard-dev/apko" target="_blank" rel="noopener">apko</a> &middot;
+  <a href="https://ko.build" target="_blank" rel="noopener">ko</a> &middot;
+  <a href="https://edu.chainguard.dev/chainguard/chainguard-images/overview/" target="_blank" rel="noopener">Chainguard images</a> &middot;
+  <a href="https://github.com/GoogleContainerTools/distroless" target="_blank" rel="noopener">distroless</a> &middot;
+  <a href="https://github.com/iximiuz/cdebug" target="_blank" rel="noopener">cdebug</a>
+</footer>
+
+<script>
+(function () {
+  const btns    = document.querySelectorAll('.f-btn');
+  const rows    = document.querySelectorAll('#tbody tr[data-cat]');
+  const countEl = document.getElementById('count-n');
+  const noRes   = document.getElementById('no-results');
+
+  function filter(cat) {
+    let shown = 0;
+    rows.forEach(r => {
+      const match = cat === 'all' || r.dataset.cat === cat;
+      r.style.display = match ? '' : 'none';
+      if (match) shown++;
+    });
+    countEl.textContent = shown;
+    noRes.style.display = shown === 0 ? 'block' : 'none';
+  }
+
+  btns.forEach(b => {
+    b.addEventListener('click', () => {
+      btns.forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      filter(b.dataset.cat);
+    });
+  });
+
+  window.copyAll = function (btn) {
+    const block = btn.closest('.cmd-block');
+    const lines = Array.from(block.querySelectorAll('.cmd-line'))
+      .filter(l => !l.classList.contains('comment'))
+      .map(l => l.textContent)
+      .join('\n');
+    navigator.clipboard.writeText(lines).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1500);
+    });
+  };
+})();
+</script>
+</body>
+</html>
