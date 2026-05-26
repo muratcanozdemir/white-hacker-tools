@@ -8,193 +8,223 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg:      #0d0f0e;
-    --bg2:     #141715;
-    --bg3:     #1c1f1d;
-    --border:  #2a2e2c;
-    --border2: #3a3f3c;
-    --text:    #c8d5c8;
-    --muted:   #6a7a6a;
-    --accent:  #39ff82;
-    --amber:   #f0b429;
-    --blue:    #60a5fa;
-    --red:     #ff5f57;
-    --mono:    'JetBrains Mono', monospace;
-    --display: 'Syne', sans-serif;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 13px;
-    line-height: 1.6;
-    min-height: 100vh;
-  }
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
-    pointer-events: none;
-    z-index: 999;
-  }
+:root {
+  --bg: #0d0f0e;
+  --bg2: #141715;
+  --bg3: #1c1f1d;
+  --border: #2a2e2c;
+  --border2: #3a3f3c;
+  --text: #c8d5c8;
+  --muted: #6a7a6a;
+  --accent: #39ff82;
+  --amber: #f0b429;
+  --blue: #60a5fa;
+  --red: #ff5f57;
+  --mono: 'JetBrains Mono', monospace;
+  --display: 'Syne', sans-serif;
+}
 
-  header {
-    border-bottom: 1px solid var(--border);
-    padding: 3rem 2rem 2.5rem;
-    position: relative;
-  }
-  header::after {
-    content: '';
-    position: absolute;
-    bottom: -1px; left: 2rem;
-    width: 80px; height: 2px;
-    background: var(--accent);
-  }
-  .inner { max-width: 860px; margin: 0 auto; }
-  .prompt { font-size: 11px; color: var(--accent); letter-spacing: .1em; margin-bottom: .6rem; }
-  .prompt::before { content: '$ '; color: var(--muted); }
-  h1 {
-    font-family: var(--display);
-    font-size: clamp(2rem, 5vw, 3.2rem);
-    font-weight: 800;
-    color: #e8f0e8;
-    letter-spacing: -.03em;
-    line-height: 1.05;
-  }
-  h1 span { color: var(--accent); }
-  .tagline { margin-top: .75rem; font-size: 12px; color: var(--muted); max-width: 480px; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  main { max-width: 860px; margin: 0 auto; padding: 3rem 2rem; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
 
-  .section-label {
-    font-size: 10px;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: .75rem;
-  }
-  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+  pointer-events: none;
+  z-index: 999;
+}
 
-  .posts { display: flex; flex-direction: column; gap: 1px; margin-bottom: 3rem; }
+header {
+  border-bottom: 1px solid var(--border);
+  padding: 3rem 2rem 2.5rem;
+  position: relative;
+}
 
-  .post-card {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: center;
-    gap: 1rem;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--border);
-    padding: 1.25rem 1.5rem;
-    text-decoration: none;
-    color: inherit;
-    transition: border-left-color .15s, background .15s;
-  }
-  .post-card:first-child { border-radius: 6px 6px 0 0; }
-  .post-card:last-of-type { border-radius: 0 0 6px 6px; }
-  .post-card:hover { background: var(--bg3); }
-  .post-card.pentest:hover { border-left-color: var(--red); }
-  .post-card.k8s:hover     { border-left-color: var(--blue); }
+header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 2rem;
+  width: 80px; height: 2px;
+  background: var(--accent);
+}
 
-  .post-meta { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin-bottom: .4rem; }
-  .tag {
-    font-size: 10px; padding: 1px 7px; border-radius: 2px;
-    letter-spacing: .05em; font-weight: 500;
-  }
-  .tag-red   { background: rgba(255,95,87,.12);  color: #ff7b75; border: 1px solid rgba(255,95,87,.3);  }
-  .tag-blue  { background: rgba(96,165,250,.12); color: #60a5fa; border: 1px solid rgba(96,165,250,.3); }
-  .tag-amber { background: rgba(240,180,41,.12); color: #f0b429; border: 1px solid rgba(240,180,41,.3); }
-  .tag-teal  { background: rgba(45,212,191,.12); color: #2dd4bf; border: 1px solid rgba(45,212,191,.3); }
-  .tag-pink  { background: rgba(244,114,182,.12); color: #f472b6; border: 1px solid rgba(244,114,182,.3); }
-  .tag-lime  { background: rgba(163,230,53,.10);  color: #a3e635; border: 1px solid rgba(163,230,53,.25); }
-  .post-card.terraform:hover      { border-left-color: #f0b429; }
-  .post-card.observability:hover  { border-left-color: #2dd4bf; }
-  .post-card.containers:hover     { border-left-color: #f472b6; }
-  .post-card.golang:hover         { border-left-color: #a3e635; }
-  .tag-orange{ background: rgba(251,146,60,.12);  color: #fb923c; border: 1px solid rgba(251,146,60,.3);  }
-  .post-card.python:hover         { border-left-color: #fb923c; }
-  .tag-violet{ background: rgba(167,139,250,.12); color: #a78bfa; border: 1px solid rgba(167,139,250,.3); }
-  .post-card.git:hover            { border-left-color: #a78bfa; }
-  .tag-cyan  { background: rgba(34,211,238,.12);  color: #22d3ee; border: 1px solid rgba(34,211,238,.3);  }
-  .post-card.network:hover        { border-left-color: #22d3ee; }
-  .tag-yellow{ background: rgba(251,191,36,.12);  color: #fbbf24; border: 1px solid rgba(251,191,36,.3);  }
-  .post-card.slurm:hover          { border-left-color: #fbbf24; }
-  .tag-slate { background: rgba(122,162,247,.12); color: #7aa2f7; border: 1px solid rgba(122,162,247,.3); }
-  .post-card.postgres:hover       { border-left-color: #7aa2f7; }
-  .tag-orange2{ background: rgba(255,153,0,.12);  color: #ff9900; border: 1px solid rgba(255,153,0,.3);  }
-  .post-card.aws:hover            { border-left-color: #ff9900; }
-  .tag-azure { background: rgba(14,165,233,.12);  color: #0ea5e9; border: 1px solid rgba(14,165,233,.3);  }
-  .post-card.azure:hover          { border-left-color: #0ea5e9; }
-  .tag-fuchsia{ background: rgba(232,121,249,.12); color: #e879f9; border: 1px solid rgba(232,121,249,.3); }
-  .post-card.vps:hover            { border-left-color: #e879f9; }
-  .tag-gcp   { background: rgba(52,208,88,.12);   color: #34d058; border: 1px solid rgba(52,208,88,.3);   }
-  .post-card.gcp:hover            { border-left-color: #34d058; }
-  .tag-do    { background: rgba(0,105,255,.12);  color: #4d94ff; border: 1px solid rgba(0,105,255,.3);  }
-  .tag-linode{ background: rgba(2,177,89,.12);   color: #02b159; border: 1px solid rgba(2,177,89,.3);   }
-  .tag-hz    { background: rgba(213,12,45,.12);  color: #ff4060; border: 1px solid rgba(213,12,45,.3);  }
-  .post-card.do:hover             { border-left-color: #4d94ff; }
-  .post-card.linode:hover         { border-left-color: #02b159; }
-  .post-card.hetzner:hover        { border-left-color: #ff4060; }
-  .tag-kong   { background: rgba(9,201,154,.12);  color: #09c99a; border: 1px solid rgba(9,201,154,.3);  }
-  .tag-mule   { background: rgba(0,161,223,.12);  color: #00a1df; border: 1px solid rgba(0,161,223,.3);  }
-  .tag-nginx  { background: rgba(38,149,57,.12);  color: #26c939; border: 1px solid rgba(38,149,57,.3);  }
-  .post-card.kong:hover           { border-left-color: #09c99a; }
-  .post-card.mule:hover           { border-left-color: #00a1df; }
-  .post-card.nginx:hover          { border-left-color: #26c939; }
-  .post-date { font-size: 10px; color: var(--muted); }
-  .post-title {
-    font-family: var(--display);
-    font-size: 1.15rem; font-weight: 700;
-    color: #e8f0e8; letter-spacing: -.01em;
-    margin-bottom: .35rem;
-  }
-  .post-desc { font-size: 12px; color: var(--muted); max-width: 560px; }
-  .tool-count { font-size: 10px; color: var(--muted); margin-top: .5rem; }
-  .tool-count strong { color: var(--text); }
-  .post-arrow {
-    font-size: 18px; color: var(--border2);
-    transition: color .15s, transform .15s;
-  }
-  .post-card:hover .post-arrow { color: var(--text); transform: translateX(3px); }
+.inner { max-width: 860px; margin: 0 auto; }
 
-  .coming-soon {
-    border: 1px dashed var(--border);
-    border-radius: 6px;
-    padding: 1.25rem 1.5rem;
-    color: var(--muted);
-    font-size: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: .45rem;
-  }
-  .coming-soon-title {
-    font-size: 10px; letter-spacing: .1em;
-    text-transform: uppercase; color: var(--border2);
-    margin-bottom: .25rem;
-  }
-  .coming-item { display: flex; align-items: baseline; gap: .6rem; }
-  .coming-item::before { content: '·'; color: var(--border2); flex-shrink: 0; }
+.prompt { font-size: 11px; color: var(--accent); letter-spacing: .1em; margin-bottom: .6rem; }
+.prompt::before { content: '$ '; color: var(--muted); }
 
-  footer {
-    border-top: 1px solid var(--border);
-    padding: 1.5rem 2rem;
-    text-align: center;
-    font-size: 11px;
-    color: var(--muted);
-  }
+h1 {
+  font-family: var(--display);
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 800;
+  color: #e8f0e8;
+  letter-spacing: -.03em;
+  line-height: 1.05;
+}
 
-  @media (max-width: 600px) {
-    header, main { padding: 1.25rem; }
-    h1 { font-size: 1.8rem; }
-    .post-card { grid-template-columns: 1fr; }
-    .post-arrow { display: none; }
-  }
+h1 span { color: var(--accent); }
+
+.tagline { margin-top: .75rem; font-size: 12px; color: var(--muted); max-width: 480px; }
+
+main { max-width: 860px; margin: 0 auto; padding: 3rem 2rem; }
+
+.section-label {
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.posts { display: flex; flex-direction: column; gap: 1px; margin-bottom: 3rem; }
+
+.post-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border);
+  padding: 1.25rem 1.5rem;
+  text-decoration: none;
+  color: inherit;
+  transition: border-left-color .15s, background .15s;
+}
+
+.post-card:first-child { border-radius: 6px 6px 0 0; }
+.post-card:last-of-type { border-radius: 0 0 6px 6px; }
+.post-card:hover { background: var(--bg3); }
+
+/* ── tag colours ── */
+.tag {
+  font-size: 10px; padding: 1px 7px; border-radius: 2px;
+  letter-spacing: .05em; font-weight: 500;
+}
+
+.tag-red      { background: rgba(255,95,87,.12);   color: #ff7b75; border: 1px solid rgba(255,95,87,.3); }
+.tag-blue     { background: rgba(96,165,250,.12);  color: #60a5fa; border: 1px solid rgba(96,165,250,.3); }
+.tag-amber    { background: rgba(240,180,41,.12);  color: #f0b429; border: 1px solid rgba(240,180,41,.3); }
+.tag-teal     { background: rgba(45,212,191,.12);  color: #2dd4bf; border: 1px solid rgba(45,212,191,.3); }
+.tag-pink     { background: rgba(244,114,182,.12); color: #f472b6; border: 1px solid rgba(244,114,182,.3); }
+.tag-lime     { background: rgba(163,230,53,.10);  color: #a3e635; border: 1px solid rgba(163,230,53,.25); }
+.tag-orange   { background: rgba(251,146,60,.12);  color: #fb923c; border: 1px solid rgba(251,146,60,.3); }
+.tag-violet   { background: rgba(167,139,250,.12); color: #a78bfa; border: 1px solid rgba(167,139,250,.3); }
+.tag-cyan     { background: rgba(34,211,238,.12);  color: #22d3ee; border: 1px solid rgba(34,211,238,.3); }
+.tag-yellow   { background: rgba(251,191,36,.12);  color: #fbbf24; border: 1px solid rgba(251,191,36,.3); }
+.tag-slate    { background: rgba(122,162,247,.12); color: #7aa2f7; border: 1px solid rgba(122,162,247,.3); }
+.tag-orange2  { background: rgba(255,153,0,.12);   color: #ff9900; border: 1px solid rgba(255,153,0,.3); }
+.tag-azure    { background: rgba(14,165,233,.12);  color: #0ea5e9; border: 1px solid rgba(14,165,233,.3); }
+.tag-fuchsia  { background: rgba(232,121,249,.12); color: #e879f9; border: 1px solid rgba(232,121,249,.3); }
+.tag-gcp      { background: rgba(52,208,88,.12);   color: #34d058; border: 1px solid rgba(52,208,88,.3); }
+.tag-do       { background: rgba(0,105,255,.12);   color: #4d94ff; border: 1px solid rgba(0,105,255,.3); }
+.tag-linode   { background: rgba(2,177,89,.12);    color: #02b159; border: 1px solid rgba(2,177,89,.3); }
+.tag-hz       { background: rgba(213,12,45,.12);   color: #ff4060; border: 1px solid rgba(213,12,45,.3); }
+.tag-kong     { background: rgba(9,201,154,.12);   color: #09c99a; border: 1px solid rgba(9,201,154,.3); }
+.tag-mule     { background: rgba(0,161,223,.12);   color: #00a1df; border: 1px solid rgba(0,161,223,.3); }
+.tag-nginx    { background: rgba(38,149,57,.12);   color: #26c939; border: 1px solid rgba(38,149,57,.3); }
+.tag-fire     { background: rgba(255,107,53,.12);  color: #ff6b35; border: 1px solid rgba(255,107,53,.3); }
+.tag-commentary { background: rgba(200,169,110,.12); color: #c8a96e; border: 1px solid rgba(200,169,110,.3); }
+
+/* ── card hover accent colours ── */
+.post-card.pentest:hover       { border-left-color: var(--red); }
+.post-card.k8s:hover           { border-left-color: var(--blue); }
+.post-card.terraform:hover     { border-left-color: #f0b429; }
+.post-card.observability:hover { border-left-color: #2dd4bf; }
+.post-card.containers:hover    { border-left-color: #f472b6; }
+.post-card.container-images:hover { border-left-color: #f0b429; }
+.post-card.golang:hover        { border-left-color: #a3e635; }
+.post-card.python:hover        { border-left-color: #fb923c; }
+.post-card.git:hover           { border-left-color: #a78bfa; }
+.post-card.network:hover       { border-left-color: #22d3ee; }
+.post-card.slurm:hover         { border-left-color: #fbbf24; }
+.post-card.postgres:hover      { border-left-color: #7aa2f7; }
+.post-card.aws:hover           { border-left-color: #ff9900; }
+.post-card.azure:hover         { border-left-color: #0ea5e9; }
+.post-card.vps:hover           { border-left-color: #e879f9; }
+.post-card.gcp:hover           { border-left-color: #34d058; }
+.post-card.do:hover            { border-left-color: #4d94ff; }
+.post-card.linode:hover        { border-left-color: #02b159; }
+.post-card.hetzner:hover       { border-left-color: #ff4060; }
+.post-card.kong:hover          { border-left-color: #09c99a; }
+.post-card.mule:hover          { border-left-color: #00a1df; }
+.post-card.nginx:hover         { border-left-color: #26c939; }
+.post-card.llm:hover           { border-left-color: var(--red); }
+.post-card.agent-eval:hover    { border-left-color: #2dd4bf; }
+.post-card.spark-k8s:hover     { border-left-color: #ff6b35; }
+.post-card.commentary-post:hover { border-left-color: #c8a96e; }
+
+/* ── card internals ── */
+.post-meta { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin-bottom: .4rem; }
+.post-date  { font-size: 10px; color: var(--muted); }
+
+.post-title {
+  font-family: var(--display);
+  font-size: 1.15rem; font-weight: 700;
+  color: #e8f0e8; letter-spacing: -.01em;
+  margin-bottom: .35rem;
+}
+
+.post-desc  { font-size: 12px; color: var(--muted); max-width: 560px; }
+.tool-count { font-size: 10px; color: var(--muted); margin-top: .5rem; }
+.tool-count strong { color: var(--text); }
+
+.post-arrow {
+  font-size: 18px; color: var(--border2);
+  transition: color .15s, transform .15s;
+}
+.post-card:hover .post-arrow { color: var(--text); transform: translateX(3px); }
+
+/* ── coming soon ── */
+.coming-soon {
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  padding: 1.25rem 1.5rem;
+  color: var(--muted);
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+}
+
+.coming-soon-title {
+  font-size: 10px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--border2);
+  margin-bottom: .25rem;
+}
+
+.coming-item { display: flex; align-items: baseline; gap: .6rem; }
+.coming-item::before { content: '·'; color: var(--border2); flex-shrink: 0; }
+
+footer {
+  border-top: 1px solid var(--border);
+  padding: 1.5rem 2rem;
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+@media (max-width: 600px) {
+  header, main { padding: 1.25rem; }
+  h1 { font-size: 1.8rem; }
+  .post-card { grid-template-columns: 1fr; }
+  .post-arrow { display: none; }
+}
 </style>
 </head>
 <body>
@@ -209,16 +239,13 @@
 
 <main>
 
+  <!-- ── PRODUCTION SCARS & GO-TO TOOLS ───────────────────── -->
   <p class="section-label">published</p>
-
   <div class="posts">
 
     <a href="pentest.html" class="post-card pentest">
       <div>
-        <div class="post-meta">
-          <span class="tag tag-red">security</span>
-          <span class="post-date">2026-05-09</span>
-        </div>
+        <div class="post-meta"><span class="tag tag-red">security</span><span class="post-date">2026-05-09</span></div>
         <p class="post-title">White Hat Hacker Tools</p>
         <p class="post-desc">Filterable reference for penetration testing — recon, web, network, exploit, post-exploit, password cracking, and wireless.</p>
         <p class="tool-count"><strong>23</strong> tools &middot; 7 phases</p>
@@ -228,10 +255,7 @@
 
     <a href="llm-attack-surface.html" class="post-card llm">
       <div>
-        <div class="post-meta">
-          <span class="tag tag-red">security · ai</span>
-          <span class="post-date">2026-05-09</span>
-        </div>
+        <div class="post-meta"><span class="tag tag-red">security &middot; ai</span><span class="post-date">2026-05-09</span></div>
         <p class="post-title">LLM Attack Surface</p>
         <p class="post-desc">Red-team reference for LLM-powered systems — prompt injection, RAG poisoning, agent abuse, context attacks, evasion, and hardening counter-measures. OWASP LLM Top 10 mapped.</p>
         <p class="tool-count"><strong>40</strong> techniques &middot; 7 phases &middot; OWASP LLM Top 10</p>
@@ -241,12 +265,9 @@
 
     <a href="agent-eval.html" class="post-card agent-eval">
       <div>
-        <div class="post-meta">
-          <span class="tag tag-teal">ai · evaluation</span>
-          <span class="post-date">2026-05-12</span>
-        </div>
+        <div class="post-meta"><span class="tag tag-teal">ai &middot; evaluation</span><span class="post-date">2026-05-12</span></div>
         <p class="post-title">Agent Evaluation</p>
-        <p class="post-desc">Three-layer reference: eval frameworks (Inspect AI, DeepEval, Braintrust), benchmark suites (AgentBench, τ²-Bench, GAIA), and eval patterns — outcome, trajectory, online, and cost-bounded. Includes local judge setup, Pass@k, and the eval pyramid.</p>
+        <p class="post-desc">Three-layer reference: eval frameworks (Inspect AI, DeepEval, Braintrust), benchmark suites (AgentBench, &tau;&sup2;-Bench, GAIA), and eval patterns &mdash; outcome, trajectory, online, and cost-bounded.</p>
         <p class="tool-count"><strong>34</strong> techniques &middot; 3 layers &middot; 6 patterns</p>
       </div>
       <span class="post-arrow">&#8594;</span>
@@ -254,10 +275,7 @@
 
     <a href="kubernetes.html" class="post-card k8s">
       <div>
-        <div class="post-meta">
-          <span class="tag tag-blue">kubernetes</span>
-          <span class="post-date">2026-05-09</span>
-        </div>
+        <div class="post-meta"><span class="tag tag-blue">kubernetes</span><span class="post-date">2026-05-09</span></div>
         <p class="post-title">Kubernetes Debugging Toolkit</p>
         <p class="post-desc">Filterable reference for K8s debugging — inspect, network, security audit, cluster health, RBAC, and storage.</p>
         <p class="tool-count"><strong>18</strong> tools &middot; 6 phases</p>
@@ -267,10 +285,7 @@
 
     <a href="terraform.html" class="post-card terraform">
       <div>
-        <div class="post-meta">
-          <span class="tag tag-amber">iac</span>
-          <span class="post-date">2026-05-09</span>
-        </div>
+        <div class="post-meta"><span class="tag tag-amber">iac</span><span class="post-date">2026-05-09</span></div>
         <p class="post-title">IaC &amp; Terraform Ecosystem</p>
         <p class="post-desc">Filterable reference for the Terraform toolchain — validate, plan, security scanning, cost estimation, state surgery, and docs.</p>
         <p class="tool-count"><strong>14</strong> tools &middot; 6 phases</p>
@@ -280,10 +295,7 @@
 
     <a href="observability.html" class="post-card observability">
       <div>
-        <div class="post-meta">
-          <span class="tag tag-teal">observability</span>
-          <span class="post-date">2026-05-09</span>
-        </div>
+        <div class="post-meta"><span class="tag tag-teal">observability</span><span class="post-date">2026-05-09</span></div>
         <p class="post-title">Observability &amp; SRE Toolkit</p>
         <p class="post-desc">Filterable reference for the full observability stack — metrics, logs, traces, profiling, eBPF system analysis, and incident response.</p>
         <p class="tool-count"><strong>17</strong> tools &middot; 6 phases</p>
@@ -293,10 +305,7 @@
 
     <a href="container-security.html" class="post-card containers">
       <div>
-        <div class="post-meta">
-          <span class="tag tag-pink">containers</span>
-          <span class="post-date">2026-05-10</span>
-        </div>
+        <div class="post-meta"><span class="tag tag-pink">containers</span><span class="post-date">2026-05-10</span></div>
         <p class="post-title">Container Security Toolkit</p>
         <p class="post-desc">Filterable reference for container security — image scanning, build linting, registry ops, image signing, runtime detection, and supply chain.</p>
         <p class="tool-count"><strong>15</strong> tools &middot; 6 phases</p>
@@ -306,10 +315,7 @@
 
     <a href="container-images.html" class="post-card container-images">
       <div>
-        <div class="post-meta">
-          <span class="tag tag-amber">containers</span>
-          <span class="post-date">2026-05-13</span>
-        </div>
+        <div class="post-meta"><span class="tag tag-amber">containers</span><span class="post-date">2026-05-13</span></div>
         <p class="post-title">Container Base Images</p>
         <p class="post-desc">Filterable reference for base image selection — scratch, BusyBox, Alpine, Wolfi, Distroless, Debian slim. Build patterns, musl/glibc compat traps, hardening, and debugging minimal containers.</p>
         <p class="tool-count"><strong>22</strong> entries &middot; 6 phases</p>
@@ -319,10 +325,7 @@
 
     <a href="go.html" class="post-card golang">
       <div>
-        <div class="post-meta">
-          <span class="tag tag-lime">go</span>
-          <span class="post-date">2026-05-10</span>
-        </div>
+        <div class="post-meta"><span class="tag tag-lime">go</span><span class="post-date">2026-05-10</span></div>
         <p class="post-title">Go Developer Toolkit</p>
         <p class="post-desc">Standard toolchain first — build, test, profile, debug, lint, modules, and release. Third-party tools where they genuinely add value.</p>
         <p class="tool-count"><strong>18</strong> tools &middot; 7 phases</p>
@@ -332,10 +335,7 @@
 
     <a href="python.html" class="post-card python">
       <div>
-        <div class="post-meta">
-          <span class="tag tag-orange">python</span>
-          <span class="post-date">2026-05-10</span>
-        </div>
+        <div class="post-meta"><span class="tag tag-orange">python</span><span class="post-date">2026-05-10</span></div>
         <p class="post-title">Python Packaging &amp; CI Toolkit</p>
         <p class="post-desc">Modern Python toolchain — env management, packaging standards, quality gates, Rust/Python FFI, publishing, and reproducible CI patterns.</p>
         <p class="tool-count"><strong>16</strong> tools &middot; 6 phases</p>
@@ -345,10 +345,7 @@
 
     <a href="git.html" class="post-card git">
       <div>
-        <div class="post-meta">
-          <span class="tag tag-violet">git</span>
-          <span class="post-date">2026-05-10</span>
-        </div>
+        <div class="post-meta"><span class="tag tag-violet">git</span><span class="post-date">2026-05-10</span></div>
         <p class="post-title">Git &amp; Repo Hygiene</p>
         <p class="post-desc">History rewriting, forensic archaeology, secret scanning, hook automation, and large-repo tooling. Beyond the daily commit cycle.</p>
         <p class="tool-count"><strong>17</strong> tools &middot; 6 phases</p>
@@ -358,10 +355,7 @@
 
     <a href="network.html" class="post-card network">
       <div>
-        <div class="post-meta">
-          <span class="tag tag-cyan">network</span>
-          <span class="post-date">2026-05-10</span>
-        </div>
+        <div class="post-meta"><span class="tag tag-cyan">network</span><span class="post-date">2026-05-10</span></div>
         <p class="post-title">Network Diagnostics</p>
         <p class="post-desc">DNS resolution, TCP/UDP inspection, HTTP deep-dive, gRPC testing, TLS certificate analysis, and load testing. Protocol-first, tool-second.</p>
         <p class="tool-count"><strong>18</strong> tools &middot; 6 phases</p>
@@ -371,10 +365,7 @@
 
     <a href="slurm.html" class="post-card slurm">
       <div>
-        <div class="post-meta">
-          <span class="tag tag-yellow">hpc</span>
-          <span class="post-date">2026-05-11</span>
-        </div>
+        <div class="post-meta"><span class="tag tag-yellow">hpc</span><span class="post-date">2026-05-11</span></div>
         <p class="post-title">SLURM &amp; HPC Toolkit</p>
         <p class="post-desc">Job submission, queue monitoring, failure debugging, array jobs, dependency chains, and resource profiling. CPU-only and GPU clusters.</p>
         <p class="tool-count"><strong>17</strong> commands &middot; 6 phases</p>
@@ -384,10 +375,7 @@
 
     <a href="postgres.html" class="post-card postgres">
       <div>
-        <div class="post-meta">
-          <span class="tag tag-slate">postgres</span>
-          <span class="post-date">2026-05-11</span>
-        </div>
+        <div class="post-meta"><span class="tag tag-slate">postgres</span><span class="post-date">2026-05-11</span></div>
         <p class="post-title">PostgreSQL Operations</p>
         <p class="post-desc">psql meta-commands, backup and restore, query analysis, maintenance, access control, and replication monitoring. Self-hosted, production-grade.</p>
         <p class="tool-count"><strong>18</strong> tools &middot; 6 phases</p>
@@ -397,12 +385,9 @@
 
     <a href="aws.html" class="post-card aws">
       <div>
-        <div class="post-meta">
-          <span class="tag tag-orange2">aws</span>
-          <span class="post-date">2026-05-11</span>
-        </div>
-        <p class="post-title">AWS CLI — Production Surface</p>
-        <p class="post-desc">~30 services distilled to what engineers with production scars reach for daily. Auth, compute, storage, networking, secrets, observability, and platform. Honest about what's not here.</p>
+        <div class="post-meta"><span class="tag tag-orange2">aws</span><span class="post-date">2026-05-11</span></div>
+        <p class="post-title">AWS CLI &mdash; Production Surface</p>
+        <p class="post-desc">~30 services distilled to what engineers with production scars reach for daily. Auth, compute, storage, networking, secrets, observability, and platform.</p>
         <p class="tool-count"><strong>28</strong> entries &middot; 7 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
@@ -410,12 +395,9 @@
 
     <a href="azure.html" class="post-card azure">
       <div>
-        <div class="post-meta">
-          <span class="tag tag-azure">azure</span>
-          <span class="post-date">2026-05-12</span>
-        </div>
-        <p class="post-title">Azure CLI — Production Surface</p>
-        <p class="post-desc">~28 entries distilled to what engineers with production scars reach for daily. Auth, compute, storage, networking, secrets, observability, data/platform. Honest about what's not here.</p>
+        <div class="post-meta"><span class="tag tag-azure">azure</span><span class="post-date">2026-05-12</span></div>
+        <p class="post-title">Azure CLI &mdash; Production Surface</p>
+        <p class="post-desc">~28 entries distilled to what engineers with production scars reach for daily. Auth, compute, storage, networking, secrets, observability, data/platform.</p>
         <p class="tool-count"><strong>28</strong> entries &middot; 7 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
@@ -423,11 +405,8 @@
 
     <a href="vps-hardening.html" class="post-card vps">
       <div>
-        <div class="post-meta">
-          <span class="tag tag-fuchsia">security</span>
-          <span class="post-date">2026-05-12</span>
-        </div>
-        <p class="post-title">VPS Hardening — Fresh to Secure</p>
+        <div class="post-meta"><span class="tag tag-fuchsia">security</span><span class="post-date">2026-05-12</span></div>
+        <p class="post-title">VPS Hardening &mdash; Fresh to Secure</p>
         <p class="post-desc">From a blank Debian/Ubuntu VPS to a machine you'd trust running production workloads. 22+1 ordered steps, filterable by phase, with a progress bar and checkboxes.</p>
         <p class="tool-count"><strong>23</strong> steps &middot; 7 phases &middot; ordered</p>
       </div>
@@ -436,12 +415,9 @@
 
     <a href="gcp.html" class="post-card gcp">
       <div>
-        <div class="post-meta">
-          <span class="tag tag-gcp">gcp</span>
-          <span class="post-date">2026-05-12</span>
-        </div>
-        <p class="post-title">GCP CLI — Production Surface</p>
-        <p class="post-desc">~28 entries distilled to what engineers with production scars reach for. Auth, compute, storage, networking, secrets, observability, data/platform. Honest about what's not here.</p>
+        <div class="post-meta"><span class="tag tag-gcp">gcp</span><span class="post-date">2026-05-12</span></div>
+        <p class="post-title">GCP CLI &mdash; Production Surface</p>
+        <p class="post-desc">~28 entries distilled to what engineers with production scars reach for. Auth, compute, storage, networking, secrets, observability, data/platform.</p>
         <p class="tool-count"><strong>28</strong> entries &middot; 7 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
@@ -449,12 +425,9 @@
 
     <a href="digitalocean.html" class="post-card do">
       <div>
-        <div class="post-meta">
-          <span class="tag tag-do">digitalocean</span>
-          <span class="post-date">2026-05-12</span>
-        </div>
-        <p class="post-title">DigitalOcean CLI — Production Surface</p>
-        <p class="post-desc">doctl reference for engineers with production scars — droplets, DOKS, Spaces, networking, managed databases, App Platform, and Container Registry.</p>
+        <div class="post-meta"><span class="tag tag-do">digitalocean</span><span class="post-date">2026-05-12</span></div>
+        <p class="post-title">DigitalOcean CLI &mdash; Production Surface</p>
+        <p class="post-desc">doctl reference for engineers with production scars &mdash; droplets, DOKS, Spaces, networking, managed databases, App Platform, and Container Registry.</p>
         <p class="tool-count"><strong>24</strong> entries &middot; 7 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
@@ -462,12 +435,9 @@
 
     <a href="linode.html" class="post-card linode">
       <div>
-        <div class="post-meta">
-          <span class="tag tag-linode">linode</span>
-          <span class="post-date">2026-05-12</span>
-        </div>
-        <p class="post-title">Linode CLI — Production Surface</p>
-        <p class="post-desc">linode-cli reference for engineers with production scars — Linodes, LKE, Object Storage, volumes, firewalls, NodeBalancers, managed databases.</p>
+        <div class="post-meta"><span class="tag tag-linode">linode</span><span class="post-date">2026-05-12</span></div>
+        <p class="post-title">Linode CLI &mdash; Production Surface</p>
+        <p class="post-desc">linode-cli reference for engineers with production scars &mdash; Linodes, LKE, Object Storage, volumes, firewalls, NodeBalancers, managed databases.</p>
         <p class="tool-count"><strong>22</strong> entries &middot; 6 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
@@ -475,12 +445,9 @@
 
     <a href="hetzner.html" class="post-card hetzner">
       <div>
-        <div class="post-meta">
-          <span class="tag tag-hz">hetzner</span>
-          <span class="post-date">2026-05-12</span>
-        </div>
-        <p class="post-title">Hetzner CLI — Production Surface</p>
-        <p class="post-desc">hcloud reference for engineers with production scars — servers, private networks, volumes, load balancers, firewalls, floating IPs, and Object Storage.</p>
+        <div class="post-meta"><span class="tag tag-hz">hetzner</span><span class="post-date">2026-05-12</span></div>
+        <p class="post-title">Hetzner CLI &mdash; Production Surface</p>
+        <p class="post-desc">hcloud reference for engineers with production scars &mdash; servers, private networks, volumes, load balancers, firewalls, floating IPs, and Object Storage.</p>
         <p class="tool-count"><strong>22</strong> entries &middot; 6 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
@@ -488,10 +455,7 @@
 
     <a href="kong.html" class="post-card kong">
       <div>
-        <div class="post-meta">
-          <span class="tag tag-kong">api gateway</span>
-          <span class="post-date">2026-05-12</span>
-        </div>
+        <div class="post-meta"><span class="tag tag-kong">api gateway</span><span class="post-date">2026-05-12</span></div>
         <p class="post-title">Kong API Gateway</p>
         <p class="post-desc">Admin API patterns, deck config-as-code, plugin management, routing, upstreams, and operational inspection for Kong OSS and Kong Gateway.</p>
         <p class="tool-count"><strong>22</strong> entries &middot; 7 phases</p>
@@ -501,11 +465,8 @@
 
     <a href="mulesoft.html" class="post-card mule">
       <div>
-        <div class="post-meta">
-          <span class="tag tag-mule">mulesoft</span>
-          <span class="post-date">2026-05-12</span>
-        </div>
-        <p class="post-title">MuleSoft — Production Surface</p>
+        <div class="post-meta"><span class="tag tag-mule">mulesoft</span><span class="post-date">2026-05-12</span></div>
+        <p class="post-title">MuleSoft &mdash; Production Surface</p>
         <p class="post-desc">anypoint-cli for interactive ops and environment promotion. Mule Maven Plugin for CI/CD deployments. Deploy, promote, API Manager, runtime, observability, governance.</p>
         <p class="tool-count"><strong>20</strong> entries &middot; 6 phases</p>
       </div>
@@ -514,12 +475,9 @@
 
     <a href="nginx.html" class="post-card nginx">
       <div>
-        <div class="post-meta">
-          <span class="tag tag-nginx">nginx</span>
-          <span class="post-date">2026-05-12</span>
-        </div>
+        <div class="post-meta"><span class="tag tag-nginx">nginx</span><span class="post-date">2026-05-12</span></div>
         <p class="post-title">Nginx as API Gateway</p>
-        <p class="post-desc">Config-centric reference — upstream blocks, rate limiting, JWT via auth_request, mTLS, TLS hardening, and observability patterns. nginx OSS and nginx Plus.</p>
+        <p class="post-desc">Config-centric reference &mdash; upstream blocks, rate limiting, JWT via auth_request, mTLS, TLS hardening, and observability patterns. nginx OSS and nginx Plus.</p>
         <p class="tool-count"><strong>20</strong> patterns &middot; 6 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
@@ -527,10 +485,7 @@
 
     <a href="spark-k8s.html" class="post-card spark-k8s">
       <div>
-        <div class="post-meta">
-          <span class="tag tag-fire">spark</span>
-          <span class="post-date">2026-05-13</span>
-        </div>
+        <div class="post-meta"><span class="tag tag-fire">spark</span><span class="post-date">2026-05-13</span></div>
         <p class="post-title">Spark on Kubernetes</p>
         <p class="post-desc">The cursed timeline. Operator setup, JVM vs cgroup memory fights, shuffle-spill survival on heterogeneous VM clusters, gang scheduling, and debugging OOMKilled executors.</p>
         <p class="tool-count"><strong>24</strong> entries &middot; 6 phases</p>
@@ -540,12 +495,37 @@
 
   </div>
 
-  <p class="section-label">up next</p>
+  <!-- ── COMMENTARY ─────────────────────────────────────────── -->
+  <p class="section-label">commentary</p>
+  <div class="posts">
 
+    <a href="commentary-ai-encyclical.html" class="post-card commentary-post">
+      <div>
+        <div class="post-meta"><span class="tag tag-commentary">commentary</span><span class="post-date">2026-05-26</span></div>
+        <p class="post-title">The Vatican's AI Encyclical</p>
+        <p class="post-desc">Pope Leo XIV's <em>Magnifica Humanitas</em> decoded &mdash; what the encyclical actually demands from AI labs, governments, and platform companies, stripped of the theology.</p>
+        <p class="tool-count">~3,200 words &middot; 13 min read</p>
+      </div>
+      <span class="post-arrow">&#8594;</span>
+    </a>
+
+    <a href="commentary-anthropic-response.html" class="post-card commentary-post">
+      <div>
+        <div class="post-meta"><span class="tag tag-commentary">commentary</span><span class="post-date">2026-05-26</span></div>
+        <p class="post-title">Anthropic at the Vatican</p>
+        <p class="post-desc">Chris Olah's remarks to the Holy See &mdash; what's unusually candid, what's strategically absent, and why sincerity and structural compulsion coexist perfectly in a race dynamic nobody can exit.</p>
+        <p class="tool-count">~1,900 words &middot; 8 min read</p>
+      </div>
+      <span class="post-arrow">&#8594;</span>
+    </a>
+
+  </div>
+
+  <!-- ── UP NEXT ─────────────────────────────────────────────── -->
+  <p class="section-label">up next</p>
   <div class="coming-soon">
     <p class="coming-soon-title">on the roadmap</p>
     <div class="coming-item" style="margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border);">More to come. Suggestions welcome.</div>
-
   </div>
 
 </main>
