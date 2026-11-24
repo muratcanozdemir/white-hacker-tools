@@ -3,8 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agent Evaluation — White Hat Cheatsheet</title>
+<title>Agent Evaluation: White Hat Cheatsheet</title>
 <style>
+/* Hallmark · checked: 2026-11-24 · genre: modern-minimal (inferred)
+ * floor: 0 FAIL · fixed: 2a, 3, 7a, 10a, 19, 26a, 27, 34, 40, 48, 54, 63, 67 · structural: 58 printed
+ * built: the project · redesign: polish · v2.0.0 */
+/* Hallmark · answered F1 · straight quotes sit beside shell, JSON and SQL fragments readers copy, so they stay straight */
+/* Hallmark · answered F2 · three-dot ellipses mark elided arguments in commands and are kept */
+/* Hallmark · waive 38iii · the h1 span appears once, in the header · "Evaluation" in the accent is how the Agent Evaluation page names its subject across the series */
   :root {
     --bg:      #0d0f12;
     --bg2:     #13161b;
@@ -25,6 +31,8 @@
     --trajectory:#e3b341;
     --online:    #ff7b72;
     --cost:      #39d353;
+    --ink-h1: #e6edf3;
+    --ink-cmd-line-cmd: #58d68d;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -57,7 +65,6 @@
     font-size: 11px;
     color: var(--muted);
     margin-bottom: .6rem;
-    letter-spacing: .05em;
   }
   .prompt::before { content: '$ '; color: var(--accent); }
 
@@ -66,7 +73,7 @@
     font-weight: 700;
     letter-spacing: -.02em;
     line-height: 1.15;
-    color: #e6edf3;
+    color: var(--ink-h1);
     margin-bottom: .5rem;
   }
   h1 span { color: var(--pattern); }
@@ -109,8 +116,6 @@
   }
   .tax-label {
     font-size: 9px;
-    letter-spacing: .1em;
-    text-transform: uppercase;
     color: var(--muted);
     margin-bottom: .1rem;
   }
@@ -125,9 +130,9 @@
     border-radius: 3px;
     white-space: nowrap;
   }
-  .tc-framework { background: rgba(121,192,255,.1);  color: var(--framework); border: 1px solid rgba(121,192,255,.2); }
-  .tc-benchmark  { background: rgba(255,166,87,.1);  color: var(--benchmark); border: 1px solid rgba(255,166,87,.2);  }
-  .tc-pattern    { background: rgba(210,168,255,.1); color: var(--pattern);   border: 1px solid rgba(210,168,255,.2); }
+  .tc-framework { background: color-mix(in srgb, var(--framework) 10%, transparent);  color: var(--framework); border: 1px solid color-mix(in srgb, var(--framework) 20%, transparent); }
+  .tc-benchmark  { background: color-mix(in srgb, var(--benchmark) 10%, transparent);  color: var(--benchmark); border: 1px solid color-mix(in srgb, var(--benchmark) 20%, transparent);  }
+  .tc-pattern    { background: color-mix(in srgb, var(--pattern) 10%, transparent); color: var(--pattern);   border: 1px solid color-mix(in srgb, var(--pattern) 20%, transparent); }
 
   /* ── MAIN ── */
   main {
@@ -156,7 +161,6 @@
     font-family: var(--mono);
     font-size: 10.5px;
     padding: 3px 10px;
-    letter-spacing: .04em;
     transition: color .12s, border-color .12s, background .12s;
   }
   .f-btn:hover { color: var(--text); border-color: var(--muted); }
@@ -178,9 +182,7 @@
   thead th {
     font-size: 10px;
     font-weight: 600;
-    letter-spacing: .1em;
     color: var(--muted);
-    text-transform: uppercase;
     border-bottom: 1px solid var(--border);
     padding: .5rem .75rem;
     text-align: left;
@@ -201,35 +203,32 @@
     border-radius: 3px;
     font-size: 9.5px;
     font-weight: 700;
-    letter-spacing: .07em;
-    text-transform: uppercase;
     padding: 2px 7px;
     white-space: nowrap;
   }
-  .lt-framework { background: rgba(121,192,255,.12); color: var(--framework); border: 1px solid rgba(121,192,255,.25); }
-  .lt-benchmark { background: rgba(255,166,87,.12);  color: var(--benchmark); border: 1px solid rgba(255,166,87,.25);  }
-  .lt-outcome   { background: rgba(86,211,100,.12);  color: var(--outcome);   border: 1px solid rgba(86,211,100,.25);  }
-  .lt-trajectory{ background: rgba(227,179,65,.12);  color: var(--trajectory);border: 1px solid rgba(227,179,65,.25);  }
-  .lt-online    { background: rgba(255,123,114,.12); color: var(--online);    border: 1px solid rgba(255,123,114,.25); }
-  .lt-cost      { background: rgba(57,211,83,.1);    color: var(--cost);      border: 1px solid rgba(57,211,83,.2);    }
+  .lt-framework { background: color-mix(in srgb, var(--framework) 12%, transparent); color: var(--framework); border: 1px solid color-mix(in srgb, var(--framework) 25%, transparent); }
+  .lt-benchmark { background: color-mix(in srgb, var(--benchmark) 12%, transparent);  color: var(--benchmark); border: 1px solid color-mix(in srgb, var(--benchmark) 25%, transparent);  }
+  .lt-outcome   { background: color-mix(in srgb, var(--outcome) 12%, transparent);  color: var(--outcome);   border: 1px solid color-mix(in srgb, var(--outcome) 25%, transparent);  }
+  .lt-trajectory{ background: color-mix(in srgb, var(--trajectory) 12%, transparent);  color: var(--trajectory);border: 1px solid color-mix(in srgb, var(--trajectory) 25%, transparent);  }
+  .lt-online    { background: color-mix(in srgb, var(--online) 12%, transparent); color: var(--online);    border: 1px solid color-mix(in srgb, var(--online) 25%, transparent); }
+  .lt-cost      { background: color-mix(in srgb, var(--cost) 10%, transparent);    color: var(--cost);      border: 1px solid color-mix(in srgb, var(--cost) 20%, transparent);    }
 
   /* tool badge */
   .tool-badge {
     display: inline-block;
     font-size: 9px;
     font-weight: 700;
-    letter-spacing: .05em;
     padding: 1px 6px;
     border-radius: 3px;
-    background: rgba(88,166,255,.1);
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
     color: var(--accent);
-    border: 1px solid rgba(88,166,255,.2);
+    border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
     margin-bottom: 3px;
     white-space: nowrap;
   }
 
   td.technique {
-    color: #e6edf3;
+    color: var(--ink-h1);
     font-size: 12px;
     font-weight: 600;
     min-width: 170px;
@@ -246,6 +245,7 @@
   .cmd-block {
     position: relative;
     background: var(--bg3);
+    color: var(--text);
     border: 1px solid var(--border2);
     border-radius: 4px;
     padding: .55rem .75rem;
@@ -261,7 +261,7 @@
     word-break: break-all;
     white-space: pre-wrap;
   }
-  .cmd-line.cmd     { color: #58d68d; }
+  .cmd-line.cmd     { color: var(--ink-cmd-line-cmd); }
   .cmd-line.note    { color: var(--muted); font-style: italic; }
   .cmd-line.val     { color: var(--framework); }
   .cmd-line.warn    { color: var(--online); }
@@ -290,7 +290,6 @@
     cursor: pointer;
     opacity: 0;
     transition: opacity .15s, color .15s;
-    letter-spacing: .05em;
   }
   .cmd-block:hover .copy-btn { opacity: 1; }
   .copy-btn:hover  { color: var(--accent); border-color: var(--accent); }
@@ -333,6 +332,12 @@
     .taxonomy-inner { gap: 1rem; }
   }
 
+    /* hallmark polish */
+  h1 { text-wrap: balance; }
+  button:active, [role="button"]:active { transform: translateY(1px); }
+  button:disabled, input:disabled, select:disabled { opacity: .5; cursor: not-allowed; }
+  code.raw { font: inherit; color: inherit; background: none; border: 0; padding: 0; }
+
   /* accessibility floor */
   html, body { overflow-x: clip; }
   a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible,
@@ -352,15 +357,15 @@
 <header>
   <div class="header-inner">
     <div>
-      <p class="prompt">agent-eval --layer=all --mode=red-team</p>
       <h1>Agent<br><span>Evaluation</span></h1>
-      <p class="subtitle">Three-layer reference: eval frameworks, benchmark suites, and eval patterns — with concrete commands, failure modes, and local-first alternatives.</p>
+      <p class="prompt">agent-eval --layer=all --mode=red-team</p>
+      <p class="subtitle">Three-layer reference: eval frameworks, benchmark suites, and eval patterns, with concrete commands, failure modes, and local-first alternatives.</p>
     </div>
     <div class="meta">
       <strong>34</strong> techniques<br>
-      <strong>3</strong> layers · <strong>6</strong> patterns<br>
-      Inspect · DeepEval · Braintrust<br>
-      AgentBench · GAIA · τ²-Bench
+      <strong>3</strong> layers, <strong>6</strong> patterns<br>
+      Inspect, DeepEval, Braintrust<br>
+      AgentBench, GAIA, τ²-Bench
     </div>
   </div>
 </header>
@@ -368,7 +373,7 @@
 <div class="taxonomy">
   <div class="taxonomy-inner">
     <div class="tax-group">
-      <div class="tax-label">Layer 1 — Run evals</div>
+      <div class="tax-label">Layer 1. Run evals</div>
       <div class="tax-items">
         <span class="tax-chip tc-framework">Inspect AI</span>
         <span class="tax-chip tc-framework">DeepEval</span>
@@ -376,15 +381,15 @@
       </div>
     </div>
     <div class="tax-group">
-      <div class="tax-label">Layer 2 — What tasks</div>
+      <div class="tax-label">Layer 2: What tasks</div>
       <div class="tax-items">
         <span class="tax-chip tc-benchmark">AgentBench</span>
-        <span class="tax-chip tc-benchmark">GAIA (AMD)</span>
+        <span class="tax-chip tc-benchmark"><abbr>GAIA</abbr> (AMD)</span>
         <span class="tax-chip tc-benchmark">τ²-Bench</span>
       </div>
     </div>
     <div class="tax-group">
-      <div class="tax-label">Layer 3 — What to measure</div>
+      <div class="tax-label">Layer 3: What to measure</div>
       <div class="tax-items">
         <span class="tax-chip tc-pattern">E2E outcome</span>
         <span class="tax-chip tc-pattern">Trajectory</span>
@@ -423,19 +428,19 @@
     <tbody id="tbody">
 
       <!-- ══════════════════════════════════════════════════ -->
-      <!-- LAYER 1 — FRAMEWORKS                              -->
+      <!-- LAYER 1: FRAMEWORKS                              -->
       <!-- ══════════════════════════════════════════════════ -->
 
       <tr data-cat="framework">
         <td><span class="layer-tag lt-framework">framework</span></td>
         <td><span class="tool-badge">Inspect AI</span></td>
-        <td class="technique">Install &amp; first eval<small>AISI / UK Gov — fully open, no SaaS</small></td>
+        <td class="technique">Install &amp; first eval<small>AISI / UK Gov: fully open, no SaaS</small></td>
         <td>
           <div class="cmd-block">
             <span class="cmd-line cmd">pip install inspect-ai --break-system-packages</span>
             <span class="cmd-line cmd">inspect eval inspect_evals/mmlu --model openai/gpt-4o</span>
             <span class="cmd-line cmd">inspect eval inspect_evals/mmlu --model ollama/llama3.1</span>
-            <span class="cmd-line note"># local model via ollama — no outbound API key needed</span>
+            <span class="cmd-line note"># local model via ollama: no outbound API key needed</span>
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
@@ -469,7 +474,7 @@
       <tr data-cat="framework">
         <td><span class="layer-tag lt-framework">framework</span></td>
         <td><span class="tool-badge">Inspect AI</span></td>
-        <td class="technique">LLM-as-judge scorer<small>local judge — no API key</small></td>
+        <td class="technique">LLM-as-judge scorer<small>local judge: no API key</small></td>
         <td>
           <div class="cmd-block">
             <span class="cmd-line py">from inspect_ai.scorer import model_graded_fact</span>
@@ -484,7 +489,7 @@
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes"><em>Critical:</em> judge model must differ from model under test — same-model self-evaluation inflates scores by ~15-20% (self-consistency bias). Local judge on CPU: Qwen2.5-7B-Q4_K_M is cost-free and auditable.</td>
+        <td class="notes"><em>Critical:</em> judge model must differ from model under test: same-model self-evaluation inflates scores by ~15-20% (self-consistency bias). Local judge on CPU: Qwen2.5-7B-Q4_K_M is cost-free and auditable.</td>
       </tr>
 
       <tr data-cat="framework">
@@ -505,7 +510,7 @@
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">Run a fast subset (50 cases) on every PR; full suite on merge. <code>--fail-on-error</code> makes the step fail on uncaught exceptions — not on low scores. Add a score threshold check in a post-step script.</td>
+        <td class="notes">Run a fast subset (50 cases) on every PR; full suite on merge. <code>--fail-on-error</code> makes the step fail on uncaught exceptions, not on low scores. Add a score threshold check in a post-step script.</td>
       </tr>
 
       <tr data-cat="framework">
@@ -530,7 +535,7 @@
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes"><code>ToolCorrectnessMetric</code> checks tool call sequence — the most useful agent-specific metric here. 50+ built-in metrics; choose ≤5 per run (DeepEval's own advice). SaaS backend optional — results print locally without <code>deepeval login</code>.</td>
+        <td class="notes"><code>ToolCorrectnessMetric</code> checks tool call sequence: the most useful agent-specific metric here. 50+ built-in metrics; choose ≤5 per run (DeepEval's own advice). SaaS backend optional: results print locally without <code>deepeval login</code>.</td>
       </tr>
 
       <tr data-cat="framework">
@@ -539,7 +544,7 @@
         <td class="technique">E2E vs component split<small>black-box vs per-step eval</small></td>
         <td>
           <div class="cmd-block">
-            <span class="cmd-line note"># E2E: treat agent as black box — single LLMTestCase</span>
+            <span class="cmd-line note"># E2E: treat agent as black box; single LLMTestCase</span>
             <span class="cmd-line py">tc_e2e = LLMTestCase(input=q, actual_output=final_ans)</span>
             <span class="cmd-line note"></span>
             <span class="cmd-line note"># Component: grade each step independently</span>
@@ -575,7 +580,7 @@
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">Scenario drives a synthetic user; agent_callback wraps your system under test. Expected outcome is natural language — graded by LLM judge. <em>Persona matters:</em> "frustrated + refuses workarounds" hits different edge cases than "cooperative user."</td>
+        <td class="notes">Scenario drives a synthetic user; agent_callback wraps your system under test. Expected outcome is natural language: graded by LLM judge. <em>Persona matters:</em> "frustrated + refuses workarounds" hits different edge cases than "cooperative user."</td>
       </tr>
 
       <tr data-cat="framework">
@@ -597,7 +602,7 @@
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">Each run is immutable — Braintrust captures the snapshot for regression comparison. <strong>Vendor dependency is real:</strong> regression dashboards, dataset versioning, and trace diffing require their SaaS. Offline eval alone is usable without it, but degraded.</td>
+        <td class="notes">Each run is immutable: Braintrust captures the snapshot for regression comparison. <strong>Vendor dependency is real:</strong> regression dashboards, dataset versioning, and trace diffing require their SaaS. Offline eval alone is usable without it, but degraded.</td>
       </tr>
 
       <tr data-cat="framework">
@@ -607,7 +612,7 @@
         <td>
           <div class="cmd-block">
             <span class="cmd-line py">from deepeval.evaluate import DisplayConfig</span>
-            <span class="cmd-line note"># (DeepEval variant — avoids Braintrust SaaS lock-in)</span>
+            <span class="cmd-line note"># (DeepEval variant: avoids Braintrust SaaS lock-in)</span>
             <span class="cmd-line py">for temp in [0.0, 0.3, 0.7]:</span>
             <span class="cmd-line py">    evaluate(</span>
             <span class="cmd-line py">        test_cases=cases,</span>
@@ -619,17 +624,17 @@
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">Temperature, model version, system prompt variant — sweep systematically, not by intuition. Results folder makes runs comparable across sessions without a SaaS backend. <em>Don't tune on your eval set</em> — hold out 20% as a final check.</td>
+        <td class="notes">Temperature, model version, system prompt variant: sweep systematically, not by intuition. Results folder makes runs comparable across sessions without a SaaS backend. <em>Don't tune on your eval set</em>: hold out 20% as a final check.</td>
       </tr>
 
       <!-- ══════════════════════════════════════════════════ -->
-      <!-- LAYER 2 — BENCHMARKS                              -->
+      <!-- LAYER 2: BENCHMARKS                              -->
       <!-- ══════════════════════════════════════════════════ -->
 
       <tr data-cat="benchmark">
         <td><span class="layer-tag lt-benchmark">benchmark</span></td>
         <td><span class="tool-badge">AgentBench</span></td>
-        <td class="technique">Environment task suite<small>OS / DB / KG / Web — ICLR'24</small></td>
+        <td class="technique">Environment task suite<small>OS / DB / KG / Web: ICLR'24</small></td>
         <td>
           <div class="cmd-block">
             <span class="cmd-line cmd">git clone https://github.com/THUDM/AgentBench</span>
@@ -651,10 +656,10 @@
         <td>
           <div class="cmd-block">
             <span class="cmd-line warn"># common failure modes (from paper):</span>
-            <span class="cmd-line warn">1. hallucinated tool outputs — model assumes success</span>
-            <span class="cmd-line warn">2. lost state after 5+ turns — context degrades</span>
-            <span class="cmd-line warn">3. retry loop — no exit condition on tool failure</span>
-            <span class="cmd-line warn">4. off-by-one in SQL — never validated against schema</span>
+            <span class="cmd-line warn">1. hallucinated tool outputs: model assumes success</span>
+            <span class="cmd-line warn">2. lost state after 5+ turns: context degrades</span>
+            <span class="cmd-line warn">3. retry loop: no exit condition on tool failure</span>
+            <span class="cmd-line warn">4. off-by-one in SQL. Never validated against schema</span>
             <span class="cmd-line warn">5. web agent: clicks non-existent element, ignores error</span>
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
@@ -680,7 +685,7 @@
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes"><strong>Key insight:</strong> every other benchmark makes the user a passive text source. τ² gives the user tools too — both agent and user modify shared state (Dec-POMDP). This is how real support/service agents actually fail. Uses <code>uv</code>. Actively maintained into 2026.</td>
+        <td class="notes"><strong>Key insight:</strong> every other benchmark makes the user a passive text source. τ² gives the user tools too: both agent and user modify shared state (Dec-POMDP). This is how real support/service agents actually fail. Uses <code>uv</code>. Actively maintained into 2026.</td>
       </tr>
 
       <tr data-cat="benchmark">
@@ -689,7 +694,7 @@
         <td class="technique">Task composition &amp; verification<small>programmatic task generation, not hand-crafted</small></td>
         <td>
           <div class="cmd-block">
-            <span class="cmd-line note"># τ² tasks are compositionally generated — verifiable</span>
+            <span class="cmd-line note"># τ² tasks are compositionally generated: verifiable</span>
             <span class="cmd-line note"># example airline task (from data/tau2/domains/):</span>
             <span class="cmd-line val">{</span>
             <span class="cmd-line val">  "reason_for_call": "Cancel flights XEHM4B + 59XX6W",</span>
@@ -702,13 +707,13 @@
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">Tasks have <strong>verifiable expected actions</strong> — ground truth is a tool call sequence, not a natural language description. User persona includes behavioural constraints ("persistent + terse", "refuses workarounds"). Compositional generation ensures domain coverage without hand-labelling every case.</td>
+        <td class="notes">Tasks have <strong>verifiable expected actions</strong>: ground truth is a tool call sequence, not a natural language description. User persona includes behavioural constraints ("persistent + terse", "refuses workarounds"). Compositional generation ensures domain coverage without hand-labelling every case.</td>
       </tr>
 
       <tr data-cat="benchmark">
         <td><span class="layer-tag lt-benchmark">benchmark</span></td>
         <td><span class="tool-badge">τ²-Bench</span></td>
-        <td class="technique">Local-model eval run<small>no external API — fully air-gapped</small></td>
+        <td class="technique">Local-model eval run<small>no external API: fully air-gapped</small></td>
         <td>
           <div class="cmd-block">
             <span class="cmd-line note"># pull models first:</span>
@@ -723,12 +728,12 @@
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">Fully local: agent model + user simulator model both via Ollama. CPU-only i9/64GB can handle this at batch=1. Keep <code>--max-concurrency 2</code> on CPU — higher values thrash memory. Use different models for agent and user sim — same-model creates cooperative bias.</td>
+        <td class="notes">Fully local: agent model + user simulator model both via Ollama. CPU-only i9/64GB can handle this at batch=1. Keep <code>--max-concurrency 2</code> on CPU: higher values thrash memory. Use different models for agent and user sim: same-model creates cooperative bias.</td>
       </tr>
 
       <tr data-cat="benchmark">
         <td><span class="layer-tag lt-benchmark">benchmark</span></td>
-        <td><span class="tool-badge">GAIA (AMD)</span></td>
+        <td><span class="tool-badge"><abbr>GAIA</abbr> (AMD)</span></td>
         <td class="technique">Scenario YAML structure<small>54 scenarios, 10 categories, 7-dim rubric</small></td>
         <td>
           <div class="cmd-block">
@@ -741,31 +746,31 @@
             <span class="cmd-line val">    persona: "Direct user, expects exact quotes"</span>
             <span class="cmd-line note"># 7-dim rubric: correctness, relevance, completeness,</span>
             <span class="cmd-line note"># conciseness, tool_use, hallucination, coherence</span>
-            <span class="cmd-line note"># score recomputed deterministically — LLM arithmetic overridden</span>
+            <span class="cmd-line note"># score recomputed deterministically: LLM arithmetic overridden</span>
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes"><strong>Borrow the pattern, not the tool.</strong> GAIA evaluates AMD's specific Agent UI — not portable without rework. The <strong>deterministic score recomputation</strong> is the idea worth stealing: never trust LLM-produced arithmetic; recompute from raw scores using your own weights.</td>
+        <td class="notes"><strong>Borrow the pattern, not the tool.</strong> GAIA evaluates AMD's specific Agent UI, not portable without rework. The <strong>deterministic score recomputation</strong> is the idea worth stealing: never trust LLM-produced arithmetic; recompute from raw scores using your own weights.</td>
       </tr>
 
       <tr data-cat="benchmark">
         <td><span class="layer-tag lt-benchmark">benchmark</span></td>
-        <td><span class="tool-badge">GAIA (AMD)</span></td>
+        <td><span class="tool-badge"><abbr>GAIA</abbr> (AMD)</span></td>
         <td class="technique">BLOCKED_BY_ARCHITECTURE status<small>structural failures vs eval failures</small></td>
         <td>
           <div class="cmd-block">
             <span class="cmd-line note"># GAIA status taxonomy (steal this for your own harness):</span>
-            <span class="cmd-line good">PASS          — all turns: correctness≥4 AND score≥6.0</span>
-            <span class="cmd-line warn">FAIL          — any turn below threshold</span>
-            <span class="cmd-line warn">BLOCKED_BY_ARCHITECTURE — structural limitation detected</span>
-            <span class="cmd-line flag">TIMEOUT       — wall-clock exceeded per-scenario limit</span>
-            <span class="cmd-line flag">BUDGET_EXCEEDED — API cost cap hit</span>
-            <span class="cmd-line flag">INFRA_ERROR   — MCP/tool error before eval could run</span>
-            <span class="cmd-line flag">SETUP_ERROR   — indexing returned 0 chunks</span>
+            <span class="cmd-line good">PASS: all turns: correctness≥4 AND score≥6.0</span>
+            <span class="cmd-line warn">FAIL: any turn below threshold</span>
+            <span class="cmd-line warn">BLOCKED_BY_ARCHITECTURE: structural limitation detected</span>
+            <span class="cmd-line flag">TIMEOUT: wall-clock exceeded per-scenario limit</span>
+            <span class="cmd-line flag">BUDGET_EXCEEDED: API cost cap hit</span>
+            <span class="cmd-line flag">INFRA_ERROR: MCP/tool error before eval could run</span>
+            <span class="cmd-line flag">SETUP_ERROR: indexing returned 0 chunks</span>
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes"><code>BLOCKED_BY_ARCHITECTURE</code> is never auto-upgraded — it requires human review. This distinction matters: a FAIL can be fixed by prompt engineering; a BLOCKED means the architecture can't do the task at all. Conflating these hides real problems.</td>
+        <td class="notes"><code>BLOCKED_BY_ARCHITECTURE</code> is never auto-upgraded. It requires human review. This distinction matters: a FAIL can be fixed by prompt engineering; a BLOCKED means the architecture can't do the task at all. Conflating these hides real problems.</td>
       </tr>
 
       <!-- ══════════════════════════════════════════════════ -->
@@ -775,7 +780,7 @@
       <tr data-cat="outcome">
         <td><span class="layer-tag lt-outcome">outcome</span></td>
         <td><span class="tool-badge">pattern</span></td>
-        <td class="technique">Binary task completion<small>did it finish correctly — yes/no</small></td>
+        <td class="technique">Binary task completion<small>did it finish correctly: yes/no</small></td>
         <td>
           <div class="cmd-block">
             <span class="cmd-line py">def check_outcome(expected_state: dict, actual_state: dict) -> bool:</span>
@@ -790,7 +795,7 @@
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes"><strong>Outcome eval requires a verifiable world state.</strong> SQL query result, API response code, file presence, DB row value — not natural language output. If you can't check the world state, you're grading prose, not agent behaviour. Build world-state snapshots into your test harness.</td>
+        <td class="notes"><strong>Outcome eval requires a verifiable world state.</strong> SQL query result, API response code, file presence, DB row value, not natural language output. If you can't check the world state, you're grading prose, not agent behaviour. Build world-state snapshots into your test harness.</td>
       </tr>
 
       <tr data-cat="outcome">
@@ -809,17 +814,17 @@
             <span class="cmd-line py">        "search_flights",</span>
             <span class="cmd-line py">        "compare_prices",</span>
             <span class="cmd-line py">        "book_ticket"])</span>
-            <span class="cmd-line note"># order matters — booking before searching = wrong</span>
+            <span class="cmd-line note"># order matters: booking before searching = wrong</span>
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">Tool call order is not always strict — define partial-order constraints where needed (search must precede book; compare is optional). Log every tool call with timestamp and arguments. <em>Hallucinated tool calls</em> (model claims it called a tool but didn't) are a distinct failure class from wrong-order calls.</td>
+        <td class="notes">Tool call order is not always strict: define partial-order constraints where needed (search must precede book; compare is optional). Log every tool call with timestamp and arguments. <em>Hallucinated tool calls</em> (model claims it called a tool but didn't) are a distinct failure class from wrong-order calls.</td>
       </tr>
 
       <tr data-cat="outcome">
         <td><span class="layer-tag lt-outcome">outcome</span></td>
         <td><span class="tool-badge">pattern</span></td>
-        <td class="technique">Ground truth from real repos<small>hamel.dev pattern — not synthetic</small></td>
+        <td class="technique">Ground truth from real repos<small>hamel.dev pattern, not synthetic</small></td>
         <td>
           <div class="cmd-block">
             <span class="cmd-line note"># build test set from repos with known correct outputs:</span>
@@ -833,7 +838,7 @@
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">Let's say you're building a CI/CD wizard: Your repos with good, existing pipelines are the ground truth. Run the agent against the same repos and diff structurally — not string equality. <strong>Don't generate synthetic repos</strong> — synthetic inputs don't surface the edge cases that real repos do.</td>
+        <td class="notes">Let's say you're building a CI/CD wizard: Your repos with good, existing pipelines are the ground truth. Run the agent against the same repos and diff structurally, not string equality. <strong>Don't generate synthetic repos</strong>: synthetic inputs don't surface the edge cases that real repos do.</td>
       </tr>
 
       <tr data-cat="outcome">
@@ -855,7 +860,7 @@
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">Single-trial eval of a stochastic agent is noise. Pass@1 with n=10 trials tells you reliability — the probability of success on a single attempt. Pass@k with k>1 tells you if the agent can succeed given retries. <em>Report both:</em> an agent that only passes with 3 attempts is not production-ready at k=1.</td>
+        <td class="notes">Single-trial eval of a stochastic agent is noise. Pass@1 with n=10 trials tells you reliability: the probability of success on a single attempt. Pass@k with k>1 tells you if the agent can succeed given retries. <em>Report both:</em> an agent that only passes with 3 attempts is not production-ready at k=1.</td>
       </tr>
 
       <!-- ══════════════════════════════════════════════════ -->
@@ -876,7 +881,7 @@
             <span class="cmd-line py">        output=step["output"],</span>
             <span class="cmd-line py">        expected=ground_truth[step["name"]])</span>
             <span class="cmd-line py">    results.append({**step, "score": score})</span>
-            <span class="cmd-line note"># bad retrieval poisons generation — you need to know which</span>
+            <span class="cmd-line note"># bad retrieval poisons generation. You need to know which</span>
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
@@ -885,11 +890,11 @@
 
       <tr data-cat="trajectory">
         <td><span class="layer-tag lt-trajectory">trajectory</span></td>
-        <td><span class="tool-badge">GAIA (AMD)</span></td>
+        <td><span class="tool-badge"><abbr>GAIA</abbr> (AMD)</span></td>
         <td class="technique">7-dimension rubric (steal it)<small>deterministic weighted scoring</small></td>
         <td>
           <div class="cmd-block">
-            <span class="cmd-line py">SCORE_WEIGHTS = {</span>
+            <span class="cmd-line py"><code class="raw">SCORE_WEIGHTS = {</code></span>
             <span class="cmd-line py">    "correctness":   0.35,  # highest weight</span>
             <span class="cmd-line py">    "relevance":     0.20,</span>
             <span class="cmd-line py">    "completeness":  0.15,</span>
@@ -898,18 +903,18 @@
             <span class="cmd-line py">    "conciseness":   0.03,</span>
             <span class="cmd-line py">    "coherence":     0.02,</span>
             <span class="cmd-line py">}</span>
-            <span class="cmd-line note"># recompute deterministically — never trust LLM arithmetic</span>
+            <span class="cmd-line note"># recompute deterministically. Never trust LLM arithmetic</span>
             <span class="cmd-line py">score = sum(dim_scores[k]*w for k,w in SCORE_WEIGHTS.items())</span>
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">Hallucination is a <strong>fail-gate</strong>: score 9.8 on six dimensions and 3.9 on hallucination → FAIL. Never aggregate hallucination into an average — it masks the worst failure mode. Cap FAILed scenario scores at 5.99 before computing benchmark averages to preserve signal.</td>
+        <td class="notes">Hallucination is a <strong>fail-gate</strong>: score 9.8 on six dimensions and 3.9 on hallucination → FAIL. Never aggregate hallucination into an average. It masks the worst failure mode. Cap FAILed scenario scores at 5.99 before computing benchmark averages to preserve signal.</td>
       </tr>
 
       <tr data-cat="trajectory">
         <td><span class="layer-tag lt-trajectory">trajectory</span></td>
         <td><span class="tool-badge">pattern</span></td>
-        <td class="technique">Trace logging schema<small>structured output — not free text</small></td>
+        <td class="technique">Trace logging schema<small>structured output, not free text</small></td>
         <td>
           <div class="cmd-block">
             <span class="cmd-line py">import json, time</span>
@@ -928,7 +933,7 @@
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">Log tool call arguments and results, not just names. Latency and token counts per turn are essential for cost analysis. Store as JSONL — append-friendly, grep-friendly, no schema migration required. One file per scenario run.</td>
+        <td class="notes">Log tool call arguments and results, not just names. Latency and token counts per turn are essential for cost analysis. Store as JSONL: append-friendly, grep-friendly, no schema migration required. One file per scenario run.</td>
       </tr>
 
       <tr data-cat="trajectory">
@@ -951,7 +956,7 @@
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">Inspect gives you the full <code>state.messages</code> history in the scorer — every turn, tool call, and model output. This is the hook for trajectory grading: inspect the path, not just the destination.</td>
+        <td class="notes">Inspect gives you the full <code>state.messages</code> history in the scorer: every turn, tool call, and model output. This is the hook for trajectory grading: inspect the path, not just the destination.</td>
       </tr>
 
       <!-- ══════════════════════════════════════════════════ -->
@@ -976,7 +981,7 @@
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">Production traces are your best source of new test cases. Don't sample uniformly — over-index on failures and low-confidence outputs. <strong>50 labelled production traces outperform 500 synthetic ones</strong> for finding real failure modes. Feed back into your offline dataset monthly.</td>
+        <td class="notes">Production traces are your best source of new test cases. Don't sample uniformly: over-index on failures and low-confidence outputs. <strong>50 labelled production traces outperform 500 synthetic ones</strong> for finding real failure modes. Feed back into your offline dataset monthly.</td>
       </tr>
 
       <tr data-cat="online">
@@ -985,7 +990,7 @@
         <td class="technique">Online scoring rule<small>async LLM judge on live traffic</small></td>
         <td>
           <div class="cmd-block">
-            <span class="cmd-line note"># Braintrust online scoring — runs async, no latency impact</span>
+            <span class="cmd-line note"># Braintrust online scoring: runs async, no latency impact</span>
             <span class="cmd-line note"># configure via UI: Project → Online Scoring → Add Rule</span>
             <span class="cmd-line py">from braintrust import traced</span>
             <span class="cmd-line py"></span>
@@ -993,17 +998,17 @@
             <span class="cmd-line py">def run_agent(user_input: str) -> str:</span>
             <span class="cmd-line py">    return your_agent(user_input)</span>
             <span class="cmd-line note"># scoring rule fires on each logged trace</span>
-            <span class="cmd-line note"># no ground truth available — LLM judge only</span>
+            <span class="cmd-line note"># no ground truth available: LLM judge only</span>
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">Online scoring has no ground truth — it's LLM-as-judge on live output. Useful for regression detection, not absolute quality measurement. <em>Critical limitation:</em> judge consistency degrades over time as model updates; re-calibrate the judge against human labels quarterly.</td>
+        <td class="notes">Online scoring has no ground truth. It's LLM-as-judge on live output. Useful for regression detection, not absolute quality measurement. <em>Critical limitation:</em> judge consistency degrades over time as model updates; re-calibrate the judge against human labels quarterly.</td>
       </tr>
 
       <tr data-cat="online">
         <td><span class="layer-tag lt-online">online / prod</span></td>
         <td><span class="tool-badge">pattern</span></td>
-        <td class="technique">Self-hosted trace store<small>JSONL + DuckDB — no SaaS needed</small></td>
+        <td class="technique">Self-hosted trace store<small>JSONL + DuckDB: no SaaS needed</small></td>
         <td>
           <div class="cmd-block">
             <span class="cmd-line cmd">pip install duckdb --break-system-packages</span>
@@ -1013,7 +1018,7 @@
             <span class="cmd-line py">with open("traces.jsonl", "a") as f:</span>
             <span class="cmd-line py">    f.write(json.dumps(trace) + "\n")</span>
             <span class="cmd-line py"></span>
-            <span class="cmd-line py"># query with DuckDB — no schema, no migrations</span>
+            <span class="cmd-line py"># query with DuckDB: no schema, no migrations</span>
             <span class="cmd-line py">duckdb.sql("""</span>
             <span class="cmd-line py">    SELECT model, AVG(score), COUNT(*)</span>
             <span class="cmd-line py">    FROM read_ndjson('traces.jsonl')</span>
@@ -1044,7 +1049,7 @@
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">Alert on relative drop, not absolute score — absolute varies too much across domains. Three signals worth alerting on independently: quality score drop (model/prompt regression), latency spike (retrieval or tool call degradation), cost spike (runaway tool loops or context bloat).</td>
+        <td class="notes">Alert on relative drop, not absolute score: absolute varies too much across domains. Three signals worth alerting on independently: quality score drop (model/prompt regression), latency spike (retrieval or tool call degradation), cost spike (runaway tool loops or context bloat).</td>
       </tr>
 
       <!-- ══════════════════════════════════════════════════ -->
@@ -1071,16 +1076,16 @@
             <span class="cmd-line py">    @property</span>
             <span class="cmd-line py">    def cost_usd(self) -> float:</span>
             <span class="cmd-line py">        return self.tokens_in * 3e-6 + self.tokens_out * 15e-6</span>
-            <span class="cmd-line note"># Sonnet 4 pricing — update when model changes</span>
+            <span class="cmd-line note"># Sonnet 4 pricing: update when model changes</span>
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">Token cost per task is not optional instrumentation — it's how you detect runaway loops, context bloat, and unnecessarily large system prompts. <strong>Measure first, optimise second.</strong> A 10-turn agent consuming 50K tokens per task is broken before it's expensive.</td>
+        <td class="notes">Token cost per task is not optional instrumentation. It's how you detect runaway loops, context bloat, and unnecessarily large system prompts. <strong>Measure first, optimise second.</strong> A 10-turn agent consuming 50K tokens per task is broken before it's expensive.</td>
       </tr>
 
       <tr data-cat="cost">
         <td><span class="layer-tag lt-cost">cost / budget</span></td>
-        <td><span class="tool-badge">GAIA (AMD)</span></td>
+        <td><span class="tool-badge"><abbr>GAIA</abbr> (AMD)</span></td>
         <td class="technique">Per-scenario budget cap<small>cost-bounded eval, not open-ended</small></td>
         <td>
           <div class="cmd-block">
@@ -1097,7 +1102,7 @@
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">Never run evals without a budget cap. Agentic loops with tool-calling models can spend $10 on a single runaway scenario. GAIA's design of one subprocess per scenario + per-scenario budget cap is the right pattern — isolates cost and prevents one bad scenario from burning the whole run.</td>
+        <td class="notes">Never run evals without a budget cap. Agentic loops with tool-calling models can spend $10 on a single runaway scenario. GAIA's design of one subprocess per scenario + per-scenario budget cap is the right pattern: isolates cost and prevents one bad scenario from burning the whole run.</td>
       </tr>
 
       <tr data-cat="cost">
@@ -1129,9 +1134,9 @@
         <td>
           <div class="cmd-block">
             <span class="cmd-line note"># run in order, abort early on failure:</span>
-            <span class="cmd-line good">TIER 1 — unit: deterministic scorer, 50 cases, &lt;2 min</span>
-            <span class="cmd-line flag">TIER 2 — integration: local judge, 200 cases, &lt;15 min</span>
-            <span class="cmd-line warn">TIER 3 — full: API judge + τ²-Bench, 1000 cases, &lt;2 hr</span>
+            <span class="cmd-line good">TIER 1: unit: deterministic scorer, 50 cases, &lt;2 min</span>
+            <span class="cmd-line flag">TIER 2: integration: local judge, 200 cases, &lt;15 min</span>
+            <span class="cmd-line warn">TIER 3: full: API judge + τ²-Bench, 1000 cases, &lt;2 hr</span>
             <span class="cmd-line py"></span>
             <span class="cmd-line note"># CI: tier 1 on every PR</span>
             <span class="cmd-line note"># CI: tier 2 on merge to main</span>
@@ -1139,13 +1144,13 @@
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">The eval pyramid is a cost control structure, not just a speed optimisation. Tier 1 must be deterministic (no LLM judge, no flakiness). Don't run Tier 3 on every PR — that's how eval costs exceed infrastructure costs. Early abort: Tier 1 failure blocks Tier 2.</td>
+        <td class="notes">The eval pyramid is a cost control structure, not just a speed optimisation. Tier 1 must be deterministic (no LLM judge, no flakiness). Don't run Tier 3 on every PR. That's how eval costs exceed infrastructure costs. Early abort: Tier 1 failure blocks Tier 2.</td>
       </tr>
 
       <tr data-cat="cost">
         <td><span class="layer-tag lt-cost">cost / budget</span></td>
         <td><span class="tool-badge">pattern</span></td>
-        <td class="technique">Eval variance — why k≥4 trials<small>stochastic agents need repeat runs</small></td>
+        <td class="technique">Eval variance: why k≥4 trials<small>stochastic agents need repeat runs</small></td>
         <td>
           <div class="cmd-block">
             <span class="cmd-line py">import numpy as np</span>
@@ -1153,15 +1158,15 @@
             <span class="cmd-line py">scores_1trial  = [0, 1, 1, 0, 1]      # n=1: high variance</span>
             <span class="cmd-line py">scores_4trials = [0.75, 1.0, 0.75, 0.25, 1.0]  # n=4: stable</span>
             <span class="cmd-line py"></span>
-            <span class="cmd-line py">print(np.std(scores_1trial))   # 0.49 — coin flip noise</span>
-            <span class="cmd-line py">print(np.std(scores_4trials))  # 0.27 — still noisy</span>
+            <span class="cmd-line py">print(np.std(scores_1trial))   # 0.49: coin flip noise</span>
+            <span class="cmd-line py">print(np.std(scores_4trials))  # 0.27: still noisy</span>
             <span class="cmd-line py"></span>
             <span class="cmd-line note"># τ²-Bench recommendation: 4 trials minimum</span>
             <span class="cmd-line note"># SWE-bench uses 3; HumanEval reports pass@1 with n=20</span>
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">A single eval run of a stochastic agent is noise. At n=1, standard deviation is ~0.49 for binary tasks — you cannot distinguish a 50% agent from a 70% agent without more trials. <strong>Minimum: 4 trials per task.</strong> Report mean and std. An agent with high variance is unreliable regardless of mean score.</td>
+        <td class="notes">A single eval run of a stochastic agent is noise. At n=1, standard deviation is ~0.49 for binary tasks. You cannot distinguish a 50% agent from a 70% agent without more trials. <strong>Minimum: 4 trials per task.</strong> Report mean and std. An agent with high variance is unreliable regardless of mean score.</td>
       </tr>
 
       <tr data-cat="cost">
@@ -1184,7 +1189,7 @@
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">GAIA explicitly states: judge model must differ from model under test. Same-model self-evaluation inflates PASS rate — the model grades its own output charitably. This is not speculation: it's documented across multiple eval papers. Enforce this structurally, not by convention.</td>
+        <td class="notes">GAIA explicitly states: judge model must differ from model under test. Same-model self-evaluation inflates PASS rate: the model grades its own output charitably. This is not speculation: it's documented across multiple eval papers. Enforce this structurally, not by convention.</td>
       </tr>
 
     </tbody>
@@ -1194,13 +1199,7 @@
 </main>
 
 <footer>
-  ops://cheatsheets &mdash;
-  <a href="https://inspect.aisi.org.uk" target="_blank" rel="noopener">Inspect AI (AISI)</a> &middot;
-  <a href="https://deepeval.com/docs" target="_blank" rel="noopener">DeepEval</a> &middot;
-  <a href="https://www.braintrust.dev/docs/evaluate" target="_blank" rel="noopener">Braintrust</a> &middot;
-  <a href="https://github.com/THUDM/AgentBench" target="_blank" rel="noopener">AgentBench</a> &middot;
-  <a href="https://github.com/sierra-research/tau2-bench" target="_blank" rel="noopener">τ²-Bench</a> &middot;
-  <a href="https://amd-gaia.ai/docs/eval" target="_blank" rel="noopener">GAIA (AMD)</a>
+  ops://cheatsheets: <a href="https://inspect.aisi.org.uk" target="_blank" rel="noopener">Inspect AI (AISI)</a>, <a href="https://deepeval.com/docs" target="_blank" rel="noopener">DeepEval</a>, <a href="https://www.braintrust.dev/docs/evaluate" target="_blank" rel="noopener">Braintrust</a>, <a href="https://github.com/THUDM/AgentBench" target="_blank" rel="noopener">AgentBench</a>, <a href="https://github.com/sierra-research/tau2-bench" target="_blank" rel="noopener">τ²-Bench</a>, <a href="https://amd-gaia.ai/docs/eval" target="_blank" rel="noopener"><abbr>GAIA</abbr> (AMD)</a>
 </footer>
 
 <script>

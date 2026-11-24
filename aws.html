@@ -3,11 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AWS CLI — Production Surface Cheat Sheet</title>
-<meta name="description" content="Filterable AWS CLI reference for engineers with production scars — auth, compute, storage, networking, secrets, observability, data/platform.">
+<title>AWS CLI: Production Surface Cheat Sheet</title>
+<meta name="description" content="Filterable AWS CLI reference for engineers with production scars: auth, compute, storage, networking, secrets, observability, data/platform.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <style>
+/* Hallmark · checked: 2026-11-24 · genre: modern-minimal (inferred)
+ * floor: 0 FAIL · fixed: 2a, 3, 7a, 10a, 19, 26a, 27, 34, 40, 48, 54, 63, 67 · structural: 58 printed
+ * built: the project · redesign: polish · v2.0.0 */
+/* Hallmark · answered F1 · straight quotes sit beside shell, JSON and SQL fragments readers copy, so they stay straight */
+/* Hallmark · answered F2 · three-dot ellipses mark elided arguments in commands and are kept */
+/* Hallmark · waive 38iii · the h1 span appears once, in the header · "Production Surface" in the accent is how the AWS CLI page names its subject across the series */
   :root {
     --bg:      #0e0a06;
     --bg2:     #160f08;
@@ -20,6 +26,27 @@
     --cmd:     #7dd3a8;
     --mono:    'JetBrains Mono', monospace;
     --display: 'Syne', sans-serif;
+    --fill-body: rgba(0,0,0,0.04);
+    --ink-h1: #f0dfc0;
+    --fill-badge-auth: rgba(255,95,87,.12);
+    --ink-badge-auth: #ff7b75;
+    --line-badge-auth: rgba(255,95,87,.3);
+    --fill-badge-storage: rgba(57,255,130,.10);
+    --ink-badge-storage: #39ff82;
+    --line-badge-storage: rgba(57,255,130,.25);
+    --fill-badge-network: rgba(96,165,250,.12);
+    --ink-badge-network: #60a5fa;
+    --line-badge-network: rgba(96,165,250,.3);
+    --fill-badge-secrets: rgba(192,96,255,.12);
+    --ink-badge-secrets: #c060ff;
+    --line-badge-secrets: rgba(192,96,255,.3);
+    --fill-badge-obs: rgba(45,212,191,.12);
+    --ink-badge-obs: #2dd4bf;
+    --line-badge-obs: rgba(45,212,191,.3);
+    --fill-badge-data: rgba(240,180,41,.12);
+    --ink-badge-data: #f0b429;
+    --line-badge-data: rgba(240,180,41,.3);
+    --fill-excl: rgba(100,100,100,.1);
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -33,7 +60,7 @@
   body::before {
     content: '';
     position: fixed; inset: 0;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, var(--fill-body) 2px, var(--fill-body) 4px);
     pointer-events: none; z-index: 999;
   }
 
@@ -64,12 +91,12 @@
     display: flex; align-items: flex-end;
     justify-content: space-between; gap: 1rem; flex-wrap: wrap;
   }
-  .prompt { font-size: 11px; color: var(--accent); letter-spacing: .1em; margin-bottom: .5rem; }
+  .prompt { font-size: 11px; color: var(--accent); margin-bottom: .5rem; }
   .prompt::before { content: '$ '; color: var(--muted); }
   h1 {
     font-family: var(--display);
     font-size: clamp(1.6rem, 4vw, 2.6rem);
-    font-weight: 800; color: #f0dfc0;
+    font-weight: 800; color: var(--ink-h1);
     letter-spacing: -.02em; line-height: 1.1;
   }
   h1 span { color: var(--accent); }
@@ -82,9 +109,9 @@
   /* HONEST CALLOUT */
   .callout {
     display: flex; align-items: flex-start; gap: .75rem;
-    background: rgba(255,153,0,.05);
-    border: 1px solid rgba(255,153,0,.2);
-    border-left: 3px solid var(--accent);
+    background: color-mix(in srgb, var(--accent) 5%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+    border-left-color: var(--accent);
     border-radius: 4px;
     padding: .85rem 1rem;
     margin-bottom: 1.75rem;
@@ -106,8 +133,6 @@
     background: var(--bg2);
     padding: .6rem 1rem;
     font-size: 10px;
-    letter-spacing: .12em;
-    text-transform: uppercase;
     color: var(--muted);
     border-bottom: 1px solid var(--border);
     display: flex; align-items: center; gap: .5rem;
@@ -126,8 +151,7 @@
   .pinned-cell:last-child { border-right: none; }
   .pinned-cell:nth-last-child(-n+2) { border-bottom: none; }
   .pinned-label {
-    font-size: 10px; letter-spacing: .08em;
-    text-transform: uppercase; color: var(--accent);
+    font-size: 10px; color: var(--accent);
     margin-bottom: .4rem;
   }
   .pinned-cell .cmd-line {
@@ -145,18 +169,17 @@
     align-items: center; gap: .5rem;
     margin-bottom: 1.25rem;
   }
-  .toolbar-label { font-size: 10px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; margin-right: .25rem; }
+  .toolbar-label { font-size: 10px; color: var(--muted); margin-right: .25rem; }
   .f-btn {
     background: transparent;
     border: 1px solid var(--border2);
     border-radius: 3px; padding: 3px 10px;
     font-family: var(--mono); font-size: 11px;
     color: var(--muted); cursor: pointer;
-    letter-spacing: .06em;
     transition: color .15s, border-color .15s, background .15s;
   }
   .f-btn:hover { color: var(--text); background: var(--bg3); }
-  .f-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(255,153,0,0.07); }
+  .f-btn.active { color: var(--accent); border-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, transparent); }
   .count { margin-left: auto; font-size: 11px; color: var(--muted); }
   .count strong { color: var(--accent); }
 
@@ -165,7 +188,6 @@
   thead th {
     background: var(--bg2); padding: 10px 14px;
     text-align: left; font-size: 10px;
-    letter-spacing: .12em; text-transform: uppercase;
     color: var(--muted); border-bottom: 1px solid var(--border);
     white-space: nowrap; font-weight: 400;
   }
@@ -175,28 +197,26 @@
   tbody tr:last-child { border-bottom: none; }
   tbody tr:hover { background: var(--bg2); }
   td { padding: 10px 14px; vertical-align: top; }
-  td.tool-name { font-weight: 700; font-size: 13px; color: #f0dfc0; white-space: nowrap; min-width: 160px; }
+  td.tool-name { font-weight: 700; font-size: 13px; color: var(--ink-h1); white-space: nowrap; min-width: 160px; }
   td.phase { min-width: 110px; }
 
   .badge {
     display: inline-block; font-size: 10px;
-    padding: 2px 8px; border-radius: 2px;
-    letter-spacing: .06em; font-weight: 500; white-space: nowrap;
+    padding: 2px 8px; border-radius: 2px; font-weight: 500; white-space: nowrap;
   }
-  .badge-auth    { background: rgba(255,95,87,.12);   color: #ff7b75; border: 1px solid rgba(255,95,87,.3);   }
-  .badge-compute { background: rgba(255,153,0,.12);   color: #ff9900; border: 1px solid rgba(255,153,0,.3);   }
-  .badge-storage { background: rgba(57,255,130,.10);  color: #39ff82; border: 1px solid rgba(57,255,130,.25); }
-  .badge-network { background: rgba(96,165,250,.12);  color: #60a5fa; border: 1px solid rgba(96,165,250,.3);  }
-  .badge-secrets { background: rgba(192,96,255,.12);  color: #c060ff; border: 1px solid rgba(192,96,255,.3);  }
-  .badge-obs     { background: rgba(45,212,191,.12);  color: #2dd4bf; border: 1px solid rgba(45,212,191,.3);  }
-  .badge-data    { background: rgba(240,180,41,.12);  color: #f0b429; border: 1px solid rgba(240,180,41,.3);  }
+  .badge-auth    { background: var(--fill-badge-auth);   color: var(--ink-badge-auth); border: 1px solid var(--line-badge-auth);   }
+  .badge-compute { background: color-mix(in srgb, var(--accent) 12%, transparent);   color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);   }
+  .badge-storage { background: var(--fill-badge-storage);  color: var(--ink-badge-storage); border: 1px solid var(--line-badge-storage); }
+  .badge-network { background: var(--fill-badge-network);  color: var(--ink-badge-network); border: 1px solid var(--line-badge-network);  }
+  .badge-secrets { background: var(--fill-badge-secrets);  color: var(--ink-badge-secrets); border: 1px solid var(--line-badge-secrets);  }
+  .badge-obs     { background: var(--fill-badge-obs);  color: var(--ink-badge-obs); border: 1px solid var(--line-badge-obs);  }
+  .badge-data    { background: var(--fill-badge-data);  color: var(--ink-badge-data); border: 1px solid var(--line-badge-data);  }
 
   /* excluded badge */
   .excl {
     display: inline-block; font-size: 10px;
     padding: 1px 6px; border-radius: 2px;
-    letter-spacing: .05em;
-    background: rgba(100,100,100,.1);
+    background: var(--fill-excl);
     color: var(--muted);
     border: 1px solid var(--border2);
     text-decoration: line-through;
@@ -220,7 +240,6 @@
     font-family: var(--mono); font-size: 10px;
     padding: 1px 7px; cursor: pointer;
     opacity: 0; transition: opacity .15s, color .15s;
-    letter-spacing: .05em;
   }
   .cmd-block:hover .copy-btn { opacity: 1; }
   .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
@@ -243,6 +262,12 @@
     .meta { display: none; }
     .pinned-grid { grid-template-columns: 1fr; }
   }
+
+    /* hallmark polish */
+  h1 { text-wrap: balance; }
+  button:active, [role="button"]:active { transform: translateY(1px); }
+  button:disabled, input:disabled, select:disabled { opacity: .5; cursor: not-allowed; }
+  code.raw { font: inherit; color: inherit; background: none; border: 0; padding: 0; }
 
   /* accessibility floor */
   html, body { overflow-x: clip; }
@@ -269,14 +294,14 @@
 <header>
   <div class="header-inner">
     <div>
-      <p class="prompt">aws sts get-caller-identity</p>
       <h1>AWS CLI<br><span>Production Surface</span></h1>
+      <p class="prompt">aws sts get-caller-identity</p>
       <p class="subtitle">~30 services distilled to what engineers with production scars actually reach for. Honest about what doesn't belong here.</p>
     </div>
     <div class="meta">
       <strong>28</strong> entries<br>
       <strong>7</strong> phases<br>
-      aws-cli v2 &middot; multi-account
+      aws-cli v2, multi-account
     </div>
   </div>
 </header>
@@ -285,26 +310,26 @@
 
   <div class="callout">
     <span>
-      <strong>What's not here — and why.</strong>
+      <strong>What's not here, and why.</strong>
       <code>cloudformation</code> deploy is Terraform's job.
       <code>cloudfront</code> has no realistic CLI workflow under pressure.
       <code>cloudtrail lookup-events</code> is too slow to be useful interactively.
       <code>dynamodb</code> and <code>elasticache</code> are better accessed via SDK.
-      <code>codepipeline</code>, <code>codecommit</code>, <code>xray</code> — console territory.
+      <code>codepipeline</code>, <code>codecommit</code>, <code>xray</code>: console territory.
       If a service isn't on this page, that's a deliberate decision, not an oversight.
     </span>
   </div>
 
   <!-- PINNED: CROSS-CUTTING -->
   <div class="pinned">
-    <div class="pinned-header">cross-cutting — know these before anything else</div>
+    <div class="pinned-header">cross-cutting: know these before anything else</div>
     <div class="pinned-grid">
 
       <div class="pinned-cell">
         <div class="pinned-label">--query (JMESPath)</div>
         <span class="cmd-line">aws ec2 describe-instances --query 'Reservations[].Instances[].{ID:InstanceId,State:State.Name,IP:PrivateIpAddress}' --output table</span>
         <span class="cmd-line">aws s3api list-objects-v2 --bucket mybucket --query 'Contents[?Size>`1048576`].[Key,Size]' --output text</span>
-        <span class="cmd-line comment"># [?field==`value`] filter · [*] flatten · {alias:path} projection</span>
+        <span class="cmd-line comment"># [?field==`value`] filter, [*] flatten, {alias:path} projection</span>
       </div>
 
       <div class="pinned-cell">
@@ -312,7 +337,7 @@
         <span class="cmd-line">aws ec2 describe-instances --output table</span>
         <span class="cmd-line">aws ec2 describe-instances --output json | jq '.Reservations[].Instances[].InstanceId'</span>
         <span class="cmd-line">aws ec2 describe-instances --output text --query 'Reservations[].Instances[].InstanceId'</span>
-        <span class="cmd-line comment"># text: tab-separated, no quotes — safe for xargs and shell pipelines</span>
+        <span class="cmd-line comment"># text: tab-separated, no quotes; safe for xargs and shell pipelines</span>
       </div>
 
       <div class="pinned-cell">
@@ -329,7 +354,7 @@
         <span class="cmd-line">aws s3api list-objects-v2 --bucket mybucket --page-size 100 --max-items 500</span>
         <span class="cmd-line">aws ec2 describe-instances --no-paginate</span>
         <span class="cmd-line">aws ec2 describe-instances | jq '[.Reservations[].Instances[]] | length'</span>
-        <span class="cmd-line comment"># most list commands paginate silently — always verify you got all results</span>
+        <span class="cmd-line comment"># most list commands paginate silently. Always verify you got all results</span>
       </div>
 
     </div>
@@ -366,7 +391,7 @@
             <span class="cmd-line">aws sts get-session-token --duration-seconds 43200 --serial-number arn:aws:iam::123456789012:mfa/myuser --token-code 123456</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>get-caller-identity</code> is the first command to run when debugging "who am I and what account is this." The <code>eval $(assume-role ...)</code> pattern exports temp credentials into the current shell — fragile but useful in a pinch. Use <code>aws-vault</code> or <code>granted</code> instead for routine cross-account work.</td>
+          <td class="usecase"><code>get-caller-identity</code> is the first command to run when debugging "who am I and what account is this." The <code>eval $(assume-role ...)</code> pattern exports temp credentials into the current shell: fragile but useful in a pinch. Use <code>aws-vault</code> or <code>granted</code> instead for routine cross-account work.</td>
         </tr>
 
         <tr data-cat="auth">
@@ -374,15 +399,15 @@
           <td class="phase"><span class="badge badge-auth">auth</span></td>
           <td class="commands"><div class="cmd-block">
             <span class="cmd-line">aws-vault add myprofile</span>
-            <span class="cmd-line">aws-vault exec prod -- aws s3 ls</span>
-            <span class="cmd-line">aws-vault exec prod -- terraform plan</span>
+            <span class="cmd-line"><code class="raw">aws-vault exec prod -- aws s3 ls</code></span>
+            <span class="cmd-line"><code class="raw">aws-vault exec prod -- terraform plan</code></span>
             <span class="cmd-line">aws-vault list</span>
             <span class="cmd-line">aws-vault rotate myprofile</span>
             <span class="cmd-line comment"># ~/.aws/config role chaining with aws-vault:</span>
             <span class="cmd-line comment"># [profile prod] source_profile=base role_arn=arn:aws:iam::PROD:role/Admin mfa_serial=arn:aws:iam::BASE:mfa/me</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Stores IAM credentials in the OS keychain — never in plaintext on disk. <code>exec</code> injects temporary credentials into a subprocess without polluting the shell environment. MFA and role chaining are handled transparently via <code>~/.aws/config</code>. Non-negotiable for multi-account work on a shared machine.</td>
+          <td class="usecase">Stores IAM credentials in the OS keychain. Never in plaintext on disk. <code>exec</code> injects temporary credentials into a subprocess without polluting the shell environment. MFA and role chaining are handled transparently via <code>~/.aws/config</code>. Non-negotiable for multi-account work on a shared machine.</td>
         </tr>
 
         <tr data-cat="auth">
@@ -396,7 +421,7 @@
             <span class="cmd-line">aws iam generate-credential-report && aws iam get-credential-report --query 'Content' --output text | base64 -d</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>simulate-principal-policy</code> is underused — answers "will this role be allowed to do X" without actually doing X. Credential report reveals last-used dates and access key age for all users — run before a compliance audit. Keep IAM mutations in Terraform; use the CLI for inspection only.</td>
+          <td class="usecase"><code>simulate-principal-policy</code> is underused: answers "will this role be allowed to do X" without actually doing X. Credential report reveals last-used dates and access key age for all users. Run before a compliance audit. Keep IAM mutations in Terraform; use the CLI for inspection only.</td>
         </tr>
 
         <tr data-cat="auth">
@@ -415,7 +440,7 @@
             <span class="cmd-line comment"># sso_region = eu-west-1</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">AWS IAM Identity Center (SSO) is the correct authentication path for organisations — no long-lived keys, MFA enforced at IdP, session duration controlled centrally. <code>aws configure sso</code> is a one-time setup per profile; after that <code>aws sso login</code> refreshes the session token. Prefer over IAM users for human access.</td>
+          <td class="usecase">AWS IAM Identity Center (SSO) is the correct authentication path for organisations: no long-lived keys, MFA enforced at IdP, session duration controlled centrally. <code>aws configure sso</code> is a one-time setup per profile; after that <code>aws sso login</code> refreshes the session token. Prefer over IAM users for human access.</td>
         </tr>
 
         <!-- COMPUTE -->
@@ -430,7 +455,7 @@
             <span class="cmd-line">aws ec2 describe-spot-price-history --instance-types m5.xlarge --product-descriptions "Linux/UNIX" --start-time $(date -u +%Y-%m-%dT%H:%M:%S) --query 'SpotPriceHistory[].{AZ:AvailabilityZone,Price:SpotPrice}' --output table</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Tag-based filtering + JMESPath projection gives a clean inventory view without opening the console. <code>--dry-run</code> verifies permissions before a destructive operation. Spot price history is genuinely useful from the CLI — faster than the console graph for comparing AZs before a batch job submission.</td>
+          <td class="usecase">Tag-based filtering + JMESPath projection gives a clean inventory view without opening the console. <code>--dry-run</code> verifies permissions before a destructive operation. Spot price history is genuinely useful from the CLI: faster than the console graph for comparing AZs before a batch job submission.</td>
         </tr>
 
         <tr data-cat="compute">
@@ -443,7 +468,7 @@
             <span class="cmd-line">aws ec2 revoke-security-group-ingress --group-id sg-12345 --protocol tcp --port 22 --cidr 0.0.0.0/0</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">The first query surfaces all security groups with a public ingress rule — run it as a periodic audit, not just during incidents. <code>describe-security-group-rules</code> (not the older <code>describe-security-groups</code>) gives cleaner per-rule output. SG mutations belong in Terraform; use the CLI for emergency access changes only.</td>
+          <td class="usecase">The first query surfaces all security groups with a public ingress rule. Run it as a periodic audit, not just during incidents. <code>describe-security-group-rules</code> (not the older <code>describe-security-groups</code>) gives cleaner per-rule output. SG mutations belong in Terraform; use the CLI for emergency access changes only.</td>
         </tr>
 
         <tr data-cat="compute">
@@ -457,7 +482,7 @@
             <span class="cmd-line">aws ecs update-service --cluster mycluster --service myservice --force-new-deployment</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>execute-command</code> is ECS Exec — a shell into a running container without SSH or bastion. Requires the SSM agent in the task and <code>enableExecuteCommand: true</code> on the service. <code>force-new-deployment</code> triggers a rolling restart without changing the task definition — the correct way to pick up a new image on the same tag.</td>
+          <td class="usecase"><code>execute-command</code> is ECS Exec: a shell into a running container without SSH or bastion. Requires the SSM agent in the task and <code>enableExecuteCommand: true</code> on the service. <code>force-new-deployment</code> triggers a rolling restart without changing the task definition: the correct way to pick up a new image on the same tag.</td>
         </tr>
 
         <tr data-cat="compute">
@@ -471,7 +496,7 @@
             <span class="cmd-line">aws logs tail /aws/lambda/myfunction --follow</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>--cli-binary-format raw-in-base64-out</code> is required in aws-cli v2 for JSON payloads — a silent breaking change from v1. <code>--invocation-type Event</code> fires async and returns immediately. Tail logs via <code>aws logs</code>, not the Lambda CLI — it has the filter syntax.</td>
+          <td class="usecase"><code>--cli-binary-format raw-in-base64-out</code> is required in aws-cli v2 for JSON payloads: a silent breaking change from v1. <code>--invocation-type Event</code> fires async and returns immediately. Tail logs via <code>aws logs</code>, not the Lambda CLI. It has the filter syntax.</td>
         </tr>
 
         <tr data-cat="compute">
@@ -484,7 +509,7 @@
             <span class="cmd-line">aws autoscaling terminate-instance-in-auto-scaling-group --instance-id i-1234567890abcdef0 --should-decrement-desired-capacity</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>describe-scaling-activities</code> is the first place to look when an ASG isn't scaling as expected — it logs every scaling decision with a human-readable cause. <code>terminate-instance</code> with <code>--should-decrement-desired-capacity</code> removes a bad instance without triggering a replacement.</td>
+          <td class="usecase"><code>describe-scaling-activities</code> is the first place to look when an ASG isn't scaling as expected. It logs every scaling decision with a human-readable cause. <code>terminate-instance</code> with <code>--should-decrement-desired-capacity</code> removes a bad instance without triggering a replacement.</td>
         </tr>
 
         <!-- STORAGE -->
@@ -500,7 +525,7 @@
             <span class="cmd-line">aws s3 mb s3://mybucket --region eu-west-1</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>sync --delete</code> mirrors a local directory to S3, deleting remote objects with no local counterpart — always run with <code>--dryrun</code> first. <code>presign</code> generates a time-limited authenticated URL without changing bucket policy — the correct way to share private objects temporarily.</td>
+          <td class="usecase"><code>sync --delete</code> mirrors a local directory to S3, deleting remote objects with no local counterpart. Always run with <code>--dryrun</code> first. <code>presign</code> generates a time-limited authenticated URL without changing bucket policy: the correct way to share private objects temporarily.</td>
         </tr>
 
         <tr data-cat="storage">
@@ -515,7 +540,7 @@
             <span class="cmd-line">aws s3api abort-multipart-upload --bucket mybucket --key mykey --upload-id &lt;id&gt;</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>get-public-access-block</code> verifies the bucket-level block — a bucket policy allowing public access is silently blocked if this is set. Stale multipart uploads accumulate storage charges invisibly — <code>list-multipart-uploads</code> followed by <code>abort</code> clears them. Object versions are only visible via <code>s3api</code>, not <code>s3</code>.</td>
+          <td class="usecase"><code>get-public-access-block</code> verifies the bucket-level block: a bucket policy allowing public access is silently blocked if this is set. Stale multipart uploads accumulate storage charges invisibly: <code>list-multipart-uploads</code> followed by <code>abort</code> clears them. Object versions are only visible via <code>s3api</code>, not <code>s3</code>.</td>
         </tr>
 
         <tr data-cat="storage">
@@ -528,7 +553,7 @@
             <span class="cmd-line">aws ec2 copy-snapshot --source-region us-east-1 --source-snapshot-id snap-1234 --region eu-west-1 --description "cross-region copy"</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Always create a snapshot before a risky operation and tag it with a date and reason. The delete pipeline pipes <code>--output text</code> snapshot IDs into <code>xargs</code> — verify the query returns the right set before removing <code>--dry-run</code>. Cross-region copy is the manual DR path when DLM isn't configured.</td>
+          <td class="usecase">Always create a snapshot before a risky operation and tag it with a date and reason. The delete pipeline pipes <code>--output text</code> snapshot IDs into <code>xargs</code>: verify the query returns the right set before removing <code>--dry-run</code>. Cross-region copy is the manual DR path when DLM isn't configured.</td>
         </tr>
 
         <!-- NETWORKING -->
@@ -542,7 +567,7 @@
             <span class="cmd-line">aws elbv2 describe-target-groups --load-balancer-arn &lt;arn&gt; --query 'TargetGroups[].{Name:TargetGroupName,Protocol:Protocol,Port:Port,HealthyThreshold:HealthyThresholdCount}'</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>describe-target-health</code> with the <code>Reason</code> field is the first place to look when traffic isn't reaching instances — the reason string is specific enough to act on (health check failure, registration in progress, etc). Listener rules are opaque in the console; the CLI output is easier to audit for rule ordering bugs.</td>
+          <td class="usecase"><code>describe-target-health</code> with the <code>Reason</code> field is the first place to look when traffic isn't reaching instances: the reason string is specific enough to act on (health check failure, registration in progress, etc). Listener rules are opaque in the console; the CLI output is easier to audit for rule ordering bugs.</td>
         </tr>
 
         <tr data-cat="network">
@@ -556,7 +581,7 @@
             <span class="cmd-line">aws route53 get-health-check-status --health-check-id &lt;id&gt; --query 'HealthCheckObservations[].{Region:Region,Status:StatusReport.Status}'</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>test-dns-answer</code> queries Route53 directly — bypasses resolver cache and propagation delay, answers "what does Route53 think the record is right now." Useful immediately after a change. Record mutations via <code>change-batch</code> JSON file are version-controllable — better than console edits for audit trails.</td>
+          <td class="usecase"><code>test-dns-answer</code> queries Route53 directly: bypasses resolver cache and propagation delay, answers "what does Route53 think the record is right now." Useful immediately after a change. Record mutations via <code>change-batch</code> JSON file are version-controllable: better than console edits for audit trails.</td>
         </tr>
 
         <tr data-cat="network">
@@ -569,7 +594,7 @@
             <span class="cmd-line">aws logs filter-log-events --log-group-name /aws/vpc/flowlogs --filter-pattern "[version, account, eni, source, destination, srcport, destport, protocol, packets, bytes, windowstart, windowend, action=REJECT, flowlogstatus]" --start-time $(($(date +%s) - 3600))000 --query 'events[].message'</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">The flow log filter pattern surfaces all REJECT entries from the last hour — the fastest way to diagnose unexpected traffic drops from security groups or NACLs. <code>describe-subnets</code> with <code>MapPublicIpOnLaunch</code> identifies subnets that auto-assign public IPs — a common misconfiguration in multi-tier VPCs.</td>
+          <td class="usecase">The flow log filter pattern surfaces all REJECT entries from the last hour: the fastest way to diagnose unexpected traffic drops from security groups or NACLs. <code>describe-subnets</code> with <code>MapPublicIpOnLaunch</code> identifies subnets that auto-assign public IPs: a common misconfiguration in multi-tier VPCs.</td>
         </tr>
 
         <!-- SECRETS -->
@@ -584,7 +609,7 @@
             <span class="cmd-line">aws secretsmanager describe-secret --secret-id myapp/prod/db --query '{Rotation:RotationEnabled,Lambda:RotationLambdaARN,NextDate:NextRotationDate}'</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Never print raw secret values to a terminal in a shared session. Pipe through <code>jq -r '.password'</code> to extract only what's needed. <code>LastAccessedDate</code> in the list view reveals unused secrets — candidates for deletion. <code>describe-secret</code> confirms rotation is configured before assuming it's running.</td>
+          <td class="usecase">Never print raw secret values to a terminal in a shared session. Pipe through <code>jq -r '.password'</code> to extract only what's needed. <code>LastAccessedDate</code> in the list view reveals unused secrets: candidates for deletion. <code>describe-secret</code> confirms rotation is configured before assuming it's running.</td>
         </tr>
 
         <tr data-cat="secrets">
@@ -597,7 +622,7 @@
             <span class="cmd-line">aws ssm get-parameters-by-path --path /myapp/prod/ --recursive --query 'Parameters[].Name' --output text | tr '\t' '\n'</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Hierarchical paths (<code>/app/env/key</code>) allow fetching all config for a service in one call with <code>get-parameters-by-path --recursive</code>. Always use <code>SecureString</code> for anything sensitive — <code>String</code> stores plaintext in the SSM API response and CloudTrail logs. Cheaper than Secrets Manager for non-rotating config.</td>
+          <td class="usecase">Hierarchical paths (<code>/app/env/key</code>) allow fetching all config for a service in one call with <code>get-parameters-by-path --recursive</code>. Always use <code>SecureString</code> for anything sensitive: <code>String</code> stores plaintext in the SSM API response and CloudTrail logs. Cheaper than Secrets Manager for non-rotating config.</td>
         </tr>
 
         <tr data-cat="secrets">
@@ -610,7 +635,7 @@
             <span class="cmd-line">aws ssm send-command --instance-ids i-1234567890abcdef0 --document-name AWS-RunShellScript --parameters 'commands=["df -h"]' --query 'Command.CommandId'</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">SSH replacement — no open port 22, no key management, full audit trail in CloudTrail. Port forwarding to RDS or ElastiCache without a bastion is the pattern that replaces jump hosts entirely. <code>send-command</code> runs shell commands across a fleet without establishing interactive sessions — pairs with <code>list-command-invocations</code> for results.</td>
+          <td class="usecase">SSH replacement: no open port 22, no key management, full audit trail in CloudTrail. Port forwarding to RDS or ElastiCache without a bastion is the pattern that replaces jump hosts entirely. <code>send-command</code> runs shell commands across a fleet without establishing interactive sessions: pairs with <code>list-command-invocations</code> for results.</td>
         </tr>
 
         <!-- OBSERVABILITY -->
@@ -625,7 +650,7 @@
             <span class="cmd-line">aws logs get-query-results --query-id &lt;id&gt; --query 'results[][?field==`@message`].value' --output text</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>aws logs tail --follow</code> is the most-used command in this page during an incident — works for Lambda, ECS, and any CWL group. Timestamps for <code>filter-log-events</code> are millisecond epoch — the <code>$(date +%s)000</code> pattern avoids tz mistakes. Insights queries via CLI are async: start-query returns an ID, poll with get-query-results.</td>
+          <td class="usecase"><code>aws logs tail --follow</code> is the most-used command in this page during an incident: works for Lambda, ECS, and any CWL group. Timestamps for <code>filter-log-events</code> are millisecond epoch: the <code>$(date +%s)000</code> pattern avoids tz mistakes. Insights queries via CLI are async: start-query returns an ID, poll with get-query-results.</td>
         </tr>
 
         <tr data-cat="obs">
@@ -638,7 +663,7 @@
             <span class="cmd-line">aws cloudwatch list-metrics --namespace AWS/RDS --query 'Metrics[].MetricName' --output text | tr '\t' '\n' | sort -u</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>describe-alarms --state-value ALARM</code> is the first command during a pager event — shows what's firing and why without opening the console. <code>set-alarm-state ALARM</code> manually triggers an alarm to test SNS routing and runbook links without waiting for a real threshold breach.</td>
+          <td class="usecase"><code>describe-alarms --state-value ALARM</code> is the first command during a pager event: shows what's firing and why without opening the console. <code>set-alarm-state ALARM</code> manually triggers an alarm to test SNS routing and runbook links without waiting for a real threshold breach.</td>
         </tr>
 
         <!-- DATA / PLATFORM -->
@@ -653,7 +678,7 @@
             <span class="cmd-line comment"># ApproximateNumberOfMessages is the backlog; InFlight is being processed</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>get-queue-attributes</code> depth + in-flight split is the key metric for diagnosing processing lag vs consumer failures. <code>start-message-move-task</code> (SQS DLQ redrive) is the correct way to replay dead-letter messages — no manual receive-delete-send loop. <code>purge-queue</code> is irreversible; confirm you mean it.</td>
+          <td class="usecase"><code>get-queue-attributes</code> depth + in-flight split is the key metric for diagnosing processing lag vs consumer failures. <code>start-message-move-task</code> (SQS DLQ redrive) is the correct way to replay dead-letter messages: no manual receive-delete-send loop. <code>purge-queue</code> is irreversible; confirm you mean it.</td>
         </tr>
 
         <tr data-cat="data">
@@ -666,7 +691,7 @@
             <span class="cmd-line">aws sns get-topic-attributes --topic-arn &lt;arn&gt; --query 'Attributes.{Policy:Policy,DisplayName:DisplayName}'</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>publish</code> from the CLI is the fastest way to test an event-driven pipeline end-to-end without writing code. <code>list-subscriptions-by-topic</code> shows what's actually consuming — subscription ARN as <code>PendingConfirmation</code> means the endpoint never confirmed, a common silent failure for HTTP endpoints.</td>
+          <td class="usecase"><code>publish</code> from the CLI is the fastest way to test an event-driven pipeline end-to-end without writing code. <code>list-subscriptions-by-topic</code> shows what's actually consuming: subscription ARN as <code>PendingConfirmation</code> means the endpoint never confirmed, a common silent failure for HTTP endpoints.</td>
         </tr>
 
         <tr data-cat="data">
@@ -680,7 +705,7 @@
             <span class="cmd-line">aws ecr batch-delete-image --repository-name myrepo --image-ids imageTag=old-tag</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">The <code>get-login-password | docker login</code> pipeline is the correct ECR auth pattern — token is valid for 12h, no stored credentials. Untagged image accumulation inflates storage costs; the list + delete pipeline cleans them. <code>describe-image-scan-findings</code> gives native ECR scan results — use trivy for deeper analysis.</td>
+          <td class="usecase">The <code>get-login-password | docker login</code> pipeline is the correct ECR auth pattern: token is valid for 12h, no stored credentials. Untagged image accumulation inflates storage costs; the list + delete pipeline cleans them. <code>describe-image-scan-findings</code> gives native ECR scan results. Use trivy for deeper analysis.</td>
         </tr>
 
         <tr data-cat="data">
@@ -694,7 +719,7 @@
             <span class="cmd-line">aws rds failover-db-cluster --db-cluster-identifier mycluster</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Manual snapshot before schema migrations — not a substitute for automated backups but a cheap safety net with a human-readable name. <code>download-db-log-file-portion</code> pulls Postgres/MySQL error logs without needing SSH or CloudWatch Logs agent. <code>failover-db-cluster</code> is a planned AZ failover — test it before you need it under pressure.</td>
+          <td class="usecase">Manual snapshot before schema migrations, not a substitute for automated backups but a cheap safety net with a human-readable name. <code>download-db-log-file-portion</code> pulls Postgres/MySQL error logs without needing SSH or CloudWatch Logs agent. <code>failover-db-cluster</code> is a planned AZ failover. Test it before you need it under pressure.</td>
         </tr>
 
         <tr data-cat="data">
@@ -708,7 +733,7 @@
             <span class="cmd-line">aws events list-targets-by-rule --rule MyRule --query 'Targets[].{ID:Id,ARN:Arn}'</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>disable-rule</code>/<code>enable-rule</code> is the fastest way to pause a scheduled job during an incident without touching Terraform state. <code>put-events</code> injects a test event into the bus — the correct way to test rule patterns and target routing before a real event fires. <code>list-targets-by-rule</code> reveals what a rule actually invokes.</td>
+          <td class="usecase"><code>disable-rule</code>/<code>enable-rule</code> is the fastest way to pause a scheduled job during an incident without touching Terraform state. <code>put-events</code> injects a test event into the bus: the correct way to test rule patterns and target routing before a real event fires. <code>list-targets-by-rule</code> reveals what a rule actually invokes.</td>
         </tr>
 
         <tr data-cat="data">
@@ -721,7 +746,7 @@
             <span class="cmd-line">aws cloudformation describe-stack-resource-drifts --stack-name mystack --stack-resource-drift-status-filters MODIFIED DELETED --query 'StackResourceDrifts[].{Resource:LogicalResourceId,Status:StackResourceDriftStatus,Diff:PropertyDifferences}'</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Inspection only — deploy via Terraform or the CDK, not the CLI. <code>describe-stack-events</code> filtered to <code>UPDATE_FAILED</code> is the fastest way to find the root cause of a stuck rollback. Drift detection surfaces manual console changes that diverge from the template — run it before assuming a stack is clean.</td>
+          <td class="usecase">Inspection only: deploy via Terraform or the CDK, not the CLI. <code>describe-stack-events</code> filtered to <code>UPDATE_FAILED</code> is the fastest way to find the root cause of a stuck rollback. Drift detection surfaces manual console changes that diverge from the template. Run it before assuming a stack is clean.</td>
         </tr>
 
       </tbody>
@@ -731,11 +756,7 @@
 </main>
 
 <footer>
-  ops://cheatsheets &mdash;
-  <a href="https://awscli.amazonaws.com/v2/documentation/api/latest/index.html" target="_blank" rel="noopener">AWS CLI v2 reference</a> &middot;
-  <a href="https://jmespath.org/tutorial.html" target="_blank" rel="noopener">JMESPath tutorial</a> &middot;
-  <a href="https://github.com/99designs/aws-vault" target="_blank" rel="noopener">aws-vault</a> &middot;
-  <a href="https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager.html" target="_blank" rel="noopener">SSM Session Manager</a>
+  ops://cheatsheets: <a href="https://awscli.amazonaws.com/v2/documentation/api/latest/index.html" target="_blank" rel="noopener">AWS CLI v2 reference</a>, <a href="https://jmespath.org/tutorial.html" target="_blank" rel="noopener">JMESPath tutorial</a>, <a href="https://github.com/99designs/aws-vault" target="_blank" rel="noopener">aws-vault</a>, <a href="https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager.html" target="_blank" rel="noopener">SSM Session Manager</a>
 </footer>
 
 <script>

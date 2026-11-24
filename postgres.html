@@ -3,11 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PostgreSQL Operations — Cheat Sheet</title>
-<meta name="description" content="Filterable cheat sheet for PostgreSQL operations — psql, backup/restore, query analysis, maintenance, security, and replication.">
+<title>PostgreSQL Operations: Cheat Sheet</title>
+<meta name="description" content="Filterable cheat sheet for PostgreSQL operations: psql, backup/restore, query analysis, maintenance, security, and replication.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <style>
+/* Hallmark · checked: 2026-11-24 · genre: modern-minimal (inferred)
+ * floor: 0 FAIL · fixed: 2a, 3, 7a, 10a, 19, 26a, 27, 34, 40, 48, 54, 63, 67 · structural: 58 printed
+ * built: the project · redesign: polish · v2.0.0 */
+/* Hallmark · answered F1 · straight quotes sit beside shell, JSON and SQL fragments readers copy, so they stay straight */
+/* Hallmark · answered F2 · three-dot ellipses mark elided arguments in commands and are kept */
+/* Hallmark · waive 38iii · the h1 span appears once, in the header · "Operations" in the accent is how the PostgreSQL Operations page names its subject across the series */
   :root {
     --bg:      #090c12;
     --bg2:     #0e1219;
@@ -20,6 +26,24 @@
     --cmd:     #7dd3a8;
     --mono:    'JetBrains Mono', monospace;
     --display: 'Syne', sans-serif;
+    --fill-body: rgba(0,0,0,0.04);
+    --ink-h1: #d0e0f8;
+    --fill-badge-backup: rgba(57,255,130,.10);
+    --ink-badge-backup: #39ff82;
+    --line-badge-backup: rgba(57,255,130,.25);
+    --fill-badge-perf: rgba(240,180,41,.12);
+    --ink-badge-perf: #f0b429;
+    --line-badge-perf: rgba(240,180,41,.3);
+    --fill-badge-maint: rgba(45,212,191,.12);
+    --ink-badge-maint: #2dd4bf;
+    --line-badge-maint: rgba(45,212,191,.3);
+    --fill-badge-security: rgba(255,95,87,.12);
+    --ink-badge-security: #ff7b75;
+    --line-badge-security: rgba(255,95,87,.3);
+    --fill-badge-repli: rgba(192,96,255,.12);
+    --ink-badge-repli: #c060ff;
+    --line-badge-repli: rgba(192,96,255,.3);
+    --ink-cmd-line-sql: #b8d0f8;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -33,7 +57,7 @@
   body::before {
     content: '';
     position: fixed; inset: 0;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, var(--fill-body) 2px, var(--fill-body) 4px);
     pointer-events: none; z-index: 999;
   }
 
@@ -64,12 +88,12 @@
     display: flex; align-items: flex-end;
     justify-content: space-between; gap: 1rem; flex-wrap: wrap;
   }
-  .prompt { font-size: 11px; color: var(--accent); letter-spacing: .1em; margin-bottom: .5rem; }
+  .prompt { font-size: 11px; color: var(--accent); margin-bottom: .5rem; }
   .prompt::before { content: '$ '; color: var(--muted); }
   h1 {
     font-family: var(--display);
     font-size: clamp(1.6rem, 4vw, 2.6rem);
-    font-weight: 800; color: #d0e0f8;
+    font-weight: 800; color: var(--ink-h1);
     letter-spacing: -.02em; line-height: 1.1;
   }
   h1 span { color: var(--accent); }
@@ -84,18 +108,17 @@
     align-items: center; gap: .5rem;
     margin-bottom: 1.25rem;
   }
-  .toolbar-label { font-size: 10px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; margin-right: .25rem; }
+  .toolbar-label { font-size: 10px; color: var(--muted); margin-right: .25rem; }
   .f-btn {
     background: transparent;
     border: 1px solid var(--border2);
     border-radius: 3px; padding: 3px 10px;
     font-family: var(--mono); font-size: 11px;
     color: var(--muted); cursor: pointer;
-    letter-spacing: .06em;
     transition: color .15s, border-color .15s, background .15s;
   }
   .f-btn:hover { color: var(--text); background: var(--bg3); }
-  .f-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(122,162,247,0.07); }
+  .f-btn.active { color: var(--accent); border-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, transparent); }
   .count { margin-left: auto; font-size: 11px; color: var(--muted); }
   .count strong { color: var(--accent); }
 
@@ -104,7 +127,6 @@
   thead th {
     background: var(--bg2); padding: 10px 14px;
     text-align: left; font-size: 10px;
-    letter-spacing: .12em; text-transform: uppercase;
     color: var(--muted); border-bottom: 1px solid var(--border);
     white-space: nowrap; font-weight: 400;
   }
@@ -114,20 +136,19 @@
   tbody tr:last-child { border-bottom: none; }
   tbody tr:hover { background: var(--bg2); }
   td { padding: 10px 14px; vertical-align: top; }
-  td.tool-name { font-weight: 700; font-size: 13px; color: #d0e0f8; white-space: nowrap; min-width: 160px; }
+  td.tool-name { font-weight: 700; font-size: 13px; color: var(--ink-h1); white-space: nowrap; min-width: 160px; }
   td.phase { min-width: 100px; }
 
   .badge {
     display: inline-block; font-size: 10px;
-    padding: 2px 8px; border-radius: 2px;
-    letter-spacing: .06em; font-weight: 500; white-space: nowrap;
+    padding: 2px 8px; border-radius: 2px; font-weight: 500; white-space: nowrap;
   }
-  .badge-psql    { background: rgba(122,162,247,.12); color: #7aa2f7; border: 1px solid rgba(122,162,247,.3); }
-  .badge-backup  { background: rgba(57,255,130,.10);  color: #39ff82; border: 1px solid rgba(57,255,130,.25); }
-  .badge-perf    { background: rgba(240,180,41,.12);  color: #f0b429; border: 1px solid rgba(240,180,41,.3);  }
-  .badge-maint   { background: rgba(45,212,191,.12);  color: #2dd4bf; border: 1px solid rgba(45,212,191,.3);  }
-  .badge-security{ background: rgba(255,95,87,.12);   color: #ff7b75; border: 1px solid rgba(255,95,87,.3);   }
-  .badge-repli   { background: rgba(192,96,255,.12);  color: #c060ff; border: 1px solid rgba(192,96,255,.3);  }
+  .badge-psql    { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); }
+  .badge-backup  { background: var(--fill-badge-backup);  color: var(--ink-badge-backup); border: 1px solid var(--line-badge-backup); }
+  .badge-perf    { background: var(--fill-badge-perf);  color: var(--ink-badge-perf); border: 1px solid var(--line-badge-perf);  }
+  .badge-maint   { background: var(--fill-badge-maint);  color: var(--ink-badge-maint); border: 1px solid var(--line-badge-maint);  }
+  .badge-security{ background: var(--fill-badge-security);   color: var(--ink-badge-security); border: 1px solid var(--line-badge-security);   }
+  .badge-repli   { background: var(--fill-badge-repli);  color: var(--ink-badge-repli); border: 1px solid var(--line-badge-repli);  }
 
   td.commands { min-width: 320px; max-width: 460px; }
   .cmd-block { position: relative; }
@@ -137,7 +158,7 @@
     word-break: break-all;
   }
   .cmd-line::before { content: '$ '; color: var(--muted); user-select: none; }
-  .cmd-line.sql { color: #b8d0f8; }
+  .cmd-line.sql { color: var(--ink-cmd-line-sql); }
   .cmd-line.sql::before { content: '# '; color: var(--muted); user-select: none; }
   .cmd-line.comment { color: var(--muted); }
   .cmd-line.comment::before { content: ''; }
@@ -148,7 +169,6 @@
     font-family: var(--mono); font-size: 10px;
     padding: 1px 7px; cursor: pointer;
     opacity: 0; transition: opacity .15s, color .15s;
-    letter-spacing: .05em;
   }
   .cmd-block:hover .copy-btn { opacity: 1; }
   .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
@@ -164,7 +184,7 @@
   }
   .legend-item { display: flex; align-items: center; gap: .4rem; }
   .leg-cmd { color: var(--cmd); }
-  .leg-sql { color: #b8d0f8; }
+  .leg-sql { color: var(--ink-cmd-line-sql); }
 
   footer {
     border-top: 1px solid var(--border);
@@ -179,6 +199,12 @@
     h1 { font-size: 1.5rem; }
     .meta { display: none; }
   }
+
+    /* hallmark polish */
+  h1 { text-wrap: balance; }
+  button:active, [role="button"]:active { transform: translateY(1px); }
+  button:disabled, input:disabled, select:disabled { opacity: .5; cursor: not-allowed; }
+  code.raw { font: inherit; color: inherit; background: none; border: 0; padding: 0; }
 
   /* accessibility floor */
   html, body { overflow-x: clip; }
@@ -205,14 +231,14 @@
 <header>
   <div class="header-inner">
     <div>
-      <p class="prompt">psql -U postgres -c "SELECT version();"</p>
       <h1>PostgreSQL<br><span>Operations</span></h1>
+      <p class="prompt">psql -U postgres -c "SELECT version();"</p>
       <p class="subtitle">psql meta-commands, backup and restore, query analysis, maintenance, access control, and replication monitoring. Self-hosted, production-grade.</p>
     </div>
     <div class="meta">
       <strong>18</strong> tools / queries<br>
       <strong>6</strong> phases<br>
-      PostgreSQL 15+ &middot; self-hosted
+      PostgreSQL 15+, self-hosted
     </div>
   </div>
 </header>
@@ -250,13 +276,13 @@
             <span class="cmd-line">psql -h localhost -U myuser -d mydb</span>
             <span class="cmd-line">psql "postgresql://myuser:pass@localhost:5432/mydb"</span>
             <span class="cmd-line">psql "postgresql://myuser@localhost/mydb?sslmode=require"</span>
-            <span class="cmd-line comment"># avoid passwords in shell history — use .pgpass:</span>
+            <span class="cmd-line comment"># avoid passwords in shell history. Use .pgpass:</span>
             <span class="cmd-line comment"># ~/.pgpass format: host:port:db:user:password</span>
             <span class="cmd-line">chmod 600 ~/.pgpass</span>
             <span class="cmd-line comment"># or use PGPASSFILE / PGPASSWORD env vars in scripts</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Connection string URI is cleaner than individual flags in scripts. Never pass passwords via <code>-W</code> or shell history — use <code>~/.pgpass</code> with strict permissions or <code>PGPASSWORD</code> env var scoped to the command. <code>sslmode=require</code> for any non-localhost connection.</td>
+          <td class="usecase">Connection string URI is cleaner than individual flags in scripts. Never pass passwords via <code>-W</code> or shell history. Use <code>~/.pgpass</code> with strict permissions or <code>PGPASSWORD</code> env var scoped to the command. <code>sslmode=require</code> for any non-localhost connection.</td>
         </tr>
 
         <tr data-cat="psql">
@@ -287,10 +313,10 @@
             <span class="cmd-line">psql -U myuser -d mydb -f migration.sql -v ON_ERROR_STOP=1</span>
             <span class="cmd-line">psql -U myuser -d mydb --csv -c "SELECT * FROM report;" > report.csv</span>
             <span class="cmd-line">psql -U myuser -d mydb -t -A -c "SELECT max(id) FROM events;"</span>
-            <span class="cmd-line comment"># -t: tuples only, -A: unaligned — clean for shell variable capture</span>
+            <span class="cmd-line comment"># -t: tuples only, -A: unaligned; clean for shell variable capture</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>-v ON_ERROR_STOP=1</code> aborts the script on the first error — essential for migration scripts where partial execution leaves inconsistent state. <code>-t -A</code> strips headers and alignment for capturing single values into shell variables. <code>--csv</code> produces RFC 4180-compliant output.</td>
+          <td class="usecase"><code>-v ON_ERROR_STOP=1</code> aborts the script on the first error: essential for migration scripts where partial execution leaves inconsistent state. <code>-t -A</code> strips headers and alignment for capturing single values into shell variables. <code>--csv</code> produces RFC 4180-compliant output.</td>
         </tr>
 
         <!-- BACKUP -->
@@ -305,7 +331,7 @@
             <span class="cmd-line">pg_dump -U myuser -d mydb -Fc | gzip > mydb_$(date +%Y%m%d).dump.gz</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>-Fc</code> (custom format) is required for <code>pg_restore</code> selective restore and parallel jobs. <code>-Fd -j 4</code> dumps in parallel — significantly faster on large databases. Never use plain SQL format for production backups; it can't be restored in parallel and has no TOC. Always verify with <code>pg_restore --list</code> before you need it.</td>
+          <td class="usecase"><code>-Fc</code> (custom format) is required for <code>pg_restore</code> selective restore and parallel jobs. <code>-Fd -j 4</code> dumps in parallel: significantly faster on large databases. Never use plain SQL format for production backups; it can't be restored in parallel and has no TOC. Always verify with <code>pg_restore --list</code> before you need it.</td>
         </tr>
 
         <tr data-cat="backup">
@@ -320,7 +346,7 @@
             <span class="cmd-line">pg_restore -U myuser -d mydb -Fc -t events mydb.dump</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>-j 4</code> restores in parallel — halves restore time on multi-core systems. Edit <code>toc.txt</code> to restore a subset (comment out lines with <code>;</code>). <code>-t events</code> restores a single table. Run <code>--list</code> monthly on backup files to verify they're readable before an incident forces you to.</td>
+          <td class="usecase"><code>-j 4</code> restores in parallel: halves restore time on multi-core systems. Edit <code>toc.txt</code> to restore a subset (comment out lines with <code>;</code>). <code>-t events</code> restores a single table. Run <code>--list</code> monthly on backup files to verify they're readable before an incident forces you to.</td>
         </tr>
 
         <tr data-cat="backup">
@@ -335,23 +361,23 @@
             <span class="cmd-line">pg_verifybackup /backup/base</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Physical base backup — faster to restore than <code>pg_dump</code> for large databases and required for PITR (point-in-time recovery). <code>-R</code> configures a new replica automatically. <code>pg_verifybackup</code> (PG13+) validates the backup manifest — run it after every base backup, not just before a restore.</td>
+          <td class="usecase">Physical base backup: faster to restore than <code>pg_dump</code> for large databases and required for PITR (point-in-time recovery). <code>-R</code> configures a new replica automatically. <code>pg_verifybackup</code> (PG13+) validates the backup manifest. Run it after every base backup, not just before a restore.</td>
         </tr>
 
         <!-- PERFORMANCE -->
         <tr data-cat="perf">
-          <td class="tool-name">EXPLAIN ANALYZE</td>
+          <td class="tool-name"><code class="raw">EXPLAIN ANALYZE</code></td>
           <td class="phase"><span class="badge badge-perf">performance</span></td>
           <td class="commands"><div class="cmd-block">
-            <span class="cmd-line sql">EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT) SELECT ...;</span>
+            <span class="cmd-line sql"><code class="raw">EXPLAIN (ANALYZE, BUFFERS, FORMAT TEXT) SELECT ...;</code></span>
             <span class="cmd-line sql">EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) SELECT ... \gset</span>
             <span class="cmd-line sql">EXPLAIN (ANALYZE, BUFFERS, GENERIC_PLAN) SELECT $1 FROM t WHERE id = $1;</span>
             <span class="cmd-line comment"># wrap in a transaction and rollback to avoid side effects on writes:</span>
-            <span class="cmd-line sql">BEGIN; EXPLAIN ANALYZE INSERT INTO ...; ROLLBACK;</span>
+            <span class="cmd-line sql"><code class="raw">BEGIN; EXPLAIN ANALYZE INSERT INTO ...; ROLLBACK;</code></span>
             <span class="cmd-line comment"># paste JSON output into: explain.dalibo.com or depesz.com</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>BUFFERS</code> shows shared/local/temp buffer hits and reads — the difference between a plan hitting cache vs disk. <code>GENERIC_PLAN</code> (PG16+) shows the plan for a parameterised query before execution. Always wrap DML in a transaction and rollback when using ANALYZE to avoid committing test data.</td>
+          <td class="usecase"><code>BUFFERS</code> shows shared/local/temp buffer hits and reads: the difference between a plan hitting cache vs disk. <code>GENERIC_PLAN</code> (PG16+) shows the plan for a parameterised query before execution. Always wrap DML in a transaction and rollback when using ANALYZE to avoid committing test data.</td>
         </tr>
 
         <tr data-cat="perf">
@@ -370,7 +396,7 @@ ORDER BY mean_exec_time DESC;</span>
             <span class="cmd-line sql">SELECT pg_stat_statements_reset();</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Workload-wide query profiling — identifies the highest-cumulative-time queries, not just the slowest individual calls. <code>shared_blks_read</code> high relative to <code>shared_blks_hit</code> signals missing indexes or undersized <code>shared_buffers</code>. Reset before a load test to get clean baselines.</td>
+          <td class="usecase">Workload-wide query profiling: identifies the highest-cumulative-time queries, not just the slowest individual calls. <code>shared_blks_read</code> high relative to <code>shared_blks_hit</code> signals missing indexes or undersized <code>shared_buffers</code>. Reset before a load test to get clean baselines.</td>
         </tr>
 
         <tr data-cat="perf">
@@ -389,7 +415,7 @@ WHERE cardinality(pg_blocking_pids(blocked.pid)) > 0;</span>
             <span class="cmd-line sql">SELECT pg_terminate_backend(&lt;pid&gt;);</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">First two queries are the incident response pair: find long-running queries, then find lock chains. <code>pg_blocking_pids()</code> (PG9.6+) recursively resolves the full blocking chain. <code>pg_terminate_backend</code> kills a connection; <code>pg_cancel_backend</code> cancels just the current query — prefer cancel over terminate on production.</td>
+          <td class="usecase">First two queries are the incident response pair: find long-running queries, then find lock chains. <code>pg_blocking_pids()</code> (PG9.6+) recursively resolves the full blocking chain. <code>pg_terminate_backend</code> kills a connection; <code>pg_cancel_backend</code> cancels just the current query. Prefer cancel over terminate on production.</td>
         </tr>
 
         <tr data-cat="perf">
@@ -409,7 +435,7 @@ ORDER BY n_distinct;</span>
   pg_size_pretty(pg_indexes_size('events')) AS indexes;</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Unused indexes (<code>idx_scan = 0</code>) waste write performance and storage — drop them. <code>correlation</code> near ±1 means a B-tree index on that column will be highly effective; near 0 means a sequential scan may be cheaper than an index scan. Run after <code>ANALYZE</code> to get current statistics.</td>
+          <td class="usecase">Unused indexes (<code>idx_scan = 0</code>) waste write performance and storage: drop them. <code>correlation</code> near ±1 means a B-tree index on that column will be highly effective; near 0 means a sequential scan may be cheaper than an index scan. Run after <code>ANALYZE</code> to get current statistics.</td>
         </tr>
 
         <tr data-cat="perf">
@@ -425,12 +451,12 @@ ORDER BY n_distinct;</span>
             <span class="cmd-line comment"># -P 5: print progress every 5 seconds</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Built-in TPC-B-like benchmarking. <code>-s 50</code> generates a dataset large enough to not fit in cache — scale factor should exceed <code>shared_buffers / 8MB</code> for realistic results. <code>-f custom.sql</code> runs your own workload. <code>--latency-limit</code> counts transactions exceeding the threshold as failures.</td>
+          <td class="usecase">Built-in TPC-B-like benchmarking. <code>-s 50</code> generates a dataset large enough to not fit in cache: scale factor should exceed <code>shared_buffers / 8MB</code> for realistic results. <code>-f custom.sql</code> runs your own workload. <code>--latency-limit</code> counts transactions exceeding the threshold as failures.</td>
         </tr>
 
         <!-- MAINTENANCE -->
         <tr data-cat="maint">
-          <td class="tool-name">VACUUM &amp; ANALYZE</td>
+          <td class="tool-name"><code class="raw">VACUUM &amp; ANALYZE</code></td>
           <td class="phase"><span class="badge badge-maint">maintenance</span></td>
           <td class="commands"><div class="cmd-block">
             <span class="cmd-line sql">VACUUM ANALYZE mytable;</span>
@@ -446,7 +472,7 @@ FROM pg_class WHERE relkind = 'r'
 ORDER BY xid_age DESC LIMIT 10;</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>VACUUM FULL</code> reclaims disk space but takes an exclusive lock — only use in a maintenance window. Regular <code>VACUUM</code> is non-blocking. Transaction ID age above ~1.5B is an emergency (<code>autovacuum_freeze_max_age</code> default is 200M); above 2.1B, Postgres goes into read-only mode to prevent wraparound. Monitor <code>xid_age</code> in alerting.</td>
+          <td class="usecase"><code>VACUUM FULL</code> reclaims disk space but takes an exclusive lock: only use in a maintenance window. Regular <code>VACUUM</code> is non-blocking. Transaction ID age above ~1.5B is an emergency (<code>autovacuum_freeze_max_age</code> default is 200M); above 2.1B, Postgres goes into read-only mode to prevent wraparound. Monitor <code>xid_age</code> in alerting.</td>
         </tr>
 
         <tr data-cat="maint">
@@ -465,7 +491,7 @@ LIMIT 20;</span>
             <span class="cmd-line">vacuumdb -U postgres -d mydb --analyze-only -j 4</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Surfaces TOAST overhead separately — large text/jsonb columns stored out-of-line are often the hidden driver of database size. <code>vacuumdb -j 4</code> runs ANALYZE in parallel across tables — run after a bulk load before query planning degrades. Use before adding indexes; stale stats make the planner choose wrong plans.</td>
+          <td class="usecase">Surfaces TOAST overhead separately: large text/jsonb columns stored out-of-line are often the hidden driver of database size. <code>vacuumdb -j 4</code> runs ANALYZE in parallel across tables. Run after a bulk load before query planning degrades. Use before adding indexes; stale stats make the planner choose wrong plans.</td>
         </tr>
 
         <tr data-cat="maint">
@@ -479,7 +505,7 @@ LIMIT 20;</span>
             <span class="cmd-line comment"># shows: active queries, wait events, locks, I/O, CPU per query</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>htop</code> for PostgreSQL — real-time query activity, wait events, per-query CPU and I/O. Faster for incident triage than querying <code>pg_stat_activity</code> manually. <code>--output=csv</code> for scripted monitoring. No server-side component needed.</td>
+          <td class="usecase"><code>htop</code> for PostgreSQL: real-time query activity, wait events, per-query CPU and I/O. Faster for incident triage than querying <code>pg_stat_activity</code> manually. <code>--output=csv</code> for scripted monitoring. No server-side component needed.</td>
         </tr>
 
         <!-- SECURITY -->
@@ -496,15 +522,15 @@ LIMIT 20;</span>
             <span class="cmd-line sql">\du+</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>ALTER DEFAULT PRIVILEGES</code> applies grants to future tables — without it, newly created tables are inaccessible to the app role. <code>REVOKE CREATE ON SCHEMA public FROM PUBLIC</code> closes a common privilege escalation vector present by default in PG14 and earlier. Always use least-privilege roles; never connect as <code>postgres</code> from applications.</td>
+          <td class="usecase"><code>ALTER DEFAULT PRIVILEGES</code> applies grants to future tables, without it, newly created tables are inaccessible to the app role. <code>REVOKE CREATE ON SCHEMA public FROM PUBLIC</code> closes a common privilege escalation vector present by default in PG14 and earlier. Always use least-privilege roles; never connect as <code>postgres</code> from applications.</td>
         </tr>
 
         <tr data-cat="security">
           <td class="tool-name">pg_hba.conf &amp; SSL</td>
           <td class="phase"><span class="badge badge-security">security</span></td>
           <td class="commands"><div class="cmd-block">
-            <span class="cmd-line comment"># pg_hba.conf — minimal secure configuration:</span>
-            <span class="cmd-line comment"># TYPE  DATABASE  USER       ADDRESS        METHOD</span>
+            <span class="cmd-line comment"># pg_hba.conf: minimal secure configuration:</span>
+            <span class="cmd-line comment"><code class="raw"># TYPE  DATABASE  USER       ADDRESS        METHOD</code></span>
             <span class="cmd-line comment"># local all       postgres                  peer</span>
             <span class="cmd-line comment"># host  mydb      app_user   10.0.0.0/8    scram-sha-256</span>
             <span class="cmd-line comment"># hostssl mydb   app_user   0.0.0.0/0     scram-sha-256</span>
@@ -514,7 +540,7 @@ LIMIT 20;</span>
             <span class="cmd-line">psql -U postgres -c "SELECT pg_reload_conf();"</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Use <code>scram-sha-256</code> everywhere — <code>md5</code> is broken, <code>trust</code> is for local dev only. <code>hostssl</code> enforces TLS on the connection; <code>host</code> allows but doesn't require it. <code>pg_reload_conf()</code> applies pg_hba changes without a restart. Verify with <code>SELECT ssl FROM pg_stat_ssl WHERE pid = pg_backend_pid();</code>.</td>
+          <td class="usecase">Use <code>scram-sha-256</code> everywhere: <code>md5</code> is broken, <code>trust</code> is for local dev only. <code>hostssl</code> enforces TLS on the connection; <code>host</code> allows but doesn't require it. <code>pg_reload_conf()</code> applies pg_hba changes without a restart. Verify with <code>SELECT ssl FROM pg_stat_ssl WHERE pid = pg_backend_pid();</code>.</td>
         </tr>
 
         <tr data-cat="security">
@@ -534,7 +560,7 @@ WHERE ssl = false AND client_addr IS NOT NULL;</span>
             <span class="cmd-line comment"># log_min_duration_statement = 1000   # log queries > 1s</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">First query shows connection pool saturation by client. Second surfaces non-SSL connections from remote hosts — any row returned is a finding. <code>log_min_duration_statement</code> is the lowest-overhead audit approach for slow query logging; <code>pgaudit</code> extension for full DDL/DML audit trails.</td>
+          <td class="usecase">First query shows connection pool saturation by client. Second surfaces non-SSL connections from remote hosts: any row returned is a finding. <code>log_min_duration_statement</code> is the lowest-overhead audit approach for slow query logging; <code>pgaudit</code> extension for full DDL/DML audit trails.</td>
         </tr>
 
         <!-- REPLICATION -->
@@ -552,7 +578,7 @@ FROM pg_is_in_recovery();</span>
 FROM pg_stat_replication;</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Run the first query on the primary. <code>replay_lag</code> is wall-clock lag; <code>pg_wal_lsn_diff</code> gives lag in bytes — more actionable for alerting. Run the timestamp query on the replica. Alert on <code>replay_lag > 30s</code> or <code>lag_bytes > 100MB</code> depending on your RPO. <code>sync_state = 'sync'</code> confirms synchronous replication is active.</td>
+          <td class="usecase">Run the first query on the primary. <code>replay_lag</code> is wall-clock lag; <code>pg_wal_lsn_diff</code> gives lag in bytes: more actionable for alerting. Run the timestamp query on the replica. Alert on <code>replay_lag > 30s</code> or <code>lag_bytes > 100MB</code> depending on your RPO. <code>sync_state = 'sync'</code> confirms synchronous replication is active.</td>
         </tr>
 
         <tr data-cat="repli">
@@ -564,13 +590,13 @@ FROM pg_stat_replication;</span>
 FROM pg_stat_bgwriter;</span>
             <span class="cmd-line sql">SELECT pg_current_wal_lsn(), pg_walfile_name(pg_current_wal_lsn());</span>
             <span class="cmd-line sql">SELECT count(*) FROM pg_ls_waldir();</span>
-            <span class="cmd-line sql">CHECKPOINT;</span>
+            <span class="cmd-line sql"><code class="raw">CHECKPOINT;</code></span>
             <span class="cmd-line comment"># postgresql.conf tuning signals:</span>
             <span class="cmd-line comment"># buffers_backend high → increase shared_buffers or checkpoint_completion_target</span>
             <span class="cmd-line comment"># maxwritten_clean high → increase bgwriter_lru_maxpages</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>buffers_backend</code> high means the backend is writing dirty buffers itself because bgwriter can't keep up — a tuning signal, not an error. WAL file count growing unbounded indicates a replication slot holding WAL (check <code>pg_replication_slots</code>). <code>CHECKPOINT</code> forces a checkpoint before a planned maintenance operation.</td>
+          <td class="usecase"><code>buffers_backend</code> high means the backend is writing dirty buffers itself because bgwriter can't keep up: a tuning signal, not an error. WAL file count growing unbounded indicates a replication slot holding WAL (check <code>pg_replication_slots</code>). <code>CHECKPOINT</code> forces a checkpoint before a planned maintenance operation.</td>
         </tr>
 
         <tr data-cat="repli">
@@ -585,7 +611,7 @@ FROM pg_replication_slots;</span>
             <span class="cmd-line sql">SELECT pg_reload_conf();</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Inactive replication slots retain WAL indefinitely — this is the most common cause of disk exhaustion in production Postgres. Alert on <code>retained_wal > 5GB</code> or when a slot has been inactive for > 1h. Set <code>max_slot_wal_keep_size</code> as a hard cap. Drop abandoned slots immediately; they are a disk-filling timebomb.</td>
+          <td class="usecase">Inactive replication slots retain WAL indefinitely. This is the most common cause of disk exhaustion in production Postgres. Alert on <code>retained_wal > 5GB</code> or when a slot has been inactive for > 1h. Set <code>max_slot_wal_keep_size</code> as a hard cap. Drop abandoned slots immediately; they are a disk-filling timebomb.</td>
         </tr>
 
       </tbody>
@@ -595,11 +621,7 @@ FROM pg_replication_slots;</span>
 </main>
 
 <footer>
-  ops://cheatsheets &mdash;
-  <a href="https://www.postgresql.org/docs/current/" target="_blank" rel="noopener">PG docs</a> &middot;
-  <a href="https://www.postgresql.org/docs/current/monitoring-stats.html" target="_blank" rel="noopener">stats views</a> &middot;
-  <a href="https://explain.dalibo.com" target="_blank" rel="noopener">explain.dalibo.com</a> &middot;
-  <a href="https://github.com/dalibo/pg_activity" target="_blank" rel="noopener">pg_activity</a>
+  ops://cheatsheets: <a href="https://www.postgresql.org/docs/current/" target="_blank" rel="noopener">PG docs</a>, <a href="https://www.postgresql.org/docs/current/monitoring-stats.html" target="_blank" rel="noopener">stats views</a>, <a href="https://explain.dalibo.com" target="_blank" rel="noopener">explain.dalibo.com</a>, <a href="https://github.com/dalibo/pg_activity" target="_blank" rel="noopener">pg_activity</a>
 </footer>
 
 <script>

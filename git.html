@@ -3,11 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Git &amp; Repo Hygiene — Cheat Sheet</title>
-<meta name="description" content="Filterable cheat sheet for Git and repo hygiene — history rewriting, forensics, secret scanning, hooks, large repo tooling.">
+<title>Git &amp; Repo Hygiene: Cheat Sheet</title>
+<meta name="description" content="Filterable cheat sheet for Git and repo hygiene: history rewriting, forensics, secret scanning, hooks, large repo tooling.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <style>
+/* Hallmark · checked: 2026-11-24 · genre: modern-minimal (inferred)
+ * floor: 0 FAIL · fixed: 2a, 3, 7a, 10a, 19, 26a, 27, 34, 40, 48, 54, 63, 67 · structural: 58 printed
+ * built: the project · redesign: polish · v2.0.0 */
+/* Hallmark · answered F1 · straight quotes sit beside shell, JSON and SQL fragments readers copy, so they stay straight */
+/* Hallmark · answered F2 · three-dot ellipses mark elided arguments in commands and are kept */
+/* Hallmark · waive 38iii · the h1 span appears once, in the header · "Hygiene" in the accent is how the Git & Repo Hygiene page names its subject across the series */
   :root {
     --bg:      #0a090e;
     --bg2:     #100f16;
@@ -20,6 +26,23 @@
     --cmd:     #7dd3a8;
     --mono:    'JetBrains Mono', monospace;
     --display: 'Syne', sans-serif;
+    --fill-body: rgba(0,0,0,0.04);
+    --ink-h1: #e0d8f8;
+    --fill-badge-forensics: rgba(96,165,250,.12);
+    --ink-badge-forensics: #60a5fa;
+    --line-badge-forensics: rgba(96,165,250,.3);
+    --fill-badge-security: rgba(255,95,87,.12);
+    --ink-badge-security: #ff7b75;
+    --line-badge-security: rgba(255,95,87,.3);
+    --fill-badge-hooks: rgba(57,255,130,.10);
+    --ink-badge-hooks: #39ff82;
+    --line-badge-hooks: rgba(57,255,130,.25);
+    --fill-badge-large: rgba(240,180,41,.12);
+    --ink-badge-large: #f0b429;
+    --line-badge-large: rgba(240,180,41,.3);
+    --fill-badge-workflow: rgba(45,212,191,.12);
+    --ink-badge-workflow: #2dd4bf;
+    --line-badge-workflow: rgba(45,212,191,.3);
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -33,7 +56,7 @@
   body::before {
     content: '';
     position: fixed; inset: 0;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, var(--fill-body) 2px, var(--fill-body) 4px);
     pointer-events: none; z-index: 999;
   }
 
@@ -64,12 +87,12 @@
     display: flex; align-items: flex-end;
     justify-content: space-between; gap: 1rem; flex-wrap: wrap;
   }
-  .prompt { font-size: 11px; color: var(--accent); letter-spacing: .1em; margin-bottom: .5rem; }
+  .prompt { font-size: 11px; color: var(--accent); margin-bottom: .5rem; }
   .prompt::before { content: '$ '; color: var(--muted); }
   h1 {
     font-family: var(--display);
     font-size: clamp(1.6rem, 4vw, 2.6rem);
-    font-weight: 800; color: #e0d8f8;
+    font-weight: 800; color: var(--ink-h1);
     letter-spacing: -.02em; line-height: 1.1;
   }
   h1 span { color: var(--accent); }
@@ -84,18 +107,17 @@
     align-items: center; gap: .5rem;
     margin-bottom: 1.25rem;
   }
-  .toolbar-label { font-size: 10px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; margin-right: .25rem; }
+  .toolbar-label { font-size: 10px; color: var(--muted); margin-right: .25rem; }
   .f-btn {
     background: transparent;
     border: 1px solid var(--border2);
     border-radius: 3px; padding: 3px 10px;
     font-family: var(--mono); font-size: 11px;
     color: var(--muted); cursor: pointer;
-    letter-spacing: .06em;
     transition: color .15s, border-color .15s, background .15s;
   }
   .f-btn:hover { color: var(--text); background: var(--bg3); }
-  .f-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(167,139,250,0.07); }
+  .f-btn.active { color: var(--accent); border-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, transparent); }
   .count { margin-left: auto; font-size: 11px; color: var(--muted); }
   .count strong { color: var(--accent); }
 
@@ -104,7 +126,6 @@
   thead th {
     background: var(--bg2); padding: 10px 14px;
     text-align: left; font-size: 10px;
-    letter-spacing: .12em; text-transform: uppercase;
     color: var(--muted); border-bottom: 1px solid var(--border);
     white-space: nowrap; font-weight: 400;
   }
@@ -114,20 +135,19 @@
   tbody tr:last-child { border-bottom: none; }
   tbody tr:hover { background: var(--bg2); }
   td { padding: 10px 14px; vertical-align: top; }
-  td.tool-name { font-weight: 700; font-size: 13px; color: #e0d8f8; white-space: nowrap; min-width: 140px; }
+  td.tool-name { font-weight: 700; font-size: 13px; color: var(--ink-h1); white-space: nowrap; min-width: 140px; }
   td.phase { min-width: 100px; }
 
   .badge {
     display: inline-block; font-size: 10px;
-    padding: 2px 8px; border-radius: 2px;
-    letter-spacing: .06em; font-weight: 500; white-space: nowrap;
+    padding: 2px 8px; border-radius: 2px; font-weight: 500; white-space: nowrap;
   }
-  .badge-history  { background: rgba(167,139,250,.12); color: #a78bfa; border: 1px solid rgba(167,139,250,.3); }
-  .badge-forensics{ background: rgba(96,165,250,.12);  color: #60a5fa; border: 1px solid rgba(96,165,250,.3);  }
-  .badge-security { background: rgba(255,95,87,.12);   color: #ff7b75; border: 1px solid rgba(255,95,87,.3);   }
-  .badge-hooks    { background: rgba(57,255,130,.10);  color: #39ff82; border: 1px solid rgba(57,255,130,.25); }
-  .badge-large    { background: rgba(240,180,41,.12);  color: #f0b429; border: 1px solid rgba(240,180,41,.3);  }
-  .badge-workflow { background: rgba(45,212,191,.12);  color: #2dd4bf; border: 1px solid rgba(45,212,191,.3);  }
+  .badge-history  { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); }
+  .badge-forensics{ background: var(--fill-badge-forensics);  color: var(--ink-badge-forensics); border: 1px solid var(--line-badge-forensics);  }
+  .badge-security { background: var(--fill-badge-security);   color: var(--ink-badge-security); border: 1px solid var(--line-badge-security);   }
+  .badge-hooks    { background: var(--fill-badge-hooks);  color: var(--ink-badge-hooks); border: 1px solid var(--line-badge-hooks); }
+  .badge-large    { background: var(--fill-badge-large);  color: var(--ink-badge-large); border: 1px solid var(--line-badge-large);  }
+  .badge-workflow { background: var(--fill-badge-workflow);  color: var(--ink-badge-workflow); border: 1px solid var(--line-badge-workflow);  }
 
   td.commands { min-width: 320px; max-width: 440px; }
   .cmd-block { position: relative; }
@@ -146,7 +166,6 @@
     font-family: var(--mono); font-size: 10px;
     padding: 1px 7px; cursor: pointer;
     opacity: 0; transition: opacity .15s, color .15s;
-    letter-spacing: .05em;
   }
   .cmd-block:hover .copy-btn { opacity: 1; }
   .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
@@ -168,6 +187,12 @@
     h1 { font-size: 1.5rem; }
     .meta { display: none; }
   }
+
+    /* hallmark polish */
+  h1 { text-wrap: balance; }
+  button:active, [role="button"]:active { transform: translateY(1px); }
+  button:disabled, input:disabled, select:disabled { opacity: .5; cursor: not-allowed; }
+  code.raw { font: inherit; color: inherit; background: none; border: 0; padding: 0; }
 
   /* accessibility floor */
   html, body { overflow-x: clip; }
@@ -194,14 +219,14 @@
 <header>
   <div class="header-inner">
     <div>
-      <p class="prompt">git log --graph --oneline --all</p>
       <h1>Git &amp; Repo<br><span>Hygiene</span></h1>
+      <p class="prompt">git log --graph --oneline --all</p>
       <p class="subtitle">History rewriting, forensic archaeology, secret scanning, hook automation, and large-repo tooling. Beyond the daily commit cycle.</p>
     </div>
     <div class="meta">
       <strong>17</strong> tools / commands<br>
       <strong>6</strong> phases<br>
-      Git 2.40+ &middot; GitHub Actions
+      Git 2.40+, GitHub Actions
     </div>
   </div>
 </header>
@@ -241,7 +266,7 @@
             <span class="cmd-line comment"># recover from bad rebase: git reset --hard HEAD@{N}</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Squash WIP commits before merge, reword messages, drop debug commits. <code>--root</code> rewrites the entire history — needed when changing the first commit. <code>reflog</code> is the safety net; every operation is recoverable for 90 days by default.</td>
+          <td class="usecase">Squash WIP commits before merge, reword messages, drop debug commits. <code>--root</code> rewrites the entire history: needed when changing the first commit. <code>reflog</code> is the safety net; every operation is recoverable for 90 days by default.</td>
         </tr>
 
         <tr data-cat="history">
@@ -256,7 +281,7 @@
             <span class="cmd-line">git filter-repo --analyze</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">The correct tool for history rewriting — replaces <code>git filter-branch</code> which is 10–100× slower and has footguns. <code>--analyze</code> generates a report of large files and heavy committers before you operate. Always work on a fresh clone; it rewrites all refs.</td>
+          <td class="usecase">The correct tool for history rewriting: replaces <code>git filter-branch</code> which is 10 to 100× slower and has footguns. <code>--analyze</code> generates a report of large files and heavy committers before you operate. Always work on a fresh clone; it rewrites all refs.</td>
         </tr>
 
         <tr data-cat="history">
@@ -289,7 +314,7 @@
             <span class="cmd-line">git bisect run pytest tests/test_regression.py</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Binary search through history to find the exact commit that introduced a bug. <code>bisect run</code> is fully automated — pass any script that exits 0 for good, non-zero for bad. Finds the culprit in O(log n) checkouts regardless of history length.</td>
+          <td class="usecase">Binary search through history to find the exact commit that introduced a bug. <code>bisect run</code> is fully automated: pass any script that exits 0 for good, non-zero for bad. Finds the culprit in O(log n) checkouts regardless of history length.</td>
         </tr>
 
         <tr data-cat="forensics">
@@ -301,10 +326,10 @@
             <span class="cmd-line">git log -G "def my_func" --all --patch</span>
             <span class="cmd-line">git log --author="alice" --since="6 months ago" --stat</span>
             <span class="cmd-line">git log --diff-filter=D --name-only --oneline</span>
-            <span class="cmd-line">git log --follow -p -- path/to/file</span>
+            <span class="cmd-line"><code class="raw">git log --follow -p -- path/to/file</code></span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>-S</code> (pickaxe) finds commits that added or removed a string — useful for tracking when a secret was introduced. <code>-G</code> matches against the diff regex. <code>--diff-filter=D</code> lists only deleted files. <code>--follow</code> tracks renames.</td>
+          <td class="usecase"><code>-S</code> (pickaxe) finds commits that added or removed a string: useful for tracking when a secret was introduced. <code>-G</code> matches against the diff regex. <code>--diff-filter=D</code> lists only deleted files. <code>--follow</code> tracks renames.</td>
         </tr>
 
         <tr data-cat="forensics">
@@ -319,7 +344,7 @@
             <span class="cmd-line">git config blame.ignoreRevsFile .git-blame-ignore-revs</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>-w</code> ignores whitespace changes; <code>-M</code> detects moved lines; <code>-C</code> detects copied lines across files. <code>--ignore-revs-file</code> skips bulk formatter commits — commit <code>.git-blame-ignore-revs</code> to the repo so the whole team benefits.</td>
+          <td class="usecase"><code>-w</code> ignores whitespace changes; <code>-M</code> detects moved lines; <code>-C</code> detects copied lines across files. <code>--ignore-revs-file</code> skips bulk formatter commits: commit <code>.git-blame-ignore-revs</code> to the repo so the whole team benefits.</td>
         </tr>
 
         <tr data-cat="forensics">
@@ -334,7 +359,7 @@
             <span class="cmd-line">git stash clear</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Partial stash with <code>--</code> paths avoids stashing unrelated work. <code>stash branch</code> turns a stash into a proper branch — the right move when a stash grows into something real. <code>show -p</code> diffs the stash without applying it.</td>
+          <td class="usecase">Partial stash with <code>--</code> paths avoids stashing unrelated work. <code>stash branch</code> turns a stash into a proper branch: the right move when a stash grows into something real. <code>show -p</code> diffs the stash without applying it.</td>
         </tr>
 
         <!-- SECURITY -->
@@ -350,7 +375,7 @@
             <span class="cmd-line comment"># .gitleaks.toml to allowlist false positives</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Scans git history for secrets — API keys, tokens, private keys. <code>protect --staged</code> runs as a pre-commit hook. <code>--log-opts</code> scopes to a commit range for PR checks. Faster and more accurate than trufflehog on clean repos; lower false-positive rate.</td>
+          <td class="usecase">Scans git history for secrets: API keys, tokens, private keys. <code>protect --staged</code> runs as a pre-commit hook. <code>--log-opts</code> scopes to a commit range for PR checks. Faster and more accurate than trufflehog on clean repos; lower false-positive rate.</td>
         </tr>
 
         <tr data-cat="security">
@@ -364,7 +389,7 @@
             <span class="cmd-line">trufflehog github --org myorg --only-verified</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>--only-verified</code> actively validates found credentials against their respective APIs — dramatically cuts false positives. Scans beyond git: S3, GitHub org-wide, filesystems. Use for incident response or full-org audits; gitleaks for per-repo CI.</td>
+          <td class="usecase"><code>--only-verified</code> actively validates found credentials against their respective APIs: dramatically cuts false positives. Scans beyond git: S3, GitHub org-wide, filesystems. Use for incident response or full-org audits; gitleaks for per-repo CI.</td>
         </tr>
 
         <tr data-cat="security">
@@ -379,7 +404,7 @@
             <span class="cmd-line">git secrets --list</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">AWS Labs tool — installs as a git hook to block commits containing AWS keys or custom patterns. Lightweight and regex-based; simpler than gitleaks for teams that just need AWS credential protection. <code>--register-aws</code> covers all AWS key formats in one call.</td>
+          <td class="usecase">AWS Labs tool: installs as a git hook to block commits containing AWS keys or custom patterns. Lightweight and regex-based; simpler than gitleaks for teams that just need AWS credential protection. <code>--register-aws</code> covers all AWS key formats in one call.</td>
         </tr>
 
         <!-- HOOKS -->
@@ -396,7 +421,7 @@
             <span class="cmd-line comment"># .pre-commit-config.yaml pins hook versions by sha</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Polyglot hook runner — one config drives ruff, gitleaks, hadolint, terraform fmt, mypy across languages. <code>SKIP=hook-id</code> bypasses a single hook without <code>--no-verify</code>. Pin hooks by SHA in <code>.pre-commit-config.yaml</code> for reproducibility; <code>autoupdate</code> bumps them.</td>
+          <td class="usecase">Polyglot hook runner: one config drives ruff, gitleaks, hadolint, terraform fmt, mypy across languages. <code>SKIP=hook-id</code> bypasses a single hook without <code>--no-verify</code>. Pin hooks by SHA in <code>.pre-commit-config.yaml</code> for reproducibility; <code>autoupdate</code> bumps them.</td>
         </tr>
 
         <tr data-cat="hooks">
@@ -411,7 +436,7 @@
             <span class="cmd-line comment"># types: feat fix docs style refactor perf test chore ci</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Enforces Conventional Commits format — prerequisite for automated changelogs and semantic versioning with tools like <code>semantic-release</code> or <code>goreleaser</code>. Run as <code>commit-msg</code> hook locally and in CI on PR title.</td>
+          <td class="usecase">Enforces Conventional Commits format: prerequisite for automated changelogs and semantic versioning with tools like <code>semantic-release</code> or <code>goreleaser</code>. Run as <code>commit-msg</code> hook locally and in CI on PR title.</td>
         </tr>
 
         <!-- LARGE REPOS -->
@@ -427,7 +452,7 @@
             <span class="cmd-line">git sparse-checkout disable</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Check out only specific directories from a monorepo without cloning the full tree. <code>--filter=blob:none</code> (partial clone) skips blob download at clone time — fetched lazily on access. Cone mode is faster than pattern mode for directory-based checkout.</td>
+          <td class="usecase">Check out only specific directories from a monorepo without cloning the full tree. <code>--filter=blob:none</code> (partial clone) skips blob download at clone time: fetched lazily on access. Cone mode is faster than pattern mode for directory-based checkout.</td>
         </tr>
 
         <tr data-cat="large">
@@ -443,7 +468,7 @@
             <span class="cmd-line">GIT_LFS_SKIP_SMUDGE=1 git clone &lt;url&gt;</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Store large binaries (models, datasets, artifacts) outside the object store. <code>migrate import</code> retroactively moves existing blobs to LFS without rewriting commit SHAs. <code>GIT_LFS_SKIP_SMUDGE=1</code> clones without downloading LFS objects — useful in CI that doesn't need them.</td>
+          <td class="usecase">Store large binaries (models, datasets, artifacts) outside the object store. <code>migrate import</code> retroactively moves existing blobs to LFS without rewriting commit SHAs. <code>GIT_LFS_SKIP_SMUDGE=1</code> clones without downloading LFS objects: useful in CI that doesn't need them.</td>
         </tr>
 
         <tr data-cat="large">
@@ -458,7 +483,7 @@
             <span class="cmd-line">git commit-graph write --reachable --changed-paths</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Background maintenance for large repos — schedules GC, pack-file consolidation, and commit-graph updates. The commit-graph file dramatically speeds up <code>git log --graph</code> and <code>git merge-base</code> on deep histories. <code>maintenance start</code> registers a cron/launchd job automatically.</td>
+          <td class="usecase">Background maintenance for large repos: schedules GC, pack-file consolidation, and commit-graph updates. The commit-graph file dramatically speeds up <code>git log --graph</code> and <code>git merge-base</code> on deep histories. <code>maintenance start</code> registers a cron/launchd job automatically.</td>
         </tr>
 
         <!-- WORKFLOW -->
@@ -473,7 +498,7 @@
             <span class="cmd-line">git worktree prune</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Check out multiple branches simultaneously in separate directories from a single repo — no stashing, no re-cloning. Switch to a hotfix while keeping a long-running feature branch open. Each worktree has its own index and working tree; they share the object store.</td>
+          <td class="usecase">Check out multiple branches simultaneously in separate directories from a single repo: no stashing, no re-cloning. Switch to a hotfix while keeping a long-running feature branch open. Each worktree has its own index and working tree; they share the object store.</td>
         </tr>
 
         <tr data-cat="workflow">
@@ -490,7 +515,7 @@
             <span class="cmd-line">gh api repos/org/repo/actions/secrets | jq '.secrets[].name'</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">GitHub from the terminal — create PRs, watch CI runs, rerun failed jobs, manage secrets. <code>--fill</code> populates PR title and body from commit messages. <code>gh run watch</code> tails a live run without opening a browser. <code>gh api</code> hits any GitHub API endpoint with auth already configured.</td>
+          <td class="usecase">GitHub from the terminal: create PRs, watch CI runs, rerun failed jobs, manage secrets. <code>--fill</code> populates PR title and body from commit messages. <code>gh run watch</code> tails a live run without opening a browser. <code>gh api</code> hits any GitHub API endpoint with auth already configured.</td>
         </tr>
 
         <tr data-cat="workflow">
@@ -502,10 +527,10 @@
             <span class="cmd-line">git log --show-notes=*</span>
             <span class="cmd-line">git push origin refs/notes/*</span>
             <span class="cmd-line">git fetch origin refs/notes/*:refs/notes/*</span>
-            <span class="cmd-line comment"># notes don't change commit SHA — safe post-push annotation</span>
+            <span class="cmd-line comment"># notes don't change commit SHA: safe post-push annotation</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Attach metadata to commits without altering their SHA — CI test results, code review outcomes, deployment records, benchmark results. Notes are stored in a separate ref (<code>refs/notes/</code>) and must be pushed/fetched explicitly. Underused for audit trails.</td>
+          <td class="usecase">Attach metadata to commits without altering their SHA: CI test results, code review outcomes, deployment records, benchmark results. Notes are stored in a separate ref (<code>refs/notes/</code>) and must be pushed/fetched explicitly. Underused for audit trails.</td>
         </tr>
 
       </tbody>
@@ -515,12 +540,7 @@
 </main>
 
 <footer>
-  ops://cheatsheets &mdash;
-  <a href="https://git-scm.com/docs" target="_blank" rel="noopener">git docs</a> &middot;
-  <a href="https://github.com/newren/git-filter-repo" target="_blank" rel="noopener">filter-repo</a> &middot;
-  <a href="https://github.com/gitleaks/gitleaks" target="_blank" rel="noopener">gitleaks</a> &middot;
-  <a href="https://trufflesecurity.com/trufflehog" target="_blank" rel="noopener">trufflehog</a> &middot;
-  <a href="https://cli.github.com/manual/" target="_blank" rel="noopener">gh CLI</a>
+  ops://cheatsheets: <a href="https://git-scm.com/docs" target="_blank" rel="noopener">git docs</a>, <a href="https://github.com/newren/git-filter-repo" target="_blank" rel="noopener">filter-repo</a>, <a href="https://github.com/gitleaks/gitleaks" target="_blank" rel="noopener">gitleaks</a>, <a href="https://trufflesecurity.com/trufflehog" target="_blank" rel="noopener">trufflehog</a>, <a href="https://cli.github.com/manual/" target="_blank" rel="noopener">gh CLI</a>
 </footer>
 
 <script>

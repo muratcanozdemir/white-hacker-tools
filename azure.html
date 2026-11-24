@@ -3,11 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Azure CLI — Production Surface Cheat Sheet</title>
-<meta name="description" content="Filterable Azure CLI reference for engineers with production scars — auth, compute, storage, networking, secrets, observability, data/platform.">
+<title>Azure CLI: Production Surface Cheat Sheet</title>
+<meta name="description" content="Filterable Azure CLI reference for engineers with production scars: auth, compute, storage, networking, secrets, observability, data/platform.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <style>
+/* Hallmark · checked: 2026-11-24 · genre: modern-minimal (inferred)
+ * floor: 0 FAIL · fixed: 2a, 3, 7a, 10a, 19, 26a, 27, 34, 40, 48, 54, 63, 67 · structural: 58 printed
+ * built: the project · redesign: polish · v2.0.0 */
+/* Hallmark · answered F1 · straight quotes sit beside shell, JSON and SQL fragments readers copy, so they stay straight */
+/* Hallmark · answered F2 · three-dot ellipses mark elided arguments in commands and are kept */
+/* Hallmark · waive 38iii · the h1 span appears once, in the header · "Production Surface" in the accent is how the Azure CLI page names its subject across the series */
   :root {
     --bg:      #080c12;
     --bg2:     #0d1219;
@@ -20,6 +26,26 @@
     --cmd:     #7dd3a8;
     --mono:    'JetBrains Mono', monospace;
     --display: 'Syne', sans-serif;
+    --fill-body: rgba(0,0,0,0.04);
+    --ink-h1: #c8e0f8;
+    --fill-badge-auth: rgba(255,95,87,.12);
+    --ink-badge-auth: #ff7b75;
+    --line-badge-auth: rgba(255,95,87,.3);
+    --fill-badge-storage: rgba(57,255,130,.10);
+    --ink-badge-storage: #39ff82;
+    --line-badge-storage: rgba(57,255,130,.25);
+    --fill-badge-network: rgba(96,165,250,.12);
+    --ink-badge-network: #60a5fa;
+    --line-badge-network: rgba(96,165,250,.3);
+    --fill-badge-secrets: rgba(192,96,255,.12);
+    --ink-badge-secrets: #c060ff;
+    --line-badge-secrets: rgba(192,96,255,.3);
+    --fill-badge-obs: rgba(45,212,191,.12);
+    --ink-badge-obs: #2dd4bf;
+    --line-badge-obs: rgba(45,212,191,.3);
+    --fill-badge-data: rgba(240,180,41,.12);
+    --ink-badge-data: #f0b429;
+    --line-badge-data: rgba(240,180,41,.3);
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -33,7 +59,7 @@
   body::before {
     content: '';
     position: fixed; inset: 0;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, var(--fill-body) 2px, var(--fill-body) 4px);
     pointer-events: none; z-index: 999;
   }
 
@@ -64,12 +90,12 @@
     display: flex; align-items: flex-end;
     justify-content: space-between; gap: 1rem; flex-wrap: wrap;
   }
-  .prompt { font-size: 11px; color: var(--accent); letter-spacing: .1em; margin-bottom: .5rem; }
+  .prompt { font-size: 11px; color: var(--accent); margin-bottom: .5rem; }
   .prompt::before { content: '$ '; color: var(--muted); }
   h1 {
     font-family: var(--display);
     font-size: clamp(1.6rem, 4vw, 2.6rem);
-    font-weight: 800; color: #c8e0f8;
+    font-weight: 800; color: var(--ink-h1);
     letter-spacing: -.02em; line-height: 1.1;
   }
   h1 span { color: var(--accent); }
@@ -81,9 +107,9 @@
 
   .callout {
     display: flex; align-items: flex-start; gap: .75rem;
-    background: rgba(14,165,233,.05);
-    border: 1px solid rgba(14,165,233,.2);
-    border-left: 3px solid var(--accent);
+    background: color-mix(in srgb, var(--accent) 5%, transparent);
+    border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+    border-left-color: var(--accent);
     border-radius: 4px;
     padding: .85rem 1rem;
     margin-bottom: 1.75rem;
@@ -104,8 +130,6 @@
     background: var(--bg2);
     padding: .6rem 1rem;
     font-size: 10px;
-    letter-spacing: .12em;
-    text-transform: uppercase;
     color: var(--muted);
     border-bottom: 1px solid var(--border);
     display: flex; align-items: center; gap: .5rem;
@@ -123,8 +147,7 @@
   .pinned-cell:last-child { border-right: none; }
   .pinned-cell:nth-last-child(-n+2) { border-bottom: none; }
   .pinned-label {
-    font-size: 10px; letter-spacing: .08em;
-    text-transform: uppercase; color: var(--accent);
+    font-size: 10px; color: var(--accent);
     margin-bottom: .4rem;
   }
   .pinned-cell .cmd-line {
@@ -141,18 +164,17 @@
     align-items: center; gap: .5rem;
     margin-bottom: 1.25rem;
   }
-  .toolbar-label { font-size: 10px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; margin-right: .25rem; }
+  .toolbar-label { font-size: 10px; color: var(--muted); margin-right: .25rem; }
   .f-btn {
     background: transparent;
     border: 1px solid var(--border2);
     border-radius: 3px; padding: 3px 10px;
     font-family: var(--mono); font-size: 11px;
     color: var(--muted); cursor: pointer;
-    letter-spacing: .06em;
     transition: color .15s, border-color .15s, background .15s;
   }
   .f-btn:hover { color: var(--text); background: var(--bg3); }
-  .f-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(14,165,233,0.07); }
+  .f-btn.active { color: var(--accent); border-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, transparent); }
   .count { margin-left: auto; font-size: 11px; color: var(--muted); }
   .count strong { color: var(--accent); }
 
@@ -161,7 +183,6 @@
   thead th {
     background: var(--bg2); padding: 10px 14px;
     text-align: left; font-size: 10px;
-    letter-spacing: .12em; text-transform: uppercase;
     color: var(--muted); border-bottom: 1px solid var(--border);
     white-space: nowrap; font-weight: 400;
   }
@@ -171,21 +192,20 @@
   tbody tr:last-child { border-bottom: none; }
   tbody tr:hover { background: var(--bg2); }
   td { padding: 10px 14px; vertical-align: top; }
-  td.tool-name { font-weight: 700; font-size: 13px; color: #c8e0f8; white-space: nowrap; min-width: 160px; }
+  td.tool-name { font-weight: 700; font-size: 13px; color: var(--ink-h1); white-space: nowrap; min-width: 160px; }
   td.phase { min-width: 110px; }
 
   .badge {
     display: inline-block; font-size: 10px;
-    padding: 2px 8px; border-radius: 2px;
-    letter-spacing: .06em; font-weight: 500; white-space: nowrap;
+    padding: 2px 8px; border-radius: 2px; font-weight: 500; white-space: nowrap;
   }
-  .badge-auth    { background: rgba(255,95,87,.12);   color: #ff7b75; border: 1px solid rgba(255,95,87,.3);   }
-  .badge-compute { background: rgba(14,165,233,.12);  color: #0ea5e9; border: 1px solid rgba(14,165,233,.3);  }
-  .badge-storage { background: rgba(57,255,130,.10);  color: #39ff82; border: 1px solid rgba(57,255,130,.25); }
-  .badge-network { background: rgba(96,165,250,.12);  color: #60a5fa; border: 1px solid rgba(96,165,250,.3);  }
-  .badge-secrets { background: rgba(192,96,255,.12);  color: #c060ff; border: 1px solid rgba(192,96,255,.3);  }
-  .badge-obs     { background: rgba(45,212,191,.12);  color: #2dd4bf; border: 1px solid rgba(45,212,191,.3);  }
-  .badge-data    { background: rgba(240,180,41,.12);  color: #f0b429; border: 1px solid rgba(240,180,41,.3);  }
+  .badge-auth    { background: var(--fill-badge-auth);   color: var(--ink-badge-auth); border: 1px solid var(--line-badge-auth);   }
+  .badge-compute { background: color-mix(in srgb, var(--accent) 12%, transparent);  color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);  }
+  .badge-storage { background: var(--fill-badge-storage);  color: var(--ink-badge-storage); border: 1px solid var(--line-badge-storage); }
+  .badge-network { background: var(--fill-badge-network);  color: var(--ink-badge-network); border: 1px solid var(--line-badge-network);  }
+  .badge-secrets { background: var(--fill-badge-secrets);  color: var(--ink-badge-secrets); border: 1px solid var(--line-badge-secrets);  }
+  .badge-obs     { background: var(--fill-badge-obs);  color: var(--ink-badge-obs); border: 1px solid var(--line-badge-obs);  }
+  .badge-data    { background: var(--fill-badge-data);  color: var(--ink-badge-data); border: 1px solid var(--line-badge-data);  }
 
   td.commands { min-width: 320px; max-width: 440px; }
   .cmd-block { position: relative; }
@@ -204,7 +224,6 @@
     font-family: var(--mono); font-size: 10px;
     padding: 1px 7px; cursor: pointer;
     opacity: 0; transition: opacity .15s, color .15s;
-    letter-spacing: .05em;
   }
   .cmd-block:hover .copy-btn { opacity: 1; }
   .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
@@ -227,6 +246,12 @@
     .meta { display: none; }
     .pinned-grid { grid-template-columns: 1fr; }
   }
+
+    /* hallmark polish */
+  h1 { text-wrap: balance; }
+  button:active, [role="button"]:active { transform: translateY(1px); }
+  button:disabled, input:disabled, select:disabled { opacity: .5; cursor: not-allowed; }
+  code.raw { font: inherit; color: inherit; background: none; border: 0; padding: 0; }
 
   /* accessibility floor */
   html, body { overflow-x: clip; }
@@ -253,14 +278,14 @@
 <header>
   <div class="header-inner">
     <div>
-      <p class="prompt">az account show --query '{Sub:name,Tenant:tenantId}'</p>
       <h1>Azure CLI<br><span>Production Surface</span></h1>
+      <p class="prompt">az account show --query '{Sub:name,Tenant:tenantId}'</p>
       <p class="subtitle">~28 entries distilled to what engineers with production scars actually reach for. Honest about what belongs in Terraform, Bicep, or the console.</p>
     </div>
     <div class="meta">
       <strong>28</strong> entries<br>
       <strong>7</strong> phases<br>
-      az 2.x &middot; multi-subscription
+      az 2.x, multi-subscription
     </div>
   </div>
 </header>
@@ -269,19 +294,19 @@
 
   <div class="callout">
     <span>
-      <strong>What's not here — and why.</strong>
+      <strong>What's not here, and why.</strong>
       <code>az deployment</code> create/update belongs in Bicep or Terraform.
-      <code>az devops</code> / <code>az pipelines</code> — nobody runs these interactively.
-      <code>az network application-gateway</code> — console territory under pressure.
-      <code>az sql</code> managed instance — console under pressure.
-      <code>az cosmosdb</code> — SDK beats CLI for anything meaningful.
-      <code>az cognitiveservices</code>, <code>az bot</code> — not in scope.
-      Entra ID / AAD mutations beyond service principals — too destructive to run from a CLI reference.
+      <code>az devops</code> / <code>az pipelines</code>: nobody runs these interactively.
+      <code>az network application-gateway</code>: console territory under pressure.
+      <code>az sql</code> managed instance: console under pressure.
+      <code>az cosmosdb</code>: SDK beats CLI for anything meaningful.
+      <code>az cognitiveservices</code>, <code>az bot</code>, not in scope.
+      Entra ID / AAD mutations beyond service principals: too destructive to run from a CLI reference.
     </span>
   </div>
 
   <div class="pinned">
-    <div class="pinned-header">cross-cutting — know these before anything else</div>
+    <div class="pinned-header">cross-cutting: know these before anything else</div>
     <div class="pinned-grid">
 
       <div class="pinned-cell">
@@ -290,7 +315,7 @@
         <span class="cmd-line">az login --use-device-code</span>
         <span class="cmd-line">az login --service-principal -u $APP_ID -p $SECRET --tenant $TENANT_ID</span>
         <span class="cmd-line">az login --identity</span>
-        <span class="cmd-line comment"># --identity uses managed identity — correct pattern in CI/VMs</span>
+        <span class="cmd-line comment"># --identity uses managed identity: correct pattern in CI/VMs</span>
       </div>
 
       <div class="pinned-cell">
@@ -307,7 +332,7 @@
         <span class="cmd-line">az vm list --query '[].{Name:name,RG:resourceGroup,State:powerState}' --output table</span>
         <span class="cmd-line">az resource list --query '[?tags.env==`prod`].id' --output tsv</span>
         <span class="cmd-line comment"># --output: table json jsonc tsv yaml</span>
-        <span class="cmd-line comment"># tsv: tab-separated, no headers — safe for xargs / shell pipelines</span>
+        <span class="cmd-line comment"># tsv: tab-separated, no headers; safe for xargs / shell pipelines</span>
       </div>
 
       <div class="pinned-cell">
@@ -355,7 +380,7 @@
             <span class="cmd-line">az logout</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Certificate-based SP auth is preferred over client secret in CI — no secret rotation needed, and certificates can be stored in Key Vault. <code>--identity</code> uses the managed identity attached to the VM or ACI instance — the correct pattern for workloads running in Azure. Never store client secrets in environment files.</td>
+          <td class="usecase">Certificate-based SP auth is preferred over client secret in CI: no secret rotation needed, and certificates can be stored in Key Vault. <code>--identity</code> uses the managed identity attached to the VM or ACI instance: the correct pattern for workloads running in Azure. Never store client secrets in environment files.</td>
         </tr>
 
         <tr data-cat="auth">
@@ -369,7 +394,7 @@
             <span class="cmd-line">az role assignment list --assignee $APP_ID --query '[].{Role:roleDefinitionName,Scope:scope}' --output table</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Inspection and credential rotation only — mutations belong in Terraform. <code>credential list</code> shows expiry dates; surface credentials expiring within 30 days before they break CI. <code>role assignment list --assignee</code> audits what a service principal can actually do across subscriptions.</td>
+          <td class="usecase">Inspection and credential rotation only: mutations belong in Terraform. <code>credential list</code> shows expiry dates; surface credentials expiring within 30 days before they break CI. <code>role assignment list --assignee</code> audits what a service principal can actually do across subscriptions.</td>
         </tr>
 
         <tr data-cat="auth">
@@ -383,7 +408,7 @@
             <span class="cmd-line">az account get-access-token --resource https://management.azure.com/ --query '{Token:accessToken,Expires:expiresOn}'</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>get-access-token</code> retrieves a bearer token for direct REST API calls — useful when the CLI doesn't expose a specific API surface. Pass the token to <code>curl</code> or httpie for ad-hoc ARM API calls. <code>--resource</code> scopes the token to a specific audience.</td>
+          <td class="usecase"><code>get-access-token</code> retrieves a bearer token for direct REST API calls: useful when the CLI doesn't expose a specific API surface. Pass the token to <code>curl</code> or httpie for ad-hoc ARM API calls. <code>--resource</code> scopes the token to a specific audience.</td>
         </tr>
 
         <!-- COMPUTE -->
@@ -399,7 +424,7 @@
             <span class="cmd-line">az vm run-command invoke -g myRG -n myVM --command-id RunShellScript --scripts "df -h && free -m"</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>get-instance-view</code> shows the actual VM health state including OS provisioning status — more detailed than <code>show</code>. <code>run-command invoke</code> executes a shell script on the VM without SSH — the Azure equivalent of SSM run-command. Requires the VM agent to be running. Provision VMs via Terraform; use the CLI for runtime ops.</td>
+          <td class="usecase"><code>get-instance-view</code> shows the actual VM health state including OS provisioning status: more detailed than <code>show</code>. <code>run-command invoke</code> executes a shell script on the VM without SSH: the Azure equivalent of SSM run-command. Requires the VM agent to be running. Provision VMs via Terraform; use the CLI for runtime ops.</td>
         </tr>
 
         <tr data-cat="compute">
@@ -413,7 +438,7 @@
             <span class="cmd-line">az vmss delete-instances -g myRG -n myVMSS --instance-ids 3</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Manual scaling with <code>scale --new-capacity</code> overrides autoscale temporarily — useful during a traffic spike or when autoscale is misbehaving. <code>delete-instances</code> removes a specific unhealthy instance and triggers replacement. Always check <code>list-instances</code> before deleting to confirm the instance ID.</td>
+          <td class="usecase">Manual scaling with <code>scale --new-capacity</code> overrides autoscale temporarily: useful during a traffic spike or when autoscale is misbehaving. <code>delete-instances</code> removes a specific unhealthy instance and triggers replacement. Always check <code>list-instances</code> before deleting to confirm the instance ID.</td>
         </tr>
 
         <tr data-cat="compute">
@@ -428,7 +453,7 @@
             <span class="cmd-line">az aks get-upgrades -g myRG -n myAKS --query 'upgrades[].kubernetesVersion' --output tsv</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>get-credentials --overwrite-existing</code> refreshes kubeconfig without prompting — safe in scripts. <code>--admin</code> fetches cluster-admin credentials, bypassing AAD RBAC — use only for break-glass access. <code>get-upgrades</code> lists available Kubernetes versions before scheduling a maintenance window.</td>
+          <td class="usecase"><code>get-credentials --overwrite-existing</code> refreshes kubeconfig without prompting: safe in scripts. <code>--admin</code> fetches cluster-admin credentials, bypassing AAD RBAC. Use only for break-glass access. <code>get-upgrades</code> lists available Kubernetes versions before scheduling a maintenance window.</td>
         </tr>
 
         <tr data-cat="compute">
@@ -442,7 +467,7 @@
             <span class="cmd-line">az container restart -g myRG -n myACI</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">ACI is underused as a one-shot job runner — no cluster overhead, billed per second. <code>show</code> with <code>instanceView.events</code> shows the last few lifecycle events — the first place to look when a container fails to start. <code>exec</code> gives an interactive shell without exposing a port.</td>
+          <td class="usecase">ACI is underused as a one-shot job runner: no cluster overhead, billed per second. <code>show</code> with <code>instanceView.events</code> shows the last few lifecycle events: the first place to look when a container fails to start. <code>exec</code> gives an interactive shell without exposing a port.</td>
         </tr>
 
         <tr data-cat="compute">
@@ -457,7 +482,7 @@
             <span class="cmd-line">az webapp log tail -g myRG -n myFunc</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>config appsettings list</code> reveals environment variables — but values are shown in plaintext; avoid running this in shared terminal sessions. <code>az webapp log tail</code> works for both App Service and Function Apps — live log streaming without opening the portal. App setting mutations should go through Terraform; use the CLI for emergency overrides only.</td>
+          <td class="usecase"><code>config appsettings list</code> reveals environment variables, but values are shown in plaintext; avoid running this in shared terminal sessions. <code>az webapp log tail</code> works for both App Service and Function Apps: live log streaming without opening the portal. App setting mutations should go through Terraform; use the CLI for emergency overrides only.</td>
         </tr>
 
         <!-- STORAGE -->
@@ -472,7 +497,7 @@
             <span class="cmd-line">az storage blob generate-sas --account-name mystorageaccount -c mycontainer -n file.tar.gz --permissions r --expiry 2026-12-31 --https-only --output tsv</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>generate-sas</code> produces a time-limited read URL — the correct way to share private blobs without changing container access policy. <code>blob copy start</code> is server-side — Azure copies blob-to-blob without routing through your machine. Always use <code>--https-only</code> on SAS tokens; HTTP SAS is a security misconfiguration.</td>
+          <td class="usecase"><code>generate-sas</code> produces a time-limited read URL: the correct way to share private blobs without changing container access policy. <code>blob copy start</code> is server-side: Azure copies blob-to-blob without routing through your machine. Always use <code>--https-only</code> on SAS tokens; HTTP SAS is a security misconfiguration.</td>
         </tr>
 
         <tr data-cat="storage">
@@ -486,7 +511,7 @@
             <span class="cmd-line">az storage account network-rule list -g myRG -n mystorageaccount</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>show</code> with <code>allowBlobPublicAccess</code> and <code>networkAcls.defaultAction</code> is a quick security posture check — any account with <code>allowBlobPublicAccess: true</code> and no network rules is a finding. Key renewal should be done with zero downtime: update the dependent services to key2 first, then renew key1.</td>
+          <td class="usecase"><code>show</code> with <code>allowBlobPublicAccess</code> and <code>networkAcls.defaultAction</code> is a quick security posture check: any account with <code>allowBlobPublicAccess: true</code> and no network rules is a finding. Key renewal should be done with zero downtime: update the dependent services to key2 first, then renew key1.</td>
         </tr>
 
         <tr data-cat="storage">
@@ -499,7 +524,7 @@
             <span class="cmd-line">az storage fs access set --account-name myadls -f myfilesystem -p /mydir --acl "user::rwx,group::r-x,other::---"</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">ADLS Gen2 exposes POSIX ACLs on top of blob storage — <code>access show/set</code> manages fine-grained directory permissions that aren't visible through standard blob commands. Critical for data lake access control where different teams need different directory-level permissions.</td>
+          <td class="usecase">ADLS Gen2 exposes POSIX ACLs on top of blob storage: <code>access show/set</code> manages fine-grained directory permissions that aren't visible through standard blob commands. Critical for data lake access control where different teams need different directory-level permissions.</td>
         </tr>
 
         <tr data-cat="storage">
@@ -513,7 +538,7 @@
             <span class="cmd-line">az snapshot delete -g myRG -n myVM-snap-old</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Unattached disks accumulate storage costs silently — the <code>diskState==Unattached</code> query identifies orphans for cleanup. Always snapshot before risky operations. Snapshot names with <code>$(date +%Y%m%d)</code> suffix keep the list readable; use a consistent naming convention across the team.</td>
+          <td class="usecase">Unattached disks accumulate storage costs silently: the <code>diskState==Unattached</code> query identifies orphans for cleanup. Always snapshot before risky operations. Snapshot names with <code>$(date +%Y%m%d)</code> suffix keep the list readable; use a consistent naming convention across the team.</td>
         </tr>
 
         <!-- NETWORKING -->
@@ -528,7 +553,7 @@
             <span class="cmd-line">az network nsg rule delete -g myRG --nsg-name myNSG -n DenyAll</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">The third command surfaces all rules allowing traffic from any source — a quick audit for overly permissive NSGs. Priority ordering matters in NSGs (lower number = higher priority); always check existing priorities before adding a rule. NSG mutations belong in Terraform; use the CLI for emergency access changes only.</td>
+          <td class="usecase">The third command surfaces all rules allowing traffic from any source: a quick audit for overly permissive NSGs. Priority ordering matters in NSGs (lower number = higher priority); always check existing priorities before adding a rule. NSG mutations belong in Terraform; use the CLI for emergency access changes only.</td>
         </tr>
 
         <tr data-cat="network">
@@ -541,7 +566,7 @@
             <span class="cmd-line">az network lb address-pool show -g myRG --lb-name myLB -n myPool --query 'loadBalancerBackendAddresses[].ipAddress'</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Health probe configuration is the first thing to check when traffic stops reaching backends — <code>probe list</code> shows the exact path and interval the LB uses. <code>address-pool show</code> confirms which backend IPs are registered — useful when a VM is missing from the pool after a restart.</td>
+          <td class="usecase">Health probe configuration is the first thing to check when traffic stops reaching backends: <code>probe list</code> shows the exact path and interval the LB uses. <code>address-pool show</code> confirms which backend IPs are registered: useful when a VM is missing from the pool after a restart.</td>
         </tr>
 
         <tr data-cat="network">
@@ -555,7 +580,7 @@
             <span class="cmd-line">az network dns record-set a remove-record -g myRG -z example.com -n api -a 10.0.0.1</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">DNS record management from the CLI is version-controllable via scripts — prefer over portal edits for anything that needs an audit trail. <code>show</code> on a specific record type is faster than listing all records when you know what you're looking for. DNS mutations to production zones should go through Terraform where possible.</td>
+          <td class="usecase">DNS record management from the CLI is version-controllable via scripts. Prefer over portal edits for anything that needs an audit trail. <code>show</code> on a specific record type is faster than listing all records when you know what you're looking for. DNS mutations to production zones should go through Terraform where possible.</td>
         </tr>
 
         <tr data-cat="network">
@@ -568,7 +593,7 @@
             <span class="cmd-line">az network public-ip list -g myRG --query '[].{Name:name,IP:ipAddress,FQDN:dnsSettings.fqdn,Allocation:publicIPAllocationMethod}' --output table</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>subnet list</code> with <code>delegations</code> reveals subnets delegated to specific Azure services (App Service, ACI, etc) — useful when diagnosing why a service can't be deployed to a subnet. Public IP list surfaces all internet-facing addresses in a resource group — run it as a periodic inventory check.</td>
+          <td class="usecase"><code>subnet list</code> with <code>delegations</code> reveals subnets delegated to specific Azure services (App Service, ACI, etc): useful when diagnosing why a service can't be deployed to a subnet. Public IP list surfaces all internet-facing addresses in a resource group. Run it as a periodic inventory check.</td>
         </tr>
 
         <tr data-cat="network">
@@ -581,7 +606,7 @@
             <span class="cmd-line">az network watcher flow-log show -g myRG --nsg myNSG</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>test-connectivity</code> runs a reachability check between two resources from inside Azure's network plane — more reliable than pinging from a VM because it accounts for NSG rules, UDRs, and service endpoints. <code>show-next-hop</code> reveals the effective routing decision for a source/destination pair — the fastest way to diagnose asymmetric routing.</td>
+          <td class="usecase"><code>test-connectivity</code> runs a reachability check between two resources from inside Azure's network plane: more reliable than pinging from a VM because it accounts for NSG rules, UDRs, and service endpoints. <code>show-next-hop</code> reveals the effective routing decision for a source/destination pair: the fastest way to diagnose asymmetric routing.</td>
         </tr>
 
         <!-- SECRETS -->
@@ -597,7 +622,7 @@
             <span class="cmd-line">az keyvault secret recover --vault-name myKV -n mySecret</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">List with expiry dates surfaces secrets about to expire — automate this check in CI. <code>show --output tsv</code> extracts the raw value for piping; avoid printing it to a shared terminal. Soft-delete is enabled by default — <code>recover</code> restores deleted secrets within the retention period (default 90 days). Never store secrets in scripts; always retrieve at runtime.</td>
+          <td class="usecase">List with expiry dates surfaces secrets about to expire: automate this check in CI. <code>show --output tsv</code> extracts the raw value for piping; avoid printing it to a shared terminal. Soft-delete is enabled by default: <code>recover</code> restores deleted secrets within the retention period (default 90 days). Never store secrets in scripts; always retrieve at runtime.</td>
         </tr>
 
         <tr data-cat="secrets">
@@ -610,7 +635,7 @@
             <span class="cmd-line">az keyvault certificate download --vault-name myKV -n myCert -f cert.pem --encoding PEM</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Certificate expiry audit from the CLI is automatable — pipe the list into a script that alerts when any cert expires within 30 days. <code>show</code> with SANs confirms the cert covers the right hostnames before importing. Import accepts PFX (PKCS#12); download produces PEM for direct use in application config.</td>
+          <td class="usecase">Certificate expiry audit from the CLI is automatable: pipe the list into a script that alerts when any cert expires within 30 days. <code>show</code> with SANs confirms the cert covers the right hostnames before importing. Import accepts PFX (PKCS#12); download produces PEM for direct use in application config.</td>
         </tr>
 
         <tr data-cat="secrets">
@@ -623,7 +648,7 @@
             <span class="cmd-line">az aks show -g myRG -n myAKS --query '{Kubelet:identityProfile.kubeletidentity.clientId,ControlPlane:identity.principalId}'</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Managed identities are the correct credential model for Azure workloads — no secrets to rotate. <code>vm identity show</code> confirms which identity is attached to a VM before troubleshooting Key Vault access failures. AKS exposes two identities: the control plane identity and the kubelet identity — they have different role assignments and are commonly confused.</td>
+          <td class="usecase">Managed identities are the correct credential model for Azure workloads: no secrets to rotate. <code>vm identity show</code> confirms which identity is attached to a VM before troubleshooting Key Vault access failures. AKS exposes two identities: the control plane identity and the kubelet identity; they have different role assignments and are commonly confused.</td>
         </tr>
 
         <!-- OBSERVABILITY -->
@@ -637,7 +662,7 @@
             <span class="cmd-line">az monitor log-analytics query -w $WORKSPACE_ID --analytics-query "Heartbeat | summarize LastSeen=max(TimeGenerated) by Computer | where LastSeen < ago(5m)"</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">KQL queries from the CLI are scriptable and version-controllable — paste them into runbooks. The activity log query surfaces failed operations by caller — useful for post-incident attribution. The heartbeat query finds VMs that haven't reported in 5 minutes — a faster way to detect agent failures than the portal health view.</td>
+          <td class="usecase">KQL queries from the CLI are scriptable and version-controllable: paste them into runbooks. The activity log query surfaces failed operations by caller: useful for post-incident attribution. The heartbeat query finds VMs that haven't reported in 5 minutes: a faster way to detect agent failures than the portal health view.</td>
         </tr>
 
         <tr data-cat="obs">
@@ -650,7 +675,7 @@
             <span class="cmd-line">az monitor metrics alert show -g myRG -n myAlert --query '{Fired:lastFiredAt,Description:description,Condition:criteria}'</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>list-definitions</code> reveals every metric available for a resource type — use before writing an alert to confirm the metric name is exact. The CPU query pattern using <code>[-12:]</code> shows the last hour at 5-minute granularity. Alert <code>lastFiredAt</code> is useful when investigating whether an alert has been flapping or went quiet after a change.</td>
+          <td class="usecase"><code>list-definitions</code> reveals every metric available for a resource type. Use before writing an alert to confirm the metric name is exact. The CPU query pattern using <code>[-12:]</code> shows the last hour at 5-minute granularity. Alert <code>lastFiredAt</code> is useful when investigating whether an alert has been flapping or went quiet after a change.</td>
         </tr>
 
         <tr data-cat="obs">
@@ -664,7 +689,7 @@
             <span class="cmd-line">az monitor activity-log list -g myRG --start-time 2026-05-01 --query '[].{Time:eventTimestamp,Caller:caller,Op:operationName.localizedValue,Status:status.localizedValue}' --output table</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Works for both App Service and Functions — live log streaming without the portal. <code>activity-log list</code> scoped to a resource group shows every control-plane operation (creates, updates, deletes, role changes) with caller identity — the first place to look when something changed unexpectedly in a resource group.</td>
+          <td class="usecase">Works for both App Service and Functions: live log streaming without the portal. <code>activity-log list</code> scoped to a resource group shows every control-plane operation (creates, updates, deletes, role changes) with caller identity: the first place to look when something changed unexpectedly in a resource group.</td>
         </tr>
 
         <!-- DATA / PLATFORM -->
@@ -680,7 +705,7 @@
             <span class="cmd-line">az acr run -r myregistry --cmd 'acr/tasks/myapp:latest' /dev/null</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>az acr login</code> exchanges the current az session for a Docker credential — no PAT needed. Untagged manifests accumulate and inflate storage costs — the <code>show-manifests</code> + <code>tags==null</code> query identifies orphans. Use lifecycle policies for automated cleanup; use the CLI for one-off audits and emergency deletions.</td>
+          <td class="usecase"><code>az acr login</code> exchanges the current az session for a Docker credential: no PAT needed. Untagged manifests accumulate and inflate storage costs: the <code>show-manifests</code> + <code>tags==null</code> query identifies orphans. Use lifecycle policies for automated cleanup; use the CLI for one-off audits and emergency deletions.</td>
         </tr>
 
         <tr data-cat="data">
@@ -694,7 +719,7 @@
             <span class="cmd-line">az postgres flexible-server connect -g myRG -n myPGServer -u myadmin -d mydb --interactive</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>connect --interactive</code> opens a psql session through the Azure CLI without exposing the server publicly or managing firewall rules manually — uses the current az session for auth tunneling. Backup list confirms the last successful backup before a risky schema migration.</td>
+          <td class="usecase"><code>connect --interactive</code> opens a psql session through the Azure CLI without exposing the server publicly or managing firewall rules manually: uses the current az session for auth tunneling. Backup list confirms the last successful backup before a risky schema migration.</td>
         </tr>
 
         <tr data-cat="data">
@@ -707,7 +732,7 @@
             <span class="cmd-line">az servicebus queue show -g myRG --namespace-name mySBNS -n myQueue --query 'countDetails'</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Inspection only — the CLI surface for Service Bus is too thin for message operations (use the SDK or Service Bus Explorer). <code>queue list</code> with <code>deadLetterMessageCount</code> is the first check when a consumer is falling behind — DLQ depth growing means messages are being rejected, not just unprocessed.</td>
+          <td class="usecase">Inspection only: the CLI surface for Service Bus is too thin for message operations (use the SDK or Service Bus Explorer). <code>queue list</code> with <code>deadLetterMessageCount</code> is the first check when a consumer is falling behind: DLQ depth growing means messages are being rejected, not just unprocessed.</td>
         </tr>
 
         <tr data-cat="data">
@@ -721,7 +746,7 @@
             <span class="cmd-line">az group export -n myRG --include-comments > rg-template.json</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>az resource list --tag</code> is the fastest cross-service inventory query — find everything tagged <code>env=prod</code> regardless of type. <code>az group export</code> generates an ARM template from the live resource group — useful as a starting point for Bicep or for auditing what's actually deployed vs what's in Terraform state.</td>
+          <td class="usecase"><code>az resource list --tag</code> is the fastest cross-service inventory query: find everything tagged <code>env=prod</code> regardless of type. <code>az group export</code> generates an ARM template from the live resource group: useful as a starting point for Bicep or for auditing what's actually deployed vs what's in Terraform state.</td>
         </tr>
 
       </tbody>
@@ -731,11 +756,7 @@
 </main>
 
 <footer>
-  ops://cheatsheets &mdash;
-  <a href="https://learn.microsoft.com/en-us/cli/azure/reference-index" target="_blank" rel="noopener">az reference</a> &middot;
-  <a href="https://learn.microsoft.com/en-us/cli/azure/query-azure-cli" target="_blank" rel="noopener">JMESPath in az</a> &middot;
-  <a href="https://learn.microsoft.com/en-us/azure/aks/learn/quick-kubernetes-deploy-cli" target="_blank" rel="noopener">AKS CLI guide</a> &middot;
-  <a href="https://learn.microsoft.com/en-us/azure/key-vault/general/overview" target="_blank" rel="noopener">Key Vault</a>
+  ops://cheatsheets: <a href="https://learn.microsoft.com/en-us/cli/azure/reference-index" target="_blank" rel="noopener">az reference</a>, <a href="https://learn.microsoft.com/en-us/cli/azure/query-azure-cli" target="_blank" rel="noopener">JMESPath in az</a>, <a href="https://learn.microsoft.com/en-us/azure/aks/learn/quick-kubernetes-deploy-cli" target="_blank" rel="noopener">AKS CLI guide</a>, <a href="https://learn.microsoft.com/en-us/azure/key-vault/general/overview" target="_blank" rel="noopener">Key Vault</a>
 </footer>
 
 <script>

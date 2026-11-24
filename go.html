@@ -3,11 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Go Developer Toolkit — Cheat Sheet</title>
-<meta name="description" content="Filterable cheat sheet for Go development — build, test, profile, debug, lint, modules, and release.">
+<title>Go Developer Toolkit: Cheat Sheet</title>
+<meta name="description" content="Filterable cheat sheet for Go development: build, test, profile, debug, lint, modules, and release.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <style>
+/* Hallmark · checked: 2026-11-24 · genre: modern-minimal (inferred)
+ * floor: 0 FAIL · fixed: 2a, 3, 7a, 10a, 19, 26a, 27, 34, 40, 48, 54, 63, 67 · structural: 58 printed
+ * built: the project · redesign: polish · v2.0.0 */
+/* Hallmark · answered F1 · straight quotes sit beside shell, JSON and SQL fragments readers copy, so they stay straight */
+/* Hallmark · answered F2 · three-dot ellipses mark elided arguments in commands and are kept */
+/* Hallmark · waive 38iii · the h1 span appears once, in the header · "Toolkit" in the accent is how the Go Developer Toolkit page names its subject across the series */
   :root {
     --bg:      #090e09;
     --bg2:     #0f160f;
@@ -20,6 +26,26 @@
     --cmd:     #7dd3a8;
     --mono:    'JetBrains Mono', monospace;
     --display: 'Syne', sans-serif;
+    --fill-body: rgba(0,0,0,0.04);
+    --ink-h1: #d4f0c0;
+    --fill-badge-test: rgba(96,165,250,.12);
+    --ink-badge-test: #60a5fa;
+    --line-badge-test: rgba(96,165,250,.3);
+    --fill-badge-profile: rgba(240,180,41,.12);
+    --ink-badge-profile: #f0b429;
+    --line-badge-profile: rgba(240,180,41,.3);
+    --fill-badge-debug: rgba(255,95,87,.12);
+    --ink-badge-debug: #ff7b75;
+    --line-badge-debug: rgba(255,95,87,.3);
+    --fill-badge-lint: rgba(45,212,191,.12);
+    --ink-badge-lint: #2dd4bf;
+    --line-badge-lint: rgba(45,212,191,.3);
+    --fill-badge-mod: rgba(192,96,255,.12);
+    --ink-badge-mod: #c060ff;
+    --line-badge-mod: rgba(192,96,255,.3);
+    --fill-badge-release: rgba(244,114,182,.12);
+    --ink-badge-release: #f472b6;
+    --line-badge-release: rgba(244,114,182,.3);
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -33,7 +59,7 @@
   body::before {
     content: '';
     position: fixed; inset: 0;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, var(--fill-body) 2px, var(--fill-body) 4px);
     pointer-events: none; z-index: 999;
   }
 
@@ -64,12 +90,12 @@
     display: flex; align-items: flex-end;
     justify-content: space-between; gap: 1rem; flex-wrap: wrap;
   }
-  .prompt { font-size: 11px; color: var(--accent); letter-spacing: .1em; margin-bottom: .5rem; }
+  .prompt { font-size: 11px; color: var(--accent); margin-bottom: .5rem; }
   .prompt::before { content: '$ '; color: var(--muted); }
   h1 {
     font-family: var(--display);
     font-size: clamp(1.6rem, 4vw, 2.6rem);
-    font-weight: 800; color: #d4f0c0;
+    font-weight: 800; color: var(--ink-h1);
     letter-spacing: -.02em; line-height: 1.1;
   }
   h1 span { color: var(--accent); }
@@ -84,18 +110,17 @@
     align-items: center; gap: .5rem;
     margin-bottom: 1.25rem;
   }
-  .toolbar-label { font-size: 10px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; margin-right: .25rem; }
+  .toolbar-label { font-size: 10px; color: var(--muted); margin-right: .25rem; }
   .f-btn {
     background: transparent;
     border: 1px solid var(--border2);
     border-radius: 3px; padding: 3px 10px;
     font-family: var(--mono); font-size: 11px;
     color: var(--muted); cursor: pointer;
-    letter-spacing: .06em;
     transition: color .15s, border-color .15s, background .15s;
   }
   .f-btn:hover { color: var(--text); background: var(--bg3); }
-  .f-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(163,230,53,0.07); }
+  .f-btn.active { color: var(--accent); border-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, transparent); }
   .count { margin-left: auto; font-size: 11px; color: var(--muted); }
   .count strong { color: var(--accent); }
 
@@ -104,7 +129,6 @@
   thead th {
     background: var(--bg2); padding: 10px 14px;
     text-align: left; font-size: 10px;
-    letter-spacing: .12em; text-transform: uppercase;
     color: var(--muted); border-bottom: 1px solid var(--border);
     white-space: nowrap; font-weight: 400;
   }
@@ -114,31 +138,29 @@
   tbody tr:last-child { border-bottom: none; }
   tbody tr:hover { background: var(--bg2); }
   td { padding: 10px 14px; vertical-align: top; }
-  td.tool-name { font-weight: 700; font-size: 13px; color: #d4f0c0; white-space: nowrap; min-width: 140px; }
+  td.tool-name { font-weight: 700; font-size: 13px; color: var(--ink-h1); white-space: nowrap; min-width: 140px; }
   td.phase { min-width: 90px; }
 
   /* stdlib badge indicator */
   .std-pill {
     display: inline-block; font-size: 9px;
-    padding: 0px 5px; border-radius: 2px;
-    letter-spacing: .05em; font-weight: 500;
-    background: rgba(163,230,53,.1); color: #a3e635;
-    border: 1px solid rgba(163,230,53,.25);
+    padding: 0px 5px; border-radius: 2px; font-weight: 500;
+    background: color-mix(in srgb, var(--accent) 10%, transparent); color: var(--accent);
+    border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
     vertical-align: middle; margin-left: 5px;
   }
 
   .badge {
     display: inline-block; font-size: 10px;
-    padding: 2px 8px; border-radius: 2px;
-    letter-spacing: .06em; font-weight: 500; white-space: nowrap;
+    padding: 2px 8px; border-radius: 2px; font-weight: 500; white-space: nowrap;
   }
-  .badge-build   { background: rgba(163,230,53,.10); color: #a3e635; border: 1px solid rgba(163,230,53,.25); }
-  .badge-test    { background: rgba(96,165,250,.12);  color: #60a5fa; border: 1px solid rgba(96,165,250,.3);  }
-  .badge-profile { background: rgba(240,180,41,.12);  color: #f0b429; border: 1px solid rgba(240,180,41,.3);  }
-  .badge-debug   { background: rgba(255,95,87,.12);   color: #ff7b75; border: 1px solid rgba(255,95,87,.3);   }
-  .badge-lint    { background: rgba(45,212,191,.12);  color: #2dd4bf; border: 1px solid rgba(45,212,191,.3);  }
-  .badge-mod     { background: rgba(192,96,255,.12);  color: #c060ff; border: 1px solid rgba(192,96,255,.3);  }
-  .badge-release { background: rgba(244,114,182,.12); color: #f472b6; border: 1px solid rgba(244,114,182,.3); }
+  .badge-build   { background: color-mix(in srgb, var(--accent) 10%, transparent); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); }
+  .badge-test    { background: var(--fill-badge-test);  color: var(--ink-badge-test); border: 1px solid var(--line-badge-test);  }
+  .badge-profile { background: var(--fill-badge-profile);  color: var(--ink-badge-profile); border: 1px solid var(--line-badge-profile);  }
+  .badge-debug   { background: var(--fill-badge-debug);   color: var(--ink-badge-debug); border: 1px solid var(--line-badge-debug);   }
+  .badge-lint    { background: var(--fill-badge-lint);  color: var(--ink-badge-lint); border: 1px solid var(--line-badge-lint);  }
+  .badge-mod     { background: var(--fill-badge-mod);  color: var(--ink-badge-mod); border: 1px solid var(--line-badge-mod);  }
+  .badge-release { background: var(--fill-badge-release); color: var(--ink-badge-release); border: 1px solid var(--line-badge-release); }
 
   td.commands { min-width: 320px; max-width: 440px; }
   .cmd-block { position: relative; }
@@ -157,7 +179,6 @@
     font-family: var(--mono); font-size: 10px;
     padding: 1px 7px; cursor: pointer;
     opacity: 0; transition: opacity .15s, color .15s;
-    letter-spacing: .05em;
   }
   .cmd-block:hover .copy-btn { opacity: 1; }
   .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
@@ -187,6 +208,12 @@
     .meta { display: none; }
   }
 
+    /* hallmark polish */
+  h1 { text-wrap: balance; }
+  button:active, [role="button"]:active { transform: translateY(1px); }
+  button:disabled, input:disabled, select:disabled { opacity: .5; cursor: not-allowed; }
+  code.raw { font: inherit; color: inherit; background: none; border: 0; padding: 0; }
+
   /* accessibility floor */
   html, body { overflow-x: clip; }
   a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible,
@@ -212,14 +239,14 @@
 <header>
   <div class="header-inner">
     <div>
-      <p class="prompt">go tool -n</p>
       <h1>Go Developer<br><span>Toolkit</span></h1>
+      <p class="prompt">go tool -n</p>
       <p class="subtitle">Standard toolchain first. Third-party where it genuinely adds value. Filterable by phase.</p>
     </div>
     <div class="meta">
       <strong>18</strong> tools<br>
       <strong>7</strong> phases<br>
-      Go 1.22+ &middot; stdlib-first
+      Go 1.22+, stdlib-first
     </div>
   </div>
 </header>
@@ -227,7 +254,7 @@
 <main>
   <div class="legend">
     <span class="legend-item"><span class="std-pill">std</span> Go toolchain / golang.org/x</span>
-    <span class="legend-item" style="color:var(--muted)">· no badge = third-party</span>
+    <span class="legend-item" style="color:var(--muted)">, no badge = third-party</span>
   </div>
 
   <div class="toolbar">
@@ -263,7 +290,7 @@
             <span class="cmd-line comment"># -gcflags disables optimisations for dlv debugging</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>-ldflags="-s -w"</code> strips debug info and symbol table — mandatory for production binaries. <code>-X</code> injects build-time variables. <code>CGO_ENABLED=0</code> produces a fully static binary safe for scratch/distroless images.</td>
+          <td class="usecase"><code>-ldflags="-s -w"</code> strips debug info and symbol table: mandatory for production binaries. <code>-X</code> injects build-time variables. <code>CGO_ENABLED=0</code> produces a fully static binary safe for scratch/distroless images.</td>
         </tr>
 
         <tr data-cat="build">
@@ -292,7 +319,7 @@
             <span class="cmd-line comment">//go:generate mockgen -source=iface.go -destination=mock_iface.go</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Run code generation directives embedded in source — <code>stringer</code>, <code>mockgen</code>, <code>protoc</code>, <code>sqlc</code>. <code>-run</code> filters to a specific generator. Always commit generated files; never generate in CI without committing.</td>
+          <td class="usecase">Run code generation directives embedded in source: <code>stringer</code>, <code>mockgen</code>, <code>protoc</code>, <code>sqlc</code>. <code>-run</code> filters to a specific generator. Always commit generated files; never generate in CI without committing.</td>
         </tr>
 
         <tr data-cat="build">
@@ -307,7 +334,7 @@
             <span class="cmd-line comment"># include_ext = ["go", "tmpl", "yaml"]</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Live-reload for Go — watches source files, rebuilds, and restarts on change. Configurable via <code>.air.toml</code>. Scope <code>include_ext</code> tightly; watching <code>./...</code> indiscriminately causes rebuild storms.</td>
+          <td class="usecase">Live-reload for Go: watches source files, rebuilds, and restarts on change. Configurable via <code>.air.toml</code>. Scope <code>include_ext</code> tightly; watching <code>./...</code> indiscriminately causes rebuild storms.</td>
         </tr>
 
         <!-- TEST -->
@@ -323,7 +350,7 @@
             <span class="cmd-line">go test -coverprofile=coverage.out -coverpkg=./... ./...</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>-count=1</code> disables the test cache — always use in CI. <code>-race</code> is non-negotiable in CI; it has near-zero false-positive rate. <code>-coverpkg=./...</code> measures coverage across all packages, not just the tested package.</td>
+          <td class="usecase"><code>-count=1</code> disables the test cache. Always use in CI. <code>-race</code> is non-negotiable in CI; it has near-zero false-positive rate. <code>-coverpkg=./...</code> measures coverage across all packages, not just the tested package.</td>
         </tr>
 
         <tr data-cat="test">
@@ -352,7 +379,7 @@
             <span class="cmd-line">benchstat -filter .name=/BenchmarkParse old.txt new.txt</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Statistical comparison of benchmark runs — reports mean, variance, and whether the delta is significant. <code>-count=10</code> minimum for reliable results; benchstat rejects noise. From <code>golang.org/x/perf</code> — Go team maintained.</td>
+          <td class="usecase">Statistical comparison of benchmark runs: reports mean, variance, and whether the delta is significant. <code>-count=10</code> minimum for reliable results; benchstat rejects noise. From <code>golang.org/x/perf</code>: Go team maintained.</td>
         </tr>
 
         <!-- PROFILE -->
@@ -368,7 +395,7 @@
             <span class="cmd-line comment"># in interactive mode: top10, list &lt;func&gt;, web, peek &lt;func&gt;</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">CPU, heap, goroutine, block, and mutex profiling. Expose <code>/debug/pprof</code> with <code>import _ "net/http/pprof"</code>. <code>-http=:8080</code> opens an interactive flame graph browser — always start here before reading raw output.</td>
+          <td class="usecase">CPU, heap, goroutine, block, and mutex profiling. Expose <code>/debug/pprof</code> with <code>import _ "net/http/pprof"</code>. <code>-http=:8080</code> opens an interactive flame graph browser. Always start here before reading raw output.</td>
         </tr>
 
         <tr data-cat="profile">
@@ -384,7 +411,7 @@
             <span class="cmd-line comment">// trace.Start(f); defer trace.Stop()</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Execution tracer — shows goroutine scheduling, GC pauses, syscalls, and network I/O on a timeline. Distinct from pprof: pprof shows where time is spent; trace shows why goroutines are blocked.</td>
+          <td class="usecase">Execution tracer: shows goroutine scheduling, GC pauses, syscalls, and network I/O on a timeline. Distinct from pprof: pprof shows where time is spent; trace shows why goroutines are blocked.</td>
         </tr>
 
         <tr data-cat="profile">
@@ -398,7 +425,7 @@
             <span class="cmd-line">go tool nm bin/app | sort -k1 -rn | head -20</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>-gcflags="-m"</code> reports inlining and escape analysis decisions — tells you exactly what's heap-allocating and why. <code>nm</code> sorted by size finds bloated symbols. Use before reaching for pprof on allocation-heavy paths.</td>
+          <td class="usecase"><code>-gcflags="-m"</code> reports inlining and escape analysis decisions: tells you exactly what's heap-allocating and why. <code>nm</code> sorted by size finds bloated symbols. Use before reaching for pprof on allocation-heavy paths.</td>
         </tr>
 
         <!-- DEBUG -->
@@ -432,7 +459,7 @@
             <span class="cmd-line">go vet -json ./... 2>&amp;1 | jq .</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Zero-dependency static analysis — catches printf verb mismatches, unreachable code, mutex copies, and suspicious composite literals. Run before golangci-lint; it's faster and its findings are always actionable.</td>
+          <td class="usecase">Zero-dependency static analysis: catches printf verb mismatches, unreachable code, mutex copies, and suspicious composite literals. Run before golangci-lint; it's faster and its findings are always actionable.</td>
         </tr>
 
         <tr data-cat="lint">
@@ -446,7 +473,7 @@
             <span class="cmd-line">test -z "$(gofumpt -l .)"</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Stricter superset of <code>gofmt</code> — enforces extra blank line rules and grouping conventions that gofmt doesn't. Fully deterministic. Use instead of gofmt, not alongside it. Include in golangci-lint via <code>enable: [gofumpt]</code>.</td>
+          <td class="usecase">Stricter superset of <code>gofmt</code>: enforces extra blank line rules and grouping conventions that gofmt doesn't. Fully deterministic. Use instead of gofmt, not alongside it. Include in golangci-lint via <code>enable: [gofumpt]</code>.</td>
         </tr>
 
         <tr data-cat="lint">
@@ -461,7 +488,7 @@
             <span class="cmd-line">golangci-lint run --print-issued-lines=false --print-linter-name</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Meta-linter — runs staticcheck, errcheck, gosec, gofumpt, and 50+ more in parallel. Configure via <code>.golangci.yml</code>. <code>--new-from-rev</code> only lints changed code — essential for adopting lint on legacy repos without a big-bang fix.</td>
+          <td class="usecase">Meta-linter: runs staticcheck, errcheck, gosec, gofumpt, and 50+ more in parallel. Configure via <code>.golangci.yml</code>. <code>--new-from-rev</code> only lints changed code: essential for adopting lint on legacy repos without a big-bang fix.</td>
         </tr>
 
         <!-- MOD -->
@@ -477,7 +504,7 @@
             <span class="cmd-line">go mod download -json | jq '.Path + "@" + .Version'</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>tidy -diff</code> (Go 1.23+) shows what tidy would change without writing — safe to run in CI as a check. <code>why</code> traces the import chain that requires a dependency. <code>graph</code> piped to grep finds all consumers of a dep.</td>
+          <td class="usecase"><code>tidy -diff</code> (Go 1.23+) shows what tidy would change without writing: safe to run in CI as a check. <code>why</code> traces the import chain that requires a dependency. <code>graph</code> piped to grep finds all consumers of a dep.</td>
         </tr>
 
         <tr data-cat="mod">
@@ -491,7 +518,7 @@
             <span class="cmd-line">go list -tags integration -f '{{.TestGoFiles}}' ./...</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Package and module inspection — find upgradeable deps (<code>-u</code>), list direct dependencies, enumerate test files by build tag. Underused relative to its power; avoids third-party dependency graph tools entirely.</td>
+          <td class="usecase">Package and module inspection: find upgradeable deps (<code>-u</code>), list direct dependencies, enumerate test files by build tag. Underused relative to its power; avoids third-party dependency graph tools entirely.</td>
         </tr>
 
         <tr data-cat="mod">
@@ -506,7 +533,7 @@
             <span class="cmd-line comment"># unless deliberately sharing workspace across the repo</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Multi-module workspace mode — develop across modules simultaneously without <code>replace</code> directives. <code>GOWORK=off</code> verifies that module boundaries are correct before pushing. Do not commit <code>go.work</code> in library repos.</td>
+          <td class="usecase">Multi-module workspace mode: develop across modules simultaneously without <code>replace</code> directives. <code>GOWORK=off</code> verifies that module boundaries are correct before pushing. Do not commit <code>go.work</code> in library repos.</td>
         </tr>
 
         <tr data-cat="mod">
@@ -520,7 +547,7 @@
             <span class="cmd-line">govulncheck -C /path/to/module ./...</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Go team's vulnerability scanner — checks against the Go Vulnerability Database. Critically, only reports vulns in code paths actually reachable from your binary, not every vuln in every transitive dep. Far fewer false positives than generic SCA tools. From <code>golang.org/x/vuln</code>.</td>
+          <td class="usecase">Go team's vulnerability scanner: checks against the Go Vulnerability Database. Critically, only reports vulns in code paths actually reachable from your binary, not every vuln in every transitive dep. Far fewer false positives than generic SCA tools. From <code>golang.org/x/vuln</code>.</td>
         </tr>
 
         <!-- RELEASE -->
@@ -537,7 +564,7 @@
             <span class="cmd-line comment"># uses: goreleaser/goreleaser-action@v6</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Cross-platform build matrix, archive creation, checksum generation, changelog from commits, GitHub/GitLab release publishing — all from a single <code>.goreleaser.yaml</code>. <code>--snapshot</code> builds without publishing, safe to run on every PR to validate the release config.</td>
+          <td class="usecase">Cross-platform build matrix, archive creation, checksum generation, changelog from commits, GitHub/GitLab release publishing: all from a single <code>.goreleaser.yaml</code>. <code>--snapshot</code> builds without publishing, safe to run on every PR to validate the release config.</td>
         </tr>
 
         <tr data-cat="release">
@@ -561,12 +588,7 @@
 </main>
 
 <footer>
-  ops://cheatsheets &mdash;
-  <a href="https://pkg.go.dev/cmd" target="_blank" rel="noopener">go tool docs</a> &middot;
-  <a href="https://go.dev/doc/diagnostics" target="_blank" rel="noopener">diagnostics guide</a> &middot;
-  <a href="https://github.com/golangci/golangci-lint" target="_blank" rel="noopener">golangci-lint</a> &middot;
-  <a href="https://goreleaser.com" target="_blank" rel="noopener">goreleaser</a> &middot;
-  <a href="https://ko.build" target="_blank" rel="noopener">ko</a>
+  ops://cheatsheets: <a href="https://pkg.go.dev/cmd" target="_blank" rel="noopener">go tool docs</a>, <a href="https://go.dev/doc/diagnostics" target="_blank" rel="noopener">diagnostics guide</a>, <a href="https://github.com/golangci/golangci-lint" target="_blank" rel="noopener">golangci-lint</a>, <a href="https://goreleaser.com" target="_blank" rel="noopener">goreleaser</a>, <a href="https://ko.build" target="_blank" rel="noopener">ko</a>
 </footer>
 
 <script>

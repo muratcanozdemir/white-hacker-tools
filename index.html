@@ -8,6 +8,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <style>
+/* Hallmark · checked: 2026-11-24 · genre: modern-minimal (inferred)
+ * floor: 0 FAIL · fixed: 2a, 3, 7a, 10a, 19, 26a, 27, 34, 40, 48, 54, 63, 67 · structural: 58 printed
+ * built: the project · redesign: polish · v2.0.0 */
+/* Hallmark · answered F1 · straight quotes sit beside shell, JSON and SQL fragments readers copy, so they stay straight */
+/* Hallmark · answered F2 · three-dot ellipses mark elided arguments in commands and are kept */
+/* Hallmark · waive 38iii · the h1 span appears once, in the header · "cheatsheets" in the accent is how the ops page names its subject across the series */
+/* Hallmark · dismissed 3 · the post-card left border is a hover state on the cheatsheet list, not a decorative stripe */
 :root {
   --bg: #0d0f0e;
   --bg2: #141715;
@@ -22,7 +29,70 @@
   --red: #ff5f57;
   --mono: 'JetBrains Mono', monospace;
   --display: 'Syne', sans-serif;
-}
+    --fill-body: rgba(0,0,0,0.04);
+    --ink-h1: #e8f0e8;
+    --ink-tag-red: #ff7b75;
+    --fill-tag-teal: rgba(45,212,191,.12);
+    --ink-tag-teal: #2dd4bf;
+    --line-tag-teal: rgba(45,212,191,.3);
+    --fill-tag-pink: rgba(244,114,182,.12);
+    --ink-tag-pink: #f472b6;
+    --line-tag-pink: rgba(244,114,182,.3);
+    --fill-tag-lime: rgba(163,230,53,.10);
+    --ink-tag-lime: #a3e635;
+    --line-tag-lime: rgba(163,230,53,.25);
+    --fill-tag-orange: rgba(251,146,60,.12);
+    --ink-tag-orange: #fb923c;
+    --line-tag-orange: rgba(251,146,60,.3);
+    --fill-tag-violet: rgba(167,139,250,.12);
+    --ink-tag-violet: #a78bfa;
+    --line-tag-violet: rgba(167,139,250,.3);
+    --fill-tag-cyan: rgba(34,211,238,.12);
+    --ink-tag-cyan: #22d3ee;
+    --line-tag-cyan: rgba(34,211,238,.3);
+    --fill-tag-yellow: rgba(251,191,36,.12);
+    --ink-tag-yellow: #fbbf24;
+    --line-tag-yellow: rgba(251,191,36,.3);
+    --fill-tag-slate: rgba(122,162,247,.12);
+    --ink-tag-slate: #7aa2f7;
+    --line-tag-slate: rgba(122,162,247,.3);
+    --fill-tag-orange2: rgba(255,153,0,.12);
+    --ink-tag-orange2: #ff9900;
+    --line-tag-orange2: rgba(255,153,0,.3);
+    --fill-tag-azure: rgba(14,165,233,.12);
+    --ink-tag-azure: #0ea5e9;
+    --line-tag-azure: rgba(14,165,233,.3);
+    --fill-tag-fuchsia: rgba(232,121,249,.12);
+    --ink-tag-fuchsia: #e879f9;
+    --line-tag-fuchsia: rgba(232,121,249,.3);
+    --fill-tag-gcp: rgba(52,208,88,.12);
+    --ink-tag-gcp: #34d058;
+    --line-tag-gcp: rgba(52,208,88,.3);
+    --fill-tag-do: rgba(0,105,255,.12);
+    --ink-tag-do: #4d94ff;
+    --line-tag-do: rgba(0,105,255,.3);
+    --fill-tag-linode: rgba(2,177,89,.12);
+    --ink-tag-linode: #02b159;
+    --line-tag-linode: rgba(2,177,89,.3);
+    --fill-tag-hz: rgba(213,12,45,.12);
+    --ink-tag-hz: #ff4060;
+    --line-tag-hz: rgba(213,12,45,.3);
+    --fill-tag-kong: rgba(9,201,154,.12);
+    --ink-tag-kong: #09c99a;
+    --line-tag-kong: rgba(9,201,154,.3);
+    --fill-tag-mule: rgba(0,161,223,.12);
+    --ink-tag-mule: #00a1df;
+    --line-tag-mule: rgba(0,161,223,.3);
+    --fill-tag-nginx: rgba(38,149,57,.12);
+    --ink-tag-nginx: #26c939;
+    --line-tag-nginx: rgba(38,149,57,.3);
+    --fill-tag-fire: rgba(255,107,53,.12);
+    --ink-tag-fire: #ff6b35;
+    --line-tag-fire: rgba(255,107,53,.3);
+    --fill-tag-commentary: rgba(200,169,110,.12);
+    --ink-tag-commentary: #c8a96e;
+    --line-tag-commentary: rgba(200,169,110,.3);
+  }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -39,7 +109,7 @@ body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, var(--fill-body) 2px, var(--fill-body) 4px);
   pointer-events: none;
   z-index: 999;
 }
@@ -60,14 +130,14 @@ header::after {
 
 .inner { max-width: 860px; margin: 0 auto; }
 
-.prompt { font-size: 11px; color: var(--accent); letter-spacing: .1em; margin-bottom: .6rem; }
+.prompt { font-size: 11px; color: var(--accent); margin-bottom: .6rem; }
 .prompt::before { content: '$ '; color: var(--muted); }
 
 h1 {
   font-family: var(--display);
   font-size: clamp(2rem, 5vw, 3.2rem);
   font-weight: 800;
-  color: #e8f0e8;
+  color: var(--ink-h1);
   letter-spacing: -.03em;
   line-height: 1.05;
 }
@@ -80,8 +150,6 @@ main { max-width: 860px; margin: 0 auto; padding: 3rem 2rem; }
 
 .section-label {
   font-size: 10px;
-  letter-spacing: .14em;
-  text-transform: uppercase;
   color: var(--muted);
   margin-bottom: 1.25rem;
   display: flex;
@@ -113,61 +181,60 @@ main { max-width: 860px; margin: 0 auto; padding: 3rem 2rem; }
 
 /* ── tag colours ── */
 .tag {
-  font-size: 10px; padding: 1px 7px; border-radius: 2px;
-  letter-spacing: .05em; font-weight: 500;
+  font-size: 10px; padding: 1px 7px; border-radius: 2px; font-weight: 500;
 }
 
-.tag-red      { background: rgba(255,95,87,.12);   color: #ff7b75; border: 1px solid rgba(255,95,87,.3); }
-.tag-blue     { background: rgba(96,165,250,.12);  color: #60a5fa; border: 1px solid rgba(96,165,250,.3); }
-.tag-amber    { background: rgba(240,180,41,.12);  color: #f0b429; border: 1px solid rgba(240,180,41,.3); }
-.tag-teal     { background: rgba(45,212,191,.12);  color: #2dd4bf; border: 1px solid rgba(45,212,191,.3); }
-.tag-pink     { background: rgba(244,114,182,.12); color: #f472b6; border: 1px solid rgba(244,114,182,.3); }
-.tag-lime     { background: rgba(163,230,53,.10);  color: #a3e635; border: 1px solid rgba(163,230,53,.25); }
-.tag-orange   { background: rgba(251,146,60,.12);  color: #fb923c; border: 1px solid rgba(251,146,60,.3); }
-.tag-violet   { background: rgba(167,139,250,.12); color: #a78bfa; border: 1px solid rgba(167,139,250,.3); }
-.tag-cyan     { background: rgba(34,211,238,.12);  color: #22d3ee; border: 1px solid rgba(34,211,238,.3); }
-.tag-yellow   { background: rgba(251,191,36,.12);  color: #fbbf24; border: 1px solid rgba(251,191,36,.3); }
-.tag-slate    { background: rgba(122,162,247,.12); color: #7aa2f7; border: 1px solid rgba(122,162,247,.3); }
-.tag-orange2  { background: rgba(255,153,0,.12);   color: #ff9900; border: 1px solid rgba(255,153,0,.3); }
-.tag-azure    { background: rgba(14,165,233,.12);  color: #0ea5e9; border: 1px solid rgba(14,165,233,.3); }
-.tag-fuchsia  { background: rgba(232,121,249,.12); color: #e879f9; border: 1px solid rgba(232,121,249,.3); }
-.tag-gcp      { background: rgba(52,208,88,.12);   color: #34d058; border: 1px solid rgba(52,208,88,.3); }
-.tag-do       { background: rgba(0,105,255,.12);   color: #4d94ff; border: 1px solid rgba(0,105,255,.3); }
-.tag-linode   { background: rgba(2,177,89,.12);    color: #02b159; border: 1px solid rgba(2,177,89,.3); }
-.tag-hz       { background: rgba(213,12,45,.12);   color: #ff4060; border: 1px solid rgba(213,12,45,.3); }
-.tag-kong     { background: rgba(9,201,154,.12);   color: #09c99a; border: 1px solid rgba(9,201,154,.3); }
-.tag-mule     { background: rgba(0,161,223,.12);   color: #00a1df; border: 1px solid rgba(0,161,223,.3); }
-.tag-nginx    { background: rgba(38,149,57,.12);   color: #26c939; border: 1px solid rgba(38,149,57,.3); }
-.tag-fire     { background: rgba(255,107,53,.12);  color: #ff6b35; border: 1px solid rgba(255,107,53,.3); }
-.tag-commentary { background: rgba(200,169,110,.12); color: #c8a96e; border: 1px solid rgba(200,169,110,.3); }
+.tag-red      { background: color-mix(in srgb, var(--red) 12%, transparent);   color: var(--ink-tag-red); border: 1px solid color-mix(in srgb, var(--red) 30%, transparent); }
+.tag-blue     { background: color-mix(in srgb, var(--blue) 12%, transparent);  color: var(--blue); border: 1px solid color-mix(in srgb, var(--blue) 30%, transparent); }
+.tag-amber    { background: color-mix(in srgb, var(--amber) 12%, transparent);  color: var(--amber); border: 1px solid color-mix(in srgb, var(--amber) 30%, transparent); }
+.tag-teal     { background: var(--fill-tag-teal);  color: var(--ink-tag-teal); border: 1px solid var(--line-tag-teal); }
+.tag-pink     { background: var(--fill-tag-pink); color: var(--ink-tag-pink); border: 1px solid var(--line-tag-pink); }
+.tag-lime     { background: var(--fill-tag-lime);  color: var(--ink-tag-lime); border: 1px solid var(--line-tag-lime); }
+.tag-orange   { background: var(--fill-tag-orange);  color: var(--ink-tag-orange); border: 1px solid var(--line-tag-orange); }
+.tag-violet   { background: var(--fill-tag-violet); color: var(--ink-tag-violet); border: 1px solid var(--line-tag-violet); }
+.tag-cyan     { background: var(--fill-tag-cyan);  color: var(--ink-tag-cyan); border: 1px solid var(--line-tag-cyan); }
+.tag-yellow   { background: var(--fill-tag-yellow);  color: var(--ink-tag-yellow); border: 1px solid var(--line-tag-yellow); }
+.tag-slate    { background: var(--fill-tag-slate); color: var(--ink-tag-slate); border: 1px solid var(--line-tag-slate); }
+.tag-orange2  { background: var(--fill-tag-orange2);   color: var(--ink-tag-orange2); border: 1px solid var(--line-tag-orange2); }
+.tag-azure    { background: var(--fill-tag-azure);  color: var(--ink-tag-azure); border: 1px solid var(--line-tag-azure); }
+.tag-fuchsia  { background: var(--fill-tag-fuchsia); color: var(--ink-tag-fuchsia); border: 1px solid var(--line-tag-fuchsia); }
+.tag-gcp      { background: var(--fill-tag-gcp);   color: var(--ink-tag-gcp); border: 1px solid var(--line-tag-gcp); }
+.tag-do       { background: var(--fill-tag-do);   color: var(--ink-tag-do); border: 1px solid var(--line-tag-do); }
+.tag-linode   { background: var(--fill-tag-linode);    color: var(--ink-tag-linode); border: 1px solid var(--line-tag-linode); }
+.tag-hz       { background: var(--fill-tag-hz);   color: var(--ink-tag-hz); border: 1px solid var(--line-tag-hz); }
+.tag-kong     { background: var(--fill-tag-kong);   color: var(--ink-tag-kong); border: 1px solid var(--line-tag-kong); }
+.tag-mule     { background: var(--fill-tag-mule);   color: var(--ink-tag-mule); border: 1px solid var(--line-tag-mule); }
+.tag-nginx    { background: var(--fill-tag-nginx);   color: var(--ink-tag-nginx); border: 1px solid var(--line-tag-nginx); }
+.tag-fire     { background: var(--fill-tag-fire);  color: var(--ink-tag-fire); border: 1px solid var(--line-tag-fire); }
+.tag-commentary { background: var(--fill-tag-commentary); color: var(--ink-tag-commentary); border: 1px solid var(--line-tag-commentary); }
 
 /* ── card hover accent colours ── */
 .post-card.pentest:hover       { border-left-color: var(--red); }
 .post-card.k8s:hover           { border-left-color: var(--blue); }
-.post-card.terraform:hover     { border-left-color: #f0b429; }
-.post-card.observability:hover { border-left-color: #2dd4bf; }
-.post-card.containers:hover    { border-left-color: #f472b6; }
-.post-card.container-images:hover { border-left-color: #f0b429; }
-.post-card.golang:hover        { border-left-color: #a3e635; }
-.post-card.python:hover        { border-left-color: #fb923c; }
-.post-card.git:hover           { border-left-color: #a78bfa; }
-.post-card.network:hover       { border-left-color: #22d3ee; }
-.post-card.slurm:hover         { border-left-color: #fbbf24; }
-.post-card.postgres:hover      { border-left-color: #7aa2f7; }
-.post-card.aws:hover           { border-left-color: #ff9900; }
-.post-card.azure:hover         { border-left-color: #0ea5e9; }
-.post-card.vps:hover           { border-left-color: #e879f9; }
-.post-card.gcp:hover           { border-left-color: #34d058; }
-.post-card.do:hover            { border-left-color: #4d94ff; }
-.post-card.linode:hover        { border-left-color: #02b159; }
-.post-card.hetzner:hover       { border-left-color: #ff4060; }
-.post-card.kong:hover          { border-left-color: #09c99a; }
-.post-card.mule:hover          { border-left-color: #00a1df; }
-.post-card.nginx:hover         { border-left-color: #26c939; }
+.post-card.terraform:hover     { border-left-color: var(--amber); }
+.post-card.observability:hover { border-left-color: var(--ink-tag-teal); }
+.post-card.containers:hover    { border-left-color: var(--ink-tag-pink); }
+.post-card.container-images:hover { border-left-color: var(--amber); }
+.post-card.golang:hover        { border-left-color: var(--ink-tag-lime); }
+.post-card.python:hover        { border-left-color: var(--ink-tag-orange); }
+.post-card.git:hover           { border-left-color: var(--ink-tag-violet); }
+.post-card.network:hover       { border-left-color: var(--ink-tag-cyan); }
+.post-card.slurm:hover         { border-left-color: var(--ink-tag-yellow); }
+.post-card.postgres:hover      { border-left-color: var(--ink-tag-slate); }
+.post-card.aws:hover           { border-left-color: var(--ink-tag-orange2); }
+.post-card.azure:hover         { border-left-color: var(--ink-tag-azure); }
+.post-card.vps:hover           { border-left-color: var(--ink-tag-fuchsia); }
+.post-card.gcp:hover           { border-left-color: var(--ink-tag-gcp); }
+.post-card.do:hover            { border-left-color: var(--ink-tag-do); }
+.post-card.linode:hover        { border-left-color: var(--ink-tag-linode); }
+.post-card.hetzner:hover       { border-left-color: var(--ink-tag-hz); }
+.post-card.kong:hover          { border-left-color: var(--ink-tag-kong); }
+.post-card.mule:hover          { border-left-color: var(--ink-tag-mule); }
+.post-card.nginx:hover         { border-left-color: var(--ink-tag-nginx); }
 .post-card.llm:hover           { border-left-color: var(--red); }
-.post-card.agent-eval:hover    { border-left-color: #2dd4bf; }
-.post-card.spark-k8s:hover     { border-left-color: #ff6b35; }
-.post-card.commentary-post:hover { border-left-color: #c8a96e; }
+.post-card.agent-eval:hover    { border-left-color: var(--ink-tag-teal); }
+.post-card.spark-k8s:hover     { border-left-color: var(--ink-tag-fire); }
+.post-card.commentary-post:hover { border-left-color: var(--ink-tag-commentary); }
 
 /* ── card internals ── */
 .post-meta { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; margin-bottom: .4rem; }
@@ -176,7 +243,7 @@ main { max-width: 860px; margin: 0 auto; padding: 3rem 2rem; }
 .post-title {
   font-family: var(--display);
   font-size: 1.15rem; font-weight: 700;
-  color: #e8f0e8; letter-spacing: -.01em;
+  color: var(--ink-h1); letter-spacing: -.01em;
   margin-bottom: .35rem;
 }
 
@@ -203,8 +270,7 @@ main { max-width: 860px; margin: 0 auto; padding: 3rem 2rem; }
 }
 
 .coming-soon-title {
-  font-size: 10px; letter-spacing: .1em;
-  text-transform: uppercase; color: var(--border2);
+  font-size: 10px; color: var(--border2);
   margin-bottom: .25rem;
 }
 
@@ -226,6 +292,12 @@ footer {
   .post-arrow { display: none; }
 }
 
+    /* hallmark polish */
+  h1 { text-wrap: balance; }
+  button:active, [role="button"]:active { transform: translateY(1px); }
+  button:disabled, input:disabled, select:disabled { opacity: .5; cursor: not-allowed; }
+  code.raw { font: inherit; color: inherit; background: none; border: 0; padding: 0; }
+
   /* accessibility floor */
   html, body { overflow-x: clip; }
   a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible,
@@ -244,8 +316,8 @@ footer {
 
 <header>
   <div class="inner">
-    <p class="prompt">ls -la ./cheatsheets</p>
     <h1>ops://<span>cheatsheets</span></h1>
+    <p class="prompt">ls -la ./cheatsheets</p>
     <p class="tagline">Practitioner-grade command references for security, infrastructure, and platform engineering. No fluff.</p>
   </div>
 </header>
@@ -260,28 +332,28 @@ footer {
       <div>
         <div class="post-meta"><span class="tag tag-red">security</span><span class="post-date">2026-05-09</span></div>
         <p class="post-title">White Hat Hacker Tools</p>
-        <p class="post-desc">Filterable reference for penetration testing — recon, web, network, exploit, post-exploit, password cracking, and wireless.</p>
-        <p class="tool-count"><strong>23</strong> tools &middot; 7 phases</p>
+        <p class="post-desc">Filterable reference for penetration testing: recon, web, network, exploit, post-exploit, password cracking, and wireless.</p>
+        <p class="tool-count"><strong>23</strong> tools, 7 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
     </a>
 
     <a href="llm-attack-surface.html" class="post-card llm">
       <div>
-        <div class="post-meta"><span class="tag tag-red">security &middot; ai</span><span class="post-date">2026-05-09</span></div>
+        <div class="post-meta"><span class="tag tag-red">security, ai</span><span class="post-date">2026-05-09</span></div>
         <p class="post-title">LLM Attack Surface</p>
-        <p class="post-desc">Red-team reference for LLM-powered systems — prompt injection, RAG poisoning, agent abuse, context attacks, evasion, and hardening counter-measures. OWASP LLM Top 10 mapped.</p>
-        <p class="tool-count"><strong>40</strong> techniques &middot; 7 phases &middot; OWASP LLM Top 10</p>
+        <p class="post-desc">Red-team reference for LLM-powered systems: prompt injection, RAG poisoning, agent abuse, context attacks, evasion, and hardening counter-measures. OWASP LLM Top 10 mapped.</p>
+        <p class="tool-count"><strong>40</strong> techniques, 7 phases, OWASP LLM Top 10</p>
       </div>
       <span class="post-arrow">&#8594;</span>
     </a>
 
     <a href="agent-eval.html" class="post-card agent-eval">
       <div>
-        <div class="post-meta"><span class="tag tag-teal">ai &middot; evaluation</span><span class="post-date">2026-05-12</span></div>
+        <div class="post-meta"><span class="tag tag-teal">ai, evaluation</span><span class="post-date">2026-05-12</span></div>
         <p class="post-title">Agent Evaluation</p>
-        <p class="post-desc">Three-layer reference: eval frameworks (Inspect AI, DeepEval, Braintrust), benchmark suites (AgentBench, &tau;&sup2;-Bench, GAIA), and eval patterns &mdash; outcome, trajectory, online, and cost-bounded.</p>
-        <p class="tool-count"><strong>34</strong> techniques &middot; 3 layers &middot; 6 patterns</p>
+        <p class="post-desc">Three-layer reference: eval frameworks (Inspect AI, DeepEval, Braintrust), benchmark suites (AgentBench, &tau;&sup2;-Bench, GAIA), and eval patterns; outcome, trajectory, online, and cost-bounded.</p>
+        <p class="tool-count"><strong>34</strong> techniques, 3 layers, 6 patterns</p>
       </div>
       <span class="post-arrow">&#8594;</span>
     </a>
@@ -290,8 +362,8 @@ footer {
       <div>
         <div class="post-meta"><span class="tag tag-blue">kubernetes</span><span class="post-date">2026-05-09</span></div>
         <p class="post-title">Kubernetes Debugging Toolkit</p>
-        <p class="post-desc">Filterable reference for K8s debugging — inspect, network, security audit, cluster health, RBAC, and storage.</p>
-        <p class="tool-count"><strong>18</strong> tools &middot; 6 phases</p>
+        <p class="post-desc">Filterable reference for K8s debugging: inspect, network, security audit, cluster health, RBAC, and storage.</p>
+        <p class="tool-count"><strong>18</strong> tools, 6 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
     </a>
@@ -300,8 +372,8 @@ footer {
       <div>
         <div class="post-meta"><span class="tag tag-amber">iac</span><span class="post-date">2026-05-09</span></div>
         <p class="post-title">IaC &amp; Terraform Ecosystem</p>
-        <p class="post-desc">Filterable reference for the Terraform toolchain — validate, plan, security scanning, cost estimation, state surgery, and docs.</p>
-        <p class="tool-count"><strong>14</strong> tools &middot; 6 phases</p>
+        <p class="post-desc">Filterable reference for the Terraform toolchain: validate, plan, security scanning, cost estimation, state surgery, and docs.</p>
+        <p class="tool-count"><strong>14</strong> tools, 6 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
     </a>
@@ -310,8 +382,8 @@ footer {
       <div>
         <div class="post-meta"><span class="tag tag-teal">observability</span><span class="post-date">2026-05-09</span></div>
         <p class="post-title">Observability &amp; SRE Toolkit</p>
-        <p class="post-desc">Filterable reference for the full observability stack — metrics, logs, traces, profiling, eBPF system analysis, and incident response.</p>
-        <p class="tool-count"><strong>17</strong> tools &middot; 6 phases</p>
+        <p class="post-desc">Filterable reference for the full observability stack: metrics, logs, traces, profiling, eBPF system analysis, and incident response.</p>
+        <p class="tool-count"><strong>17</strong> tools, 6 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
     </a>
@@ -320,8 +392,8 @@ footer {
       <div>
         <div class="post-meta"><span class="tag tag-pink">containers</span><span class="post-date">2026-05-10</span></div>
         <p class="post-title">Container Security Toolkit</p>
-        <p class="post-desc">Filterable reference for container security — image scanning, build linting, registry ops, image signing, runtime detection, and supply chain.</p>
-        <p class="tool-count"><strong>15</strong> tools &middot; 6 phases</p>
+        <p class="post-desc">Filterable reference for container security: image scanning, build linting, registry ops, image signing, runtime detection, and supply chain.</p>
+        <p class="tool-count"><strong>15</strong> tools, 6 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
     </a>
@@ -330,8 +402,8 @@ footer {
       <div>
         <div class="post-meta"><span class="tag tag-amber">containers</span><span class="post-date">2026-05-13</span></div>
         <p class="post-title">Container Base Images</p>
-        <p class="post-desc">Filterable reference for base image selection — scratch, BusyBox, Alpine, Wolfi, Distroless, Debian slim. Build patterns, musl/glibc compat traps, hardening, and debugging minimal containers.</p>
-        <p class="tool-count"><strong>22</strong> entries &middot; 6 phases</p>
+        <p class="post-desc">Filterable reference for base image selection: scratch, BusyBox, Alpine, Wolfi, Distroless, Debian slim. Build patterns, musl/glibc compat traps, hardening, and debugging minimal containers.</p>
+        <p class="tool-count"><strong>22</strong> entries, 6 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
     </a>
@@ -340,8 +412,8 @@ footer {
       <div>
         <div class="post-meta"><span class="tag tag-lime">go</span><span class="post-date">2026-05-10</span></div>
         <p class="post-title">Go Developer Toolkit</p>
-        <p class="post-desc">Standard toolchain first — build, test, profile, debug, lint, modules, and release. Third-party tools where they genuinely add value.</p>
-        <p class="tool-count"><strong>18</strong> tools &middot; 7 phases</p>
+        <p class="post-desc">Standard toolchain first: build, test, profile, debug, lint, modules, and release. Third-party tools where they genuinely add value.</p>
+        <p class="tool-count"><strong>18</strong> tools, 7 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
     </a>
@@ -350,8 +422,8 @@ footer {
       <div>
         <div class="post-meta"><span class="tag tag-orange">python</span><span class="post-date">2026-05-10</span></div>
         <p class="post-title">Python Packaging &amp; CI Toolkit</p>
-        <p class="post-desc">Modern Python toolchain — env management, packaging standards, quality gates, Rust/Python FFI, publishing, and reproducible CI patterns.</p>
-        <p class="tool-count"><strong>16</strong> tools &middot; 6 phases</p>
+        <p class="post-desc">Modern Python toolchain: env management, packaging standards, quality gates, Rust/Python FFI, publishing, and reproducible CI patterns.</p>
+        <p class="tool-count"><strong>16</strong> tools, 6 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
     </a>
@@ -361,7 +433,7 @@ footer {
         <div class="post-meta"><span class="tag tag-violet">git</span><span class="post-date">2026-05-10</span></div>
         <p class="post-title">Git &amp; Repo Hygiene</p>
         <p class="post-desc">History rewriting, forensic archaeology, secret scanning, hook automation, and large-repo tooling. Beyond the daily commit cycle.</p>
-        <p class="tool-count"><strong>17</strong> tools &middot; 6 phases</p>
+        <p class="tool-count"><strong>17</strong> tools, 6 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
     </a>
@@ -371,7 +443,7 @@ footer {
         <div class="post-meta"><span class="tag tag-cyan">network</span><span class="post-date">2026-05-10</span></div>
         <p class="post-title">Network Diagnostics</p>
         <p class="post-desc">DNS resolution, TCP/UDP inspection, HTTP deep-dive, gRPC testing, TLS certificate analysis, and load testing. Protocol-first, tool-second.</p>
-        <p class="tool-count"><strong>18</strong> tools &middot; 6 phases</p>
+        <p class="tool-count"><strong>18</strong> tools, 6 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
     </a>
@@ -381,7 +453,7 @@ footer {
         <div class="post-meta"><span class="tag tag-yellow">hpc</span><span class="post-date">2026-05-11</span></div>
         <p class="post-title">SLURM &amp; HPC Toolkit</p>
         <p class="post-desc">Job submission, queue monitoring, failure debugging, array jobs, dependency chains, and resource profiling. CPU-only and GPU clusters.</p>
-        <p class="tool-count"><strong>17</strong> commands &middot; 6 phases</p>
+        <p class="tool-count"><strong>17</strong> commands, 6 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
     </a>
@@ -391,7 +463,7 @@ footer {
         <div class="post-meta"><span class="tag tag-slate">postgres</span><span class="post-date">2026-05-11</span></div>
         <p class="post-title">PostgreSQL Operations</p>
         <p class="post-desc">psql meta-commands, backup and restore, query analysis, maintenance, access control, and replication monitoring. Self-hosted, production-grade.</p>
-        <p class="tool-count"><strong>18</strong> tools &middot; 6 phases</p>
+        <p class="tool-count"><strong>18</strong> tools, 6 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
     </a>
@@ -399,9 +471,9 @@ footer {
     <a href="aws.html" class="post-card aws">
       <div>
         <div class="post-meta"><span class="tag tag-orange2">aws</span><span class="post-date">2026-05-11</span></div>
-        <p class="post-title">AWS CLI &mdash; Production Surface</p>
+        <p class="post-title">AWS CLI: Production Surface</p>
         <p class="post-desc">~30 services distilled to what engineers with production scars reach for daily. Auth, compute, storage, networking, secrets, observability, and platform.</p>
-        <p class="tool-count"><strong>28</strong> entries &middot; 7 phases</p>
+        <p class="tool-count"><strong>28</strong> entries, 7 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
     </a>
@@ -409,9 +481,9 @@ footer {
     <a href="azure.html" class="post-card azure">
       <div>
         <div class="post-meta"><span class="tag tag-azure">azure</span><span class="post-date">2026-05-12</span></div>
-        <p class="post-title">Azure CLI &mdash; Production Surface</p>
+        <p class="post-title">Azure CLI: Production Surface</p>
         <p class="post-desc">~28 entries distilled to what engineers with production scars reach for daily. Auth, compute, storage, networking, secrets, observability, data/platform.</p>
-        <p class="tool-count"><strong>28</strong> entries &middot; 7 phases</p>
+        <p class="tool-count"><strong>28</strong> entries, 7 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
     </a>
@@ -419,9 +491,9 @@ footer {
     <a href="vps-hardening.html" class="post-card vps">
       <div>
         <div class="post-meta"><span class="tag tag-fuchsia">security</span><span class="post-date">2026-05-12</span></div>
-        <p class="post-title">VPS Hardening &mdash; Fresh to Secure</p>
+        <p class="post-title">VPS Hardening: Fresh to Secure</p>
         <p class="post-desc">From a blank Debian/Ubuntu VPS to a machine you'd trust running production workloads. 22+1 ordered steps, filterable by phase, with a progress bar and checkboxes.</p>
-        <p class="tool-count"><strong>23</strong> steps &middot; 7 phases &middot; ordered</p>
+        <p class="tool-count"><strong>23</strong> steps, 7 phases, ordered</p>
       </div>
       <span class="post-arrow">&#8594;</span>
     </a>
@@ -429,9 +501,9 @@ footer {
     <a href="gcp.html" class="post-card gcp">
       <div>
         <div class="post-meta"><span class="tag tag-gcp">gcp</span><span class="post-date">2026-05-12</span></div>
-        <p class="post-title">GCP CLI &mdash; Production Surface</p>
+        <p class="post-title">GCP CLI: Production Surface</p>
         <p class="post-desc">~28 entries distilled to what engineers with production scars reach for. Auth, compute, storage, networking, secrets, observability, data/platform.</p>
-        <p class="tool-count"><strong>28</strong> entries &middot; 7 phases</p>
+        <p class="tool-count"><strong>28</strong> entries, 7 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
     </a>
@@ -439,9 +511,9 @@ footer {
     <a href="digitalocean.html" class="post-card do">
       <div>
         <div class="post-meta"><span class="tag tag-do">digitalocean</span><span class="post-date">2026-05-12</span></div>
-        <p class="post-title">DigitalOcean CLI &mdash; Production Surface</p>
-        <p class="post-desc">doctl reference for engineers with production scars &mdash; droplets, DOKS, Spaces, networking, managed databases, App Platform, and Container Registry.</p>
-        <p class="tool-count"><strong>24</strong> entries &middot; 7 phases</p>
+        <p class="post-title">DigitalOcean CLI: Production Surface</p>
+        <p class="post-desc">doctl reference for engineers with production scars: droplets, DOKS, Spaces, networking, managed databases, App Platform, and Container Registry.</p>
+        <p class="tool-count"><strong>24</strong> entries, 7 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
     </a>
@@ -449,9 +521,9 @@ footer {
     <a href="linode.html" class="post-card linode">
       <div>
         <div class="post-meta"><span class="tag tag-linode">linode</span><span class="post-date">2026-05-12</span></div>
-        <p class="post-title">Linode CLI &mdash; Production Surface</p>
-        <p class="post-desc">linode-cli reference for engineers with production scars &mdash; Linodes, LKE, Object Storage, volumes, firewalls, NodeBalancers, managed databases.</p>
-        <p class="tool-count"><strong>22</strong> entries &middot; 6 phases</p>
+        <p class="post-title">Linode CLI: Production Surface</p>
+        <p class="post-desc">linode-cli reference for engineers with production scars: Linodes, LKE, Object Storage, volumes, firewalls, NodeBalancers, managed databases.</p>
+        <p class="tool-count"><strong>22</strong> entries, 6 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
     </a>
@@ -459,9 +531,9 @@ footer {
     <a href="hetzner.html" class="post-card hetzner">
       <div>
         <div class="post-meta"><span class="tag tag-hz">hetzner</span><span class="post-date">2026-05-12</span></div>
-        <p class="post-title">Hetzner CLI &mdash; Production Surface</p>
-        <p class="post-desc">hcloud reference for engineers with production scars &mdash; servers, private networks, volumes, load balancers, firewalls, floating IPs, and Object Storage.</p>
-        <p class="tool-count"><strong>22</strong> entries &middot; 6 phases</p>
+        <p class="post-title">Hetzner CLI: Production Surface</p>
+        <p class="post-desc">hcloud reference for engineers with production scars: servers, private networks, volumes, load balancers, firewalls, floating IPs, and Object Storage.</p>
+        <p class="tool-count"><strong>22</strong> entries, 6 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
     </a>
@@ -471,7 +543,7 @@ footer {
         <div class="post-meta"><span class="tag tag-kong">api gateway</span><span class="post-date">2026-05-12</span></div>
         <p class="post-title">Kong API Gateway</p>
         <p class="post-desc">Admin API patterns, deck config-as-code, plugin management, routing, upstreams, and operational inspection for Kong OSS and Kong Gateway.</p>
-        <p class="tool-count"><strong>22</strong> entries &middot; 7 phases</p>
+        <p class="tool-count"><strong>22</strong> entries, 7 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
     </a>
@@ -479,9 +551,9 @@ footer {
     <a href="mulesoft.html" class="post-card mule">
       <div>
         <div class="post-meta"><span class="tag tag-mule">mulesoft</span><span class="post-date">2026-05-12</span></div>
-        <p class="post-title">MuleSoft &mdash; Production Surface</p>
+        <p class="post-title">MuleSoft: Production Surface</p>
         <p class="post-desc">anypoint-cli for interactive ops and environment promotion. Mule Maven Plugin for CI/CD deployments. Deploy, promote, API Manager, runtime, observability, governance.</p>
-        <p class="tool-count"><strong>20</strong> entries &middot; 6 phases</p>
+        <p class="tool-count"><strong>20</strong> entries, 6 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
     </a>
@@ -490,8 +562,8 @@ footer {
       <div>
         <div class="post-meta"><span class="tag tag-nginx">nginx</span><span class="post-date">2026-05-12</span></div>
         <p class="post-title">Nginx as API Gateway</p>
-        <p class="post-desc">Config-centric reference &mdash; upstream blocks, rate limiting, JWT via auth_request, mTLS, TLS hardening, and observability patterns. nginx OSS and nginx Plus.</p>
-        <p class="tool-count"><strong>20</strong> patterns &middot; 6 phases</p>
+        <p class="post-desc">Config-centric reference: upstream blocks, rate limiting, JWT via auth_request, mTLS, TLS hardening, and observability patterns. nginx OSS and nginx Plus.</p>
+        <p class="tool-count"><strong>20</strong> patterns, 6 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
     </a>
@@ -501,7 +573,7 @@ footer {
         <div class="post-meta"><span class="tag tag-fire">spark</span><span class="post-date">2026-05-13</span></div>
         <p class="post-title">Spark on Kubernetes</p>
         <p class="post-desc">The cursed timeline. Operator setup, JVM vs cgroup memory fights, shuffle-spill survival on heterogeneous VM clusters, gang scheduling, and debugging OOMKilled executors.</p>
-        <p class="tool-count"><strong>24</strong> entries &middot; 6 phases</p>
+        <p class="tool-count"><strong>24</strong> entries, 6 phases</p>
       </div>
       <span class="post-arrow">&#8594;</span>
     </a>
@@ -516,8 +588,8 @@ footer {
       <div>
         <div class="post-meta"><span class="tag tag-commentary">commentary</span><span class="post-date">2026-05-26</span></div>
         <p class="post-title">The Vatican's AI Encyclical</p>
-        <p class="post-desc">Pope Leo XIV's <em>Magnifica Humanitas</em> decoded &mdash; what the encyclical actually demands from AI labs, governments, and platform companies, stripped of the theology.</p>
-        <p class="tool-count">~3,200 words &middot; 13 min read</p>
+        <p class="post-desc">Pope Leo XIV's <em>Magnifica Humanitas</em> decoded: what the encyclical actually demands from AI labs, governments, and platform companies, stripped of the theology.</p>
+        <p class="tool-count">~3,200 words, 13 min read</p>
       </div>
       <span class="post-arrow">&#8594;</span>
     </a>
@@ -526,8 +598,8 @@ footer {
       <div>
         <div class="post-meta"><span class="tag tag-commentary">commentary</span><span class="post-date">2026-05-26</span></div>
         <p class="post-title">Anthropic at the Vatican</p>
-        <p class="post-desc">Chris Olah's remarks to the Holy See &mdash; what's unusually candid, what's strategically absent, and why sincerity and structural compulsion coexist perfectly in a race dynamic nobody can exit.</p>
-        <p class="tool-count">~1,900 words &middot; 8 min read</p>
+        <p class="post-desc">Chris Olah's remarks to the Holy See: what's unusually candid, what's strategically absent, and why sincerity and structural compulsion coexist perfectly in a race dynamic nobody can exit.</p>
+        <p class="tool-count">~1,900 words, 8 min read</p>
       </div>
       <span class="post-arrow">&#8594;</span>
     </a>
@@ -543,7 +615,7 @@ footer {
 
 </main>
 
-<footer>ops://cheatsheets &mdash; use responsibly and legally</footer>
+<footer>ops://cheatsheets; use responsibly and legally</footer>
 
 </body>
 </html>

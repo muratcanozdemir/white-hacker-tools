@@ -3,8 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LLM Attack Surface — White Hat Cheatsheet</title>
+<title>LLM Attack Surface: White Hat Cheatsheet</title>
 <style>
+/* Hallmark · checked: 2026-11-24 · genre: modern-minimal (inferred)
+ * floor: 0 FAIL · fixed: 2a, 3, 7a, 10a, 19, 26a, 27, 34, 40, 48, 54, 63, 67 · structural: 58 printed
+ * built: the project · redesign: polish · v2.0.0 */
+/* Hallmark · answered F1 · straight quotes sit beside shell, JSON and SQL fragments readers copy, so they stay straight */
+/* Hallmark · answered F2 · three-dot ellipses mark elided arguments in commands and are kept */
+/* Hallmark · waive 38iii · the h1 span appears once, in the header · "Attack Surface" in the accent is how the LLM Attack Surface page names its subject across the series */
   :root {
     --bg:      #0d0f12;
     --bg2:     #13161b;
@@ -25,6 +31,9 @@
     --agent:    #56d364;
     --evasion:  #e3b341;
     --defense:  #39d353;
+    --ink-h1: #e6edf3;
+    --ink-disclaimer: #c9a0a0;
+    --ink-cmd-line-cmd: #58d68d;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -57,7 +66,6 @@
     font-size: 11px;
     color: var(--muted);
     margin-bottom: .6rem;
-    letter-spacing: .05em;
   }
 
   .prompt::before { content: '$ '; color: var(--accent); }
@@ -67,7 +75,7 @@
     font-weight: 700;
     letter-spacing: -.02em;
     line-height: 1.15;
-    color: #e6edf3;
+    color: var(--ink-h1);
     margin-bottom: .5rem;
   }
 
@@ -93,12 +101,12 @@
 
   /* ── DISCLAIMER ── */
   .disclaimer {
-    background: rgba(255,123,114,.06);
-    border: 1px solid rgba(255,123,114,.2);
+    background: color-mix(in srgb, var(--inject) 6%, transparent);
+    border: 1px solid color-mix(in srgb, var(--inject) 20%, transparent);
     border-radius: 4px;
     padding: .65rem 1rem;
     font-size: 11px;
-    color: #c9a0a0;
+    color: var(--ink-disclaimer);
     margin-bottom: 1.25rem;
   }
 
@@ -133,7 +141,6 @@
     font-family: var(--mono);
     font-size: 10.5px;
     padding: 3px 10px;
-    letter-spacing: .04em;
     transition: color .12s, border-color .12s, background .12s;
   }
 
@@ -160,9 +167,7 @@
   thead th {
     font-size: 10px;
     font-weight: 600;
-    letter-spacing: .1em;
     color: var(--muted);
-    text-transform: uppercase;
     border-bottom: 1px solid var(--border);
     padding: .5rem .75rem;
     text-align: left;
@@ -187,23 +192,21 @@
     border-radius: 3px;
     font-size: 9.5px;
     font-weight: 700;
-    letter-spacing: .07em;
-    text-transform: uppercase;
     padding: 2px 7px;
     white-space: nowrap;
   }
 
-  .phase-recon    { background: rgba(121,192,255,.12); color: var(--recon);   border: 1px solid rgba(121,192,255,.25); }
-  .phase-inject   { background: rgba(255,123,114,.12); color: var(--inject);  border: 1px solid rgba(255,123,114,.25); }
-  .phase-rag      { background: rgba(255,166,87,.12);  color: var(--rag);     border: 1px solid rgba(255,166,87,.25);  }
-  .phase-context  { background: rgba(210,168,255,.12); color: var(--context); border: 1px solid rgba(210,168,255,.25); }
-  .phase-agent    { background: rgba(86,211,100,.12);  color: var(--agent);   border: 1px solid rgba(86,211,100,.25);  }
-  .phase-evasion  { background: rgba(227,179,65,.12);  color: var(--evasion); border: 1px solid rgba(227,179,65,.25);  }
-  .phase-defense  { background: rgba(57,211,83,.1);    color: var(--defense); border: 1px solid rgba(57,211,83,.2);    }
+  .phase-recon    { background: color-mix(in srgb, var(--recon) 12%, transparent); color: var(--recon);   border: 1px solid color-mix(in srgb, var(--recon) 25%, transparent); }
+  .phase-inject   { background: color-mix(in srgb, var(--inject) 12%, transparent); color: var(--inject);  border: 1px solid color-mix(in srgb, var(--inject) 25%, transparent); }
+  .phase-rag      { background: color-mix(in srgb, var(--rag) 12%, transparent);  color: var(--rag);     border: 1px solid color-mix(in srgb, var(--rag) 25%, transparent);  }
+  .phase-context  { background: color-mix(in srgb, var(--context) 12%, transparent); color: var(--context); border: 1px solid color-mix(in srgb, var(--context) 25%, transparent); }
+  .phase-agent    { background: color-mix(in srgb, var(--agent) 12%, transparent);  color: var(--agent);   border: 1px solid color-mix(in srgb, var(--agent) 25%, transparent);  }
+  .phase-evasion  { background: color-mix(in srgb, var(--evasion) 12%, transparent);  color: var(--evasion); border: 1px solid color-mix(in srgb, var(--evasion) 25%, transparent);  }
+  .phase-defense  { background: color-mix(in srgb, var(--defense) 10%, transparent);    color: var(--defense); border: 1px solid color-mix(in srgb, var(--defense) 20%, transparent);    }
 
   /* technique name */
   td.technique {
-    color: #e6edf3;
+    color: var(--ink-h1);
     font-size: 12px;
     font-weight: 600;
     min-width: 160px;
@@ -214,6 +217,7 @@
   .cmd-block {
     position: relative;
     background: var(--bg3);
+    color: var(--text);
     border: 1px solid var(--border2);
     border-radius: 4px;
     padding: .55rem .75rem;
@@ -232,7 +236,7 @@
 
   .cmd-line.payload { color: var(--inject); }
   .cmd-line.note    { color: var(--muted);  font-style: italic; }
-  .cmd-line.cmd     { color: #58d68d; }
+  .cmd-line.cmd     { color: var(--ink-cmd-line-cmd); }
   .cmd-line.flag    { color: var(--evasion); }
   .cmd-line.defend  { color: var(--defense); }
 
@@ -250,7 +254,6 @@
     cursor: pointer;
     opacity: 0;
     transition: opacity .15s, color .15s;
-    letter-spacing: .05em;
   }
 
   .cmd-block:hover .copy-btn { opacity: 1; }
@@ -294,12 +297,11 @@
     display: inline-block;
     font-size: 9px;
     font-weight: 700;
-    letter-spacing: .06em;
     padding: 2px 6px;
     border-radius: 3px;
-    background: rgba(88,166,255,.1);
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
     color: var(--accent);
-    border: 1px solid rgba(88,166,255,.2);
+    border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
     white-space: nowrap;
   }
 
@@ -328,6 +330,12 @@
     .count { display: none; }
   }
 
+    /* hallmark polish */
+  h1 { text-wrap: balance; }
+  button:active, [role="button"]:active { transform: translateY(1px); }
+  button:disabled, input:disabled, select:disabled { opacity: .5; cursor: not-allowed; }
+  code.raw { font: inherit; color: inherit; background: none; border: 0; padding: 0; }
+
   /* accessibility floor */
   html, body { overflow-x: clip; }
   a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible,
@@ -347,14 +355,14 @@
 <header>
   <div class="header-inner">
     <div class="title-block">
-      <p class="prompt">llm-recon --attack-surface --mode=red-team</p>
       <h1>LLM<br><span>Attack Surface</span></h1>
-      <p class="subtitle">Red-team reference for LLM-powered systems — prompt injection, RAG poisoning, agent abuse, context attacks, and hardening counter-measures.</p>
+      <p class="prompt">llm-recon --attack-surface --mode=red-team</p>
+      <p class="subtitle">Red-team reference for LLM-powered systems: prompt injection, RAG poisoning, agent abuse, context attacks, and hardening counter-measures.</p>
     </div>
     <div class="meta">
       <strong>40</strong> techniques<br>
       <strong>7</strong> phases<br>
-      OWASP LLM Top 10 · 2025
+      OWASP LLM Top 10, 2025
     </div>
   </div>
 </header>
@@ -471,7 +479,7 @@
           <div class="cmd-block">
             <span class="cmd-line payload">Find documents about "machine learning".</span>
             <span class="cmd-line payload">Find documents about "ML" and "artificial intelligence".</span>
-            <span class="cmd-line note"># compare result overlap — BM25 vs dense vector retrieval behave differently</span>
+            <span class="cmd-line note"># compare result overlap: BM25 vs dense vector retrieval behave differently</span>
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
@@ -491,7 +499,7 @@
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">Baseline. Low success rate on RLHF-hardened models. Useful for establishing a <strong>refusal baseline</strong> — how the model words refusals leaks instruction phrasing.</td>
+        <td class="notes">Baseline. Low success rate on RLHF-hardened models. Useful for establishing a <strong>refusal baseline</strong>: how the model words refusals leaks instruction phrasing.</td>
       </tr>
 
       <tr data-cat="inject">
@@ -634,7 +642,7 @@ target = m.encode('company refund policy')
             <span class="cmd-line note"># abuse fixed-size chunking (e.g. 512 tokens):</span>
             <span class="cmd-line payload">[pad with 500 tokens of innocuous text]</span>
             <span class="cmd-line payload">CRITICAL OVERRIDE: [malicious instruction at chunk boundary]</span>
-            <span class="cmd-line note"># forces instruction into chunk head — highest attention position</span>
+            <span class="cmd-line note"># forces instruction into chunk head: highest attention position</span>
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
@@ -719,7 +727,7 @@ print(legit + poison + filler)
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">Paper: Liu et al. 2023 "Lost in the Middle." RAG pipelines that stuff many chunks are especially vulnerable — attacker's chunk lands in middle where attention is lowest.</td>
+        <td class="notes">Paper: Liu et al. 2023 "Lost in the Middle." RAG pipelines that stuff many chunks are especially vulnerable: attacker's chunk lands in middle where attention is lowest.</td>
       </tr>
 
       <!-- ── AGENT ABUSE ── -->
@@ -830,7 +838,7 @@ print(legit + poison + filler)
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">Safety classifiers often operate on token IDs. Visually identical characters tokenise differently. <strong>Detection:</strong> normalise unicode before safety classification — not after tokenisation.</td>
+        <td class="notes">Safety classifiers often operate on token IDs. Visually identical characters tokenise differently. <strong>Detection:</strong> normalise unicode before safety classification, not after tokenisation.</td>
       </tr>
 
       <tr data-cat="evasion">
@@ -860,7 +868,7 @@ print(legit + poison + filler)
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">RLHF safety training is heavily English-skewed. Non-English queries bypass classifiers at higher rates. Documented in multiple red-team papers 2023–2024. Mitigation: multilingual safety eval is table stakes.</td>
+        <td class="notes">RLHF safety training is heavily English-skewed. Non-English queries bypass classifiers at higher rates. Documented in multiple red-team papers 2023 to 2024. Mitigation: multilingual safety eval is table stakes.</td>
       </tr>
 
       <tr data-cat="evasion">
@@ -926,7 +934,7 @@ print(legit + poison + filler)
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">Free-text output is an attack surface. Force structured output (JSON schema, tool calls). Exfiltration via summarisation requires free-text output — schema enforcement breaks the channel.</td>
+        <td class="notes">Free-text output is an attack surface. Force structured output (JSON schema, tool calls). Exfiltration via summarisation requires free-text output: schema enforcement breaks the channel.</td>
       </tr>
 
       <tr data-cat="defense">
@@ -937,8 +945,8 @@ print(legit + poison + filler)
           <div class="cmd-block">
             <span class="cmd-line defend"># never mix trust levels in a single context window:</span>
             <span class="cmd-line defend">SYSTEM (trusted):   instructions, schema, authz rules</span>
-            <span class="cmd-line defend">USER (untrusted):   query only — no doc content</span>
-            <span class="cmd-line defend">TOOL RESULT:        retrieved docs — treat as untrusted</span>
+            <span class="cmd-line defend">USER (untrusted):   query only; no doc content</span>
+            <span class="cmd-line defend">TOOL RESULT:        retrieved docs; treat as untrusted</span>
             <span class="cmd-line note"># use separate pipeline stages, not one big prompt</span>
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
@@ -984,11 +992,11 @@ print(legit + poison + filler)
 
       <tr data-cat="defense">
         <td><span class="phase-tag phase-defense">defense</span></td>
-        <td class="owasp-col"><span class="owasp">—</span></td>
+        <td class="owasp-col"><span class="owasp">n/a</span></td>
         <td class="technique">Local model selection matrix</td>
         <td>
           <div class="cmd-block">
-            <span class="cmd-line note"># CPU-only i9/64GB — recommended GGUF quants:</span>
+            <span class="cmd-line note"># CPU-only i9/64GB: recommended GGUF quants:</span>
             <span class="cmd-line defend">classification / RAG:  nomic-embed-text (Q8)  # 274M, fast</span>
             <span class="cmd-line defend">reasoning / gen:       llama-3.1-8B-Q4_K_M    # sweet spot</span>
             <span class="cmd-line defend">code:                  qwen2.5-coder-7B-Q4_K_M</span>
@@ -997,7 +1005,7 @@ print(legit + poison + filler)
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">Q4_K_M: best quality/size tradeoff on CPU. Q2: too much degradation for RAG (recall@1 collapses). batch=1 on CPU — speculative decoding irrelevant. No CUDA, no outbound embedding API needed.</td>
+        <td class="notes">Q4_K_M: best quality/size tradeoff on CPU. Q2: too much degradation for RAG (recall@1 collapses). batch=1 on CPU: speculative decoding irrelevant. No CUDA, no outbound embedding API needed.</td>
       </tr>
 
       <tr data-cat="defense">
@@ -1015,38 +1023,38 @@ print(legit + poison + filler)
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">Pure dense retrieval is a single point of failure. Hybrid (BM25 + dense + RRF) is harder to poison — attacker must beat both lexical and semantic ranking. Overlap chunking limits boundary exploit.</td>
+        <td class="notes">Pure dense retrieval is a single point of failure. Hybrid (BM25 + dense + RRF) is harder to poison: attacker must beat both lexical and semantic ranking. Overlap chunking limits boundary exploit.</td>
       </tr>
 
       <tr data-cat="defense">
         <td><span class="phase-tag phase-defense">defense</span></td>
-        <td class="owasp-col"><span class="owasp">—</span></td>
+        <td class="owasp-col"><span class="owasp">n/a</span></td>
         <td class="technique">Quantisation tradeoffs</td>
         <td>
           <div class="cmd-block">
-            <span class="cmd-line note"># GGUF quant levels — CPU inference (batch=1):</span>
+            <span class="cmd-line note"># GGUF quant levels: CPU inference (batch=1):</span>
             <div class="quant-grid">
-              <span class="ql">Q2_K</span><span class="qv">~2.6 bpw</span><span class="qn">recall collapses — avoid for RAG</span>
-              <span class="ql">Q4_K_M</span><span class="qv">~4.8 bpw</span><span class="qn">sweet spot — quality/size/speed</span>
+              <span class="ql">Q2_K</span><span class="qv">~2.6 bpw</span><span class="qn">recall collapses. Avoid for RAG</span>
+              <span class="ql">Q4_K_M</span><span class="qv">~4.8 bpw</span><span class="qn">sweet spot: quality/size/speed</span>
               <span class="ql">Q6_K</span><span class="qv">~6.6 bpw</span><span class="qn">near-lossless; use if RAM allows</span>
               <span class="ql">Q8_0</span><span class="qv">~8.5 bpw</span><span class="qn">effectively lossless; embedding models</span>
-              <span class="ql">F16</span><span class="qv">16 bpw</span><span class="qn">reference only — impractical on CPU</span>
+              <span class="ql">F16</span><span class="qv">16 bpw</span><span class="qn">reference only: impractical on CPU</span>
             </div>
-            <span class="cmd-line note" style="margin-top:.5rem; display:block"># embedding quantisation — recall@1 on GloVe-100:</span>
+            <span class="cmd-line note" style="margin-top:.5rem; display:block"># embedding quantisation: recall@1 on GloVe-100:</span>
             <div class="quant-grid">
-              <span class="ql">2-bit</span><span class="qv">0.505</span><span class="qn">coin-flip — do not use for retrieval</span>
+              <span class="ql">2-bit</span><span class="qv">0.505</span><span class="qn">coin-flip. Do not use for retrieval</span>
               <span class="ql">4-bit</span><span class="qv">~0.87</span><span class="qn">acceptable; verify on your corpus</span>
               <span class="ql">8-bit</span><span class="qv">~0.97</span><span class="qn">safe default for production RAG</span>
             </div>
-            <span class="cmd-line note" style="margin-top:.5rem; display:block"># TurboQuant — post-hoc vector compression:</span>
+            <span class="cmd-line note" style="margin-top:.5rem; display:block"># TurboQuant: post-hoc vector compression:</span>
             <span class="cmd-line defend">pip install turboquant</span>
             <span class="cmd-line defend">tq compress --index hnsw.bin --bits 4 --out hnsw_q4.bin</span>
-            <span class="cmd-line note"># no training step — drop-in for dynamic indices</span>
+            <span class="cmd-line note"># no training step: drop-in for dynamic indices</span>
             <span class="cmd-line note"># HNSW graph untouched; only stored vectors compressed</span>
             <button class="copy-btn" onclick="copyBlock(this)">copy</button>
           </div>
         </td>
-        <td class="notes">TurboQuant compresses embedding vectors post-hoc — <strong>useful for memory footprint</strong> on large static indices and for removing the training dependency on dynamic ones. What it does <em>not</em> fix: HNSW graph construction, retrieval quality, chunking strategy, hallucination. At 2-bit, recall@1 on GloVe is 0.505 — a coin-flip. 4-bit is usable; 8-bit is safe. <strong>Silent killer:</strong> embedding drift between index-time and query-time model versions invalidates the entire index. Re-embed when the model changes — always.</td>
+        <td class="notes">TurboQuant compresses embedding vectors post-hoc: <strong>useful for memory footprint</strong> on large static indices and for removing the training dependency on dynamic ones. What it does <em>not</em> fix: HNSW graph construction, retrieval quality, chunking strategy, hallucination. At 2-bit, recall@1 on GloVe is 0.505: a coin-flip. 4-bit is usable; 8-bit is safe. <strong>Silent killer:</strong> embedding drift between index-time and query-time model versions invalidates the entire index. Re-embed when the model changes. Always.</td>
       </tr>
 
       <tr data-cat="defense">
@@ -1074,11 +1082,7 @@ print(legit + poison + filler)
 </main>
 
 <footer>
-  ops://cheatsheets &mdash;
-  <a href="https://owasp.org/www-project-top-10-for-large-language-model-applications/" target="_blank" rel="noopener">OWASP LLM Top 10</a> &middot;
-  <a href="https://arxiv.org/abs/2302.12173" target="_blank" rel="noopener">Liu et al. 2023 (lost-in-middle)</a> &middot;
-  <a href="https://github.com/simonw/llm" target="_blank" rel="noopener">simonw/llm</a> &middot;
-  <a href="https://python.useinstructor.com/" target="_blank" rel="noopener">instructor</a>
+  ops://cheatsheets: <a href="https://owasp.org/www-project-top-10-for-large-language-model-applications/" target="_blank" rel="noopener">OWASP LLM Top 10</a>, <a href="https://arxiv.org/abs/2302.12173" target="_blank" rel="noopener">Liu et al. 2023 (lost-in-middle)</a>, <a href="https://github.com/simonw/llm" target="_blank" rel="noopener">simonw/llm</a>, <a href="https://python.useinstructor.com/" target="_blank" rel="noopener">instructor</a>
 </footer>
 
 <script>

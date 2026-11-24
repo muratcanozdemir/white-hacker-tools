@@ -3,11 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Spark on Kubernetes — Cheat Sheet</title>
-<meta name="description" content="Filterable cheat sheet for running Apache Spark on Kubernetes — operator setup, memory tuning, shuffle management, scheduling, storage, and debugging production failures.">
+<title>Spark on Kubernetes: Cheat Sheet</title>
+<meta name="description" content="Filterable cheat sheet for running Apache Spark on Kubernetes: operator setup, memory tuning, shuffle management, scheduling, storage, and debugging production failures.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
+/* Hallmark · checked: 2026-11-24 · genre: modern-minimal (inferred)
+ * floor: 0 FAIL · fixed: 2a, 3, 7a, 10a, 19, 26a, 27, 34, 40, 48, 54, 63, 67 · structural: 58 printed
+ * built: the project · redesign: polish · v2.0.0 */
+/* Hallmark · answered F1 · straight quotes sit beside shell, JSON and SQL fragments readers copy, so they stay straight */
+/* Hallmark · answered F2 · three-dot ellipses mark elided arguments in commands and are kept */
+/* Hallmark · waive 38iii · the h1 span appears once, in the header · "Kubernetes" in the accent is how the Spark on Kubernetes page names its subject across the series */
   :root {
     --bg:      #0d0f12;
     --bg2:     #13161b;
@@ -27,6 +33,7 @@
     --storage:  #56d364;
     --sched:    #e3b341;
     --debug:    #ff7b72;
+    --ink-h1: #e6edf3;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -52,7 +59,6 @@
   nav a {
     color: var(--muted);
     text-decoration: none;
-    letter-spacing: .05em;
   }
   nav a:hover { color: var(--accent); }
   nav .sep { color: var(--border2); }
@@ -77,7 +83,6 @@
     font-size: 11px;
     color: var(--muted);
     margin-bottom: .6rem;
-    letter-spacing: .05em;
   }
   .prompt::before { content: '$ '; color: var(--accent); }
 
@@ -86,7 +91,7 @@
     font-weight: 700;
     letter-spacing: -.02em;
     line-height: 1.15;
-    color: #e6edf3;
+    color: var(--ink-h1);
     margin-bottom: .5rem;
   }
   h1 span { color: var(--accent); }
@@ -126,8 +131,6 @@
   .f-label {
     font-size: 10px;
     color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: .1em;
     margin-right: .25rem;
   }
 
@@ -157,7 +160,6 @@
     margin-left: auto;
     font-size: 10px;
     color: var(--muted);
-    letter-spacing: .05em;
   }
 
   /* ── TABLE ── */
@@ -176,8 +178,6 @@
   thead th {
     text-align: left;
     font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: .1em;
     color: var(--muted);
     padding: .75rem .75rem;
     border-bottom: 1px solid var(--border2);
@@ -202,21 +202,19 @@
     font-weight: 700;
     padding: .15rem .55rem;
     border-radius: 3px;
-    text-transform: uppercase;
-    letter-spacing: .06em;
     white-space: nowrap;
   }
 
-  .badge-cluster  { background: rgba(121,192,255,.12); color: var(--cluster);  border: 1px solid rgba(121,192,255,.25); }
-  .badge-operator { background: rgba(255,107,53,.12);  color: var(--operator); border: 1px solid rgba(255,107,53,.25); }
-  .badge-tuning   { background: rgba(210,168,255,.12); color: var(--tuning);   border: 1px solid rgba(210,168,255,.25); }
-  .badge-storage  { background: rgba(86,211,100,.12);  color: var(--storage);  border: 1px solid rgba(86,211,100,.25); }
-  .badge-sched    { background: rgba(227,179,65,.12);  color: var(--sched);    border: 1px solid rgba(227,179,65,.25); }
-  .badge-debug    { background: rgba(255,123,114,.12); color: var(--debug);    border: 1px solid rgba(255,123,114,.25); }
+  .badge-cluster  { background: color-mix(in srgb, var(--cluster) 12%, transparent); color: var(--cluster);  border: 1px solid color-mix(in srgb, var(--cluster) 25%, transparent); }
+  .badge-operator { background: color-mix(in srgb, var(--accent) 12%, transparent);  color: var(--operator); border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); }
+  .badge-tuning   { background: color-mix(in srgb, var(--tuning) 12%, transparent); color: var(--tuning);   border: 1px solid color-mix(in srgb, var(--tuning) 25%, transparent); }
+  .badge-storage  { background: color-mix(in srgb, var(--storage) 12%, transparent);  color: var(--storage);  border: 1px solid color-mix(in srgb, var(--storage) 25%, transparent); }
+  .badge-sched    { background: color-mix(in srgb, var(--sched) 12%, transparent);  color: var(--sched);    border: 1px solid color-mix(in srgb, var(--sched) 25%, transparent); }
+  .badge-debug    { background: color-mix(in srgb, var(--debug) 12%, transparent); color: var(--debug);    border: 1px solid color-mix(in srgb, var(--debug) 25%, transparent); }
 
   .tool-name {
     font-weight: 700;
-    color: #e6edf3;
+    color: var(--ink-h1);
     white-space: nowrap;
   }
 
@@ -226,6 +224,7 @@
   .cmd-block {
     position: relative;
     background: var(--bg3);
+    color: var(--text);
     border: 1px solid var(--border);
     border-radius: 4px;
     padding: .55rem .7rem;
@@ -275,10 +274,8 @@
   .scar {
     display: inline-block;
     font-size: 9px;
-    text-transform: uppercase;
-    letter-spacing: .08em;
     color: var(--debug);
-    border: 1px solid rgba(255,123,114,.25);
+    border: 1px solid color-mix(in srgb, var(--debug) 25%, transparent);
     padding: .1rem .4rem;
     border-radius: 2px;
     margin-left: .4rem;
@@ -322,6 +319,12 @@
     footer { padding: 1rem; }
   }
 
+    /* hallmark polish */
+  h1 { text-wrap: balance; }
+  button:active, [role="button"]:active { transform: translateY(1px); }
+  button:disabled, input:disabled, select:disabled { opacity: .5; cursor: not-allowed; }
+  code.raw { font: inherit; color: inherit; background: none; border: 0; padding: 0; }
+
   /* accessibility floor */
   html, body { overflow-x: clip; }
   a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible,
@@ -347,9 +350,9 @@
 <header>
   <div class="header-inner">
     <div>
-      <div class="prompt">cat spark-on-k8s.md | grep production-scars</div>
       <h1>Spark on <span>Kubernetes</span></h1>
-      <p class="subtitle">The cursed timeline made real. Operator setup, JVM memory vs cgroup fights, shuffle-spill survival, heterogeneous node scheduling, and the debugging gauntlet — from ex-Cloudera/YARN refugees.</p>
+      <div class="prompt">cat spark-on-k8s.md | grep production-scars</div>
+      <p class="subtitle">The cursed timeline made real. Operator setup, JVM memory vs cgroup fights, shuffle-spill survival, heterogeneous node scheduling, and the debugging gauntlet: from ex-Cloudera/YARN refugees.</p>
     </div>
     <div class="meta">
       <strong>24</strong> entries<br>
@@ -493,7 +496,7 @@
     <tr data-cat="operator">
       <td><span class="badge badge-operator">operator</span></td>
       <td class="tool-name">Restart policy</td>
-      <td class="usecase">Jobs fail. Executors get OOMKilled. Don't restart the whole job — let Spark replace the executor. Only restart on driver failure.</td>
+      <td class="usecase">Jobs fail. Executors get OOMKilled. Don't restart the whole job: let Spark replace the executor. Only restart on driver failure.</td>
       <td><div class="cmd-block"><button class="copy-btn" onclick="copyAll(this)">copy</button>
 <span class="cmd-line">spec:</span>
 <span class="cmd-line">  restartPolicy:</span>
@@ -536,7 +539,7 @@
     <tr data-cat="tuning">
       <td><span class="badge badge-tuning">tuning</span></td>
       <td class="tool-name">Memory layout</td>
-      <td class="usecase">JVM memory vs cgroup limits: the #1 source of OOMKilled pods. Spark requests (memory + memoryOverhead). K8s limit = that sum. JVM doesn't respect cgroups cleanly. <span class="scar">scar</span> Default overhead (0.1) is a joke for PySpark — Arrow, off-heap, Python workers all live in overhead.</td>
+      <td class="usecase">JVM memory vs cgroup limits: the #1 source of OOMKilled pods. Spark requests (memory + memoryOverhead). K8s limit = that sum. JVM doesn't respect cgroups cleanly. <span class="scar">scar</span> Default overhead (0.1) is a joke for PySpark: Arrow, off-heap, Python workers all live in overhead.</td>
       <td><div class="cmd-block"><button class="copy-btn" onclick="copyAll(this)">copy</button>
 <span class="cmd-line comment"># The real formula:</span>
 <span class="cmd-line comment"># K8s limit = spark.executor.memory</span>
@@ -545,7 +548,7 @@
 <span class="cmd-line">spark.executor.memory          32g</span>
 <span class="cmd-line">spark.executor.memoryOverhead  10g</span>
 <span class="cmd-line comment"># K8s pod limit will be 42Gi</span>
-<span class="cmd-line comment"># NEVER set K8s limits manually on top —</span>
+<span class="cmd-line comment"># NEVER set K8s limits manually on top: </span>
 <span class="cmd-line comment"># the operator handles this</span>
 </div></td>
     </tr>
@@ -573,7 +576,7 @@
 <span class="cmd-line">spark.sql.adaptive.skewJoin.enabled            true</span>
 <span class="cmd-line">spark.sql.adaptive.skewJoin.skewedPartition\</span>
 <span class="cmd-line">  ThresholdInBytes                      268435456</span>
-<span class="cmd-line comment"># 256MB skew threshold — tune for your data</span>
+<span class="cmd-line comment"># 256MB skew threshold: tune for your data</span>
 <span class="cmd-line">spark.sql.shuffle.partitions                  4096</span>
 <span class="cmd-line comment"># AQE will coalesce; start high, let it shrink</span>
 </div></td>
@@ -591,7 +594,7 @@
 <span class="cmd-line">  .mode("overwrite") \</span>
 <span class="cmd-line">  .saveAsTable("table_a_bucketed")</span>
 <span class="cmd-line comment"># bucket count: aim for 128-256MB/bucket</span>
-<span class="cmd-line comment"># 33TB / 2048 = ~16GB — still large</span>
+<span class="cmd-line comment"># 33TB / 2048 = ~16GB: still large</span>
 <span class="cmd-line comment"># consider 8192 for very large tables</span>
 </div></td>
     </tr>
@@ -601,9 +604,9 @@
       <td class="tool-name">Column pruning</td>
       <td class="usecase">With 150 columns per table, SELECT * is a death sentence. Every unnecessary column in the shuffle multiplies spill volume. Project at scan time.</td>
       <td><div class="cmd-block"><button class="copy-btn" onclick="copyAll(this)">copy</button>
-<span class="cmd-line comment"># BAD — reads all 450 columns through shuffle</span>
+<span class="cmd-line comment"># BAD: reads all 450 columns through shuffle</span>
 <span class="cmd-line">result = a.join(b, "key").join(c, "key")</span>
-<span class="cmd-line comment"># GOOD — project before join</span>
+<span class="cmd-line comment"># GOOD: project before join</span>
 <span class="cmd-line">a_slim = a.select("key", "col1", "col2")</span>
 <span class="cmd-line">b_slim = b.select("key", "col7", "col8")</span>
 <span class="cmd-line">c_slim = c.select("key", "col12")</span>
@@ -654,7 +657,7 @@
     <tr data-cat="storage">
       <td><span class="badge badge-storage">storage</span></td>
       <td class="tool-name">Shuffle compression</td>
-      <td class="usecase">When you're approaching PB scale, you're I/O-bound, not CPU-bound on compression. zstd gives better ratio than lz4 — fewer bytes spilled to disk and over the network.</td>
+      <td class="usecase">When you're approaching PB scale, you're I/O-bound, not CPU-bound on compression. zstd gives better ratio than lz4: fewer bytes spilled to disk and over the network.</td>
       <td><div class="cmd-block"><button class="copy-btn" onclick="copyAll(this)">copy</button>
 <span class="cmd-line">spark.shuffle.compress                true</span>
 <span class="cmd-line">spark.shuffle.spill.compress          true</span>
@@ -677,7 +680,7 @@
 <span class="cmd-line comment"># row group size: larger = fewer seeks,</span>
 <span class="cmd-line comment"># but less granular predicate pushdown</span>
 <span class="cmd-line">spark.sql.parquet.rowGroupSize.bytes  134217728</span>
-<span class="cmd-line comment"># 128MB — good default for large tables</span>
+<span class="cmd-line comment"># 128MB: good default for large tables</span>
 </div></td>
     </tr>
 
@@ -718,7 +721,7 @@
     <tr data-cat="sched">
       <td><span class="badge badge-sched">sched</span></td>
       <td class="tool-name">YuniKorn</td>
-      <td class="usecase">Alternative to Volcano. From Cloudera lineage — if you're ex-Cloudera, the queue model feels familiar. Hierarchical queues, gang scheduling, app-level resource tracking.</td>
+      <td class="usecase">Alternative to Volcano. From Cloudera lineage: if you're ex-Cloudera, the queue model feels familiar. Hierarchical queues, gang scheduling, app-level resource tracking.</td>
       <td><div class="cmd-block"><button class="copy-btn" onclick="copyAll(this)">copy</button>
 <span class="cmd-line">helm repo add yunikorn \</span>
 <span class="cmd-line">  https://apache.github.io/yunikorn-release</span>
@@ -774,7 +777,7 @@
     <tr data-cat="debug">
       <td><span class="badge badge-debug">debug</span></td>
       <td class="tool-name">OOMKilled triage</td>
-      <td class="usecase">The most common failure mode. Check whether it's JVM heap, off-heap, or Python worker. <span class="scar">scar</span> The pod just says "OOMKilled" with exit code 137 — useless without knowing which memory region blew.</td>
+      <td class="usecase">The most common failure mode. Check whether it's JVM heap, off-heap, or Python worker. <span class="scar">scar</span> The pod just says "OOMKilled" with exit code 137: useless without knowing which memory region blew.</td>
       <td><div class="cmd-block"><button class="copy-btn" onclick="copyAll(this)">copy</button>
 <span class="cmd-line comment"># find which executors died</span>
 <span class="cmd-line">kubectl get pods -n spark-jobs \</span>
@@ -822,7 +825,7 @@
     <tr data-cat="debug">
       <td><span class="badge badge-debug">debug</span></td>
       <td class="tool-name">Shuffle spill check</td>
-      <td class="usecase">If Shuffle Spill (Disk) is close to Shuffle Write, you're fully spill-dominated. The job is I/O-bound. More memory or bucketing is the only fix — no config tuning helps.</td>
+      <td class="usecase">If Shuffle Spill (Disk) is close to Shuffle Write, you're fully spill-dominated. The job is I/O-bound. More memory or bucketing is the only fix: no config tuning helps.</td>
       <td><div class="cmd-block"><button class="copy-btn" onclick="copyAll(this)">copy</button>
 <span class="cmd-line comment"># in Spark UI > Stages > click any stage</span>
 <span class="cmd-line comment"># look at Aggregated Metrics:</span>
@@ -877,14 +880,10 @@
 </main>
 
 <footer>
-  ops://cheatsheets &mdash;
-  <a href="https://github.com/kubeflow/spark-operator" target="_blank" rel="noopener">spark-operator</a> &middot;
-  <a href="https://volcano.sh/" target="_blank" rel="noopener">volcano</a> &middot;
-  <a href="https://yunikorn.apache.org/" target="_blank" rel="noopener">yunikorn</a> &middot;
-  <a href="https://spark.apache.org/docs/latest/running-on-kubernetes.html" target="_blank" rel="noopener">spark k8s docs</a>
+  ops://cheatsheets: <a href="https://github.com/kubeflow/spark-operator" target="_blank" rel="noopener">spark-operator</a>, <a href="https://volcano.sh/" target="_blank" rel="noopener">volcano</a>, <a href="https://yunikorn.apache.org/" target="_blank" rel="noopener">yunikorn</a>, <a href="https://spark.apache.org/docs/latest/running-on-kubernetes.html" target="_blank" rel="noopener">spark k8s docs</a>
 
   <div class="disclaimer">
-    <strong>Disclaimer:</strong> Educational reference only. All commands carry production risk — understand what they do before running them. Test in non-production first. The authors assume no responsibility for outages, data loss, or cursed timelines resulting from use of this material.
+    <strong>Disclaimer:</strong> Educational reference only. All commands carry production risk: understand what they do before running them. Test in non-production first. The authors assume no responsibility for outages, data loss, or cursed timelines resulting from use of this material.
   </div>
 </footer>
 

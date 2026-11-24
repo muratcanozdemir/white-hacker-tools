@@ -3,11 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kubernetes Debugging Toolkit — Cheat Sheet</title>
+<title>Kubernetes Debugging Toolkit: Cheat Sheet</title>
 <meta name="description" content="Filterable cheat sheet of Kubernetes debugging tools with key commands and use cases.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <style>
+/* Hallmark · checked: 2026-11-24 · genre: modern-minimal (inferred)
+ * floor: 0 FAIL · fixed: 2a, 3, 7a, 10a, 19, 26a, 27, 34, 40, 48, 54, 63, 67 · structural: 58 printed
+ * built: the project · redesign: polish · v2.0.0 */
+/* Hallmark · answered F1 · straight quotes sit beside shell, JSON and SQL fragments readers copy, so they stay straight */
+/* Hallmark · answered F2 · three-dot ellipses mark elided arguments in commands and are kept */
+/* Hallmark · waive 38iii · the h1 span appears once, in the header · "Debug Toolkit" in the accent is how the Kubernetes Debugging Toolkit page names its subject across the series */
   :root {
     --bg:      #0d0f0e;
     --bg2:     #141715;
@@ -20,6 +26,24 @@
     --cmd:     #7dd3a8;
     --mono:    'JetBrains Mono', monospace;
     --display: 'Syne', sans-serif;
+    --fill-body: rgba(0,0,0,0.04);
+    --ink-h1: #e8f0e8;
+    --ink-td-tool-name: #e0ece0;
+    --fill-badge-network: rgba(45,212,191,.12);
+    --ink-badge-network: #2dd4bf;
+    --line-badge-network: rgba(45,212,191,.3);
+    --fill-badge-security: rgba(255,95,87,.12);
+    --ink-badge-security: #ff7b75;
+    --line-badge-security: rgba(255,95,87,.3);
+    --fill-badge-health: rgba(57,255,130,.10);
+    --ink-badge-health: #39ff82;
+    --line-badge-health: rgba(57,255,130,.25);
+    --fill-badge-rbac: rgba(240,180,41,.12);
+    --ink-badge-rbac: #f0b429;
+    --line-badge-rbac: rgba(240,180,41,.3);
+    --fill-badge-storage: rgba(192,96,255,.12);
+    --ink-badge-storage: #c060ff;
+    --line-badge-storage: rgba(192,96,255,.3);
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -33,7 +57,7 @@
   body::before {
     content: '';
     position: fixed; inset: 0;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, var(--fill-body) 2px, var(--fill-body) 4px);
     pointer-events: none; z-index: 999;
   }
 
@@ -67,12 +91,12 @@
     display: flex; align-items: flex-end;
     justify-content: space-between; gap: 1rem; flex-wrap: wrap;
   }
-  .prompt { font-size: 11px; color: var(--accent); letter-spacing: .1em; margin-bottom: .5rem; }
+  .prompt { font-size: 11px; color: var(--accent); margin-bottom: .5rem; }
   .prompt::before { content: '$ '; color: var(--muted); }
   h1 {
     font-family: var(--display);
     font-size: clamp(1.6rem, 4vw, 2.6rem);
-    font-weight: 800; color: #e8f0e8;
+    font-weight: 800; color: var(--ink-h1);
     letter-spacing: -.02em; line-height: 1.1;
   }
   h1 span { color: var(--accent); }
@@ -88,8 +112,8 @@
     margin-bottom: 1.25rem;
   }
   .toolbar-label {
-    font-size: 10px; letter-spacing: .12em;
-    color: var(--muted); text-transform: uppercase; margin-right: .25rem;
+    font-size: 10px;
+    color: var(--muted); margin-right: .25rem;
   }
   .f-btn {
     background: transparent;
@@ -97,11 +121,10 @@
     border-radius: 3px; padding: 3px 10px;
     font-family: var(--mono); font-size: 11px;
     color: var(--muted); cursor: pointer;
-    letter-spacing: .06em;
     transition: color .15s, border-color .15s, background .15s;
   }
   .f-btn:hover { color: var(--text); background: var(--bg3); }
-  .f-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(96,165,250,0.07); }
+  .f-btn.active { color: var(--accent); border-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, transparent); }
   .count { margin-left: auto; font-size: 11px; color: var(--muted); }
   .count strong { color: var(--accent); }
 
@@ -112,7 +135,6 @@
   thead th {
     background: var(--bg2); padding: 10px 14px;
     text-align: left; font-size: 10px;
-    letter-spacing: .12em; text-transform: uppercase;
     color: var(--muted); border-bottom: 1px solid var(--border);
     white-space: nowrap; font-weight: 400;
   }
@@ -124,20 +146,19 @@
   tbody tr:hover { background: var(--bg2); }
 
   td { padding: 10px 14px; vertical-align: top; }
-  td.tool-name { font-weight: 700; font-size: 13px; color: #e0ece0; white-space: nowrap; min-width: 130px; }
+  td.tool-name { font-weight: 700; font-size: 13px; color: var(--ink-td-tool-name); white-space: nowrap; min-width: 130px; }
   td.phase { min-width: 100px; }
 
   .badge {
     display: inline-block; font-size: 10px;
-    padding: 2px 8px; border-radius: 2px;
-    letter-spacing: .06em; font-weight: 500; white-space: nowrap;
+    padding: 2px 8px; border-radius: 2px; font-weight: 500; white-space: nowrap;
   }
-  .badge-inspect  { background: rgba(96,165,250,.12);  color: #60a5fa; border: 1px solid rgba(96,165,250,.3);  }
-  .badge-network  { background: rgba(45,212,191,.12);  color: #2dd4bf; border: 1px solid rgba(45,212,191,.3);  }
-  .badge-security { background: rgba(255,95,87,.12);   color: #ff7b75; border: 1px solid rgba(255,95,87,.3);   }
-  .badge-health   { background: rgba(57,255,130,.10);  color: #39ff82; border: 1px solid rgba(57,255,130,.25); }
-  .badge-rbac     { background: rgba(240,180,41,.12);  color: #f0b429; border: 1px solid rgba(240,180,41,.3);  }
-  .badge-storage  { background: rgba(192,96,255,.12);  color: #c060ff; border: 1px solid rgba(192,96,255,.3);  }
+  .badge-inspect  { background: color-mix(in srgb, var(--accent) 12%, transparent);  color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);  }
+  .badge-network  { background: var(--fill-badge-network);  color: var(--ink-badge-network); border: 1px solid var(--line-badge-network);  }
+  .badge-security { background: var(--fill-badge-security);   color: var(--ink-badge-security); border: 1px solid var(--line-badge-security);   }
+  .badge-health   { background: var(--fill-badge-health);  color: var(--ink-badge-health); border: 1px solid var(--line-badge-health); }
+  .badge-rbac     { background: var(--fill-badge-rbac);  color: var(--ink-badge-rbac); border: 1px solid var(--line-badge-rbac);  }
+  .badge-storage  { background: var(--fill-badge-storage);  color: var(--ink-badge-storage); border: 1px solid var(--line-badge-storage);  }
 
   td.commands { min-width: 320px; max-width: 440px; }
   .cmd-block { position: relative; }
@@ -157,7 +178,6 @@
     font-family: var(--mono); font-size: 10px;
     padding: 1px 7px; cursor: pointer;
     opacity: 0; transition: opacity .15s, color .15s;
-    letter-spacing: .05em;
   }
   .cmd-block:hover .copy-btn { opacity: 1; }
   .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
@@ -180,6 +200,12 @@
     h1 { font-size: 1.5rem; }
     .meta { display: none; }
   }
+
+    /* hallmark polish */
+  h1 { text-wrap: balance; }
+  button:active, [role="button"]:active { transform: translateY(1px); }
+  button:disabled, input:disabled, select:disabled { opacity: .5; cursor: not-allowed; }
+  code.raw { font: inherit; color: inherit; background: none; border: 0; padding: 0; }
 
   /* accessibility floor */
   html, body { overflow-x: clip; }
@@ -206,14 +232,14 @@
 <header>
   <div class="header-inner">
     <div>
-      <p class="prompt">kubectl debug --help</p>
       <h1>Kubernetes<br><span>Debug Toolkit</span></h1>
-      <p class="subtitle">Filterable reference for K8s debugging — from pod inspection to cluster-wide security audits.</p>
+      <p class="prompt">kubectl debug --help</p>
+      <p class="subtitle">Filterable reference for K8s debugging: from pod inspection to cluster-wide security audits.</p>
     </div>
     <div class="meta">
       <strong>18</strong> tools<br>
       <strong>6</strong> phases<br>
-      K8s 1.28+ &middot; CRI-O &middot; containerd
+      K8s 1.28+, CRI-O, containerd
     </div>
   </div>
 </header>
@@ -262,7 +288,7 @@
             <span class="cmd-line">k9s --context prod --namespace default</span>
             <span class="cmd-line">k9s --kubeconfig ~/.kube/config</span>
             <span class="cmd-line comment"># :pod → select → l (logs) d (describe) s (shell)</span>
-            <span class="cmd-line comment"># :svc :deploy :ns :node — navigate resources</span>
+            <span class="cmd-line comment"># :svc :deploy :ns :node; navigate resources</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
           <td class="usecase">Real-time interactive TUI for K8s. Faster than repeated kubectl calls. Port-forward, delete, edit all in-view.</td>
@@ -318,7 +344,7 @@
             <span class="cmd-line">crictl pods</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">CRI-level inspection — bypasses the API server. Essential when kubelet is unhealthy or a pod never reaches Running.</td>
+          <td class="usecase">CRI-level inspection: bypasses the API server. Essential when kubelet is unhealthy or a pod never reaches Running.</td>
         </tr>
 
         <!-- NETWORK -->
@@ -326,7 +352,7 @@
           <td class="tool-name">netshoot</td>
           <td class="phase"><span class="badge badge-network">network</span></td>
           <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">kubectl run tmp --rm -it --image=nicolaka/netshoot -- bash</span>
+            <span class="cmd-line"><code class="raw">kubectl run tmp --rm -it --image=nicolaka/netshoot -- bash</code></span>
             <span class="cmd-line">kubectl run tmp --rm -it --image=nicolaka/netshoot -n &lt;ns&gt; -- curl http://&lt;svc&gt;.&lt;ns&gt;.svc.cluster.local</span>
             <span class="cmd-line comment"># includes: curl dig nmap tcpdump iperf3 ss ip</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
@@ -350,8 +376,8 @@
           <td class="tool-name">DNS debugging</td>
           <td class="phase"><span class="badge badge-network">network</span></td>
           <td class="commands"><div class="cmd-block">
-            <span class="cmd-line">kubectl run dnstest --rm -it --image=busybox -- nslookup kubernetes</span>
-            <span class="cmd-line">kubectl run dnstest --rm -it --image=busybox -- nslookup &lt;svc&gt;.&lt;ns&gt;.svc.cluster.local</span>
+            <span class="cmd-line"><code class="raw">kubectl run dnstest --rm -it --image=busybox -- nslookup kubernetes</code></span>
+            <span class="cmd-line"><code class="raw">kubectl run dnstest --rm -it --image=busybox -- nslookup &lt;svc&gt;.&lt;ns&gt;.svc.cluster.local</code></span>
             <span class="cmd-line">kubectl get configmap coredns -n kube-system -o yaml</span>
             <span class="cmd-line">kubectl logs -n kube-system -l k8s-app=kube-dns</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
@@ -436,7 +462,7 @@
             <span class="cmd-line">popeye --save --out html --output-file report.html</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Cluster linter — surfaces unused resources, missing probes, resource limits, deprecated APIs, and misconfigured services.</td>
+          <td class="usecase">Cluster linter: surfaces unused resources, missing probes, resource limits, deprecated APIs, and misconfigured services.</td>
         </tr>
 
         <tr data-cat="health">
@@ -448,7 +474,7 @@
             <span class="cmd-line">kube-score score deploy.yaml --output-format ci</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Static manifest analysis — checks resource limits, security contexts, probes, anti-affinity before anything hits the cluster.</td>
+          <td class="usecase">Static manifest analysis: checks resource limits, security contexts, probes, anti-affinity before anything hits the cluster.</td>
         </tr>
 
         <!-- RBAC -->
@@ -475,7 +501,7 @@
             <span class="cmd-line">rakkess resource pods --verbs get,list,delete</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Full RBAC access matrix for any subject — shows every verb across every resource at a glance. Far clearer than <code>kubectl auth can-i</code> one-by-one.</td>
+          <td class="usecase">Full RBAC access matrix for any subject: shows every verb across every resource at a glance. Far clearer than <code>kubectl auth can-i</code> one-by-one.</td>
         </tr>
 
         <!-- STORAGE -->
@@ -512,11 +538,7 @@
 </main>
 
 <footer>
-  ops://cheatsheets &mdash;
-  <a href="https://kubernetes.io/docs/tasks/debug/" target="_blank" rel="noopener">K8s Debug Docs</a> &middot;
-  <a href="https://github.com/nicolaka/netshoot" target="_blank" rel="noopener">netshoot</a> &middot;
-  <a href="https://aquasecurity.github.io/trivy/" target="_blank" rel="noopener">trivy</a> &middot;
-  <a href="https://github.com/derailed/k9s" target="_blank" rel="noopener">k9s</a>
+  ops://cheatsheets: <a href="https://kubernetes.io/docs/tasks/debug/" target="_blank" rel="noopener">K8s Debug Docs</a>, <a href="https://github.com/nicolaka/netshoot" target="_blank" rel="noopener">netshoot</a>, <a href="https://aquasecurity.github.io/trivy/" target="_blank" rel="noopener">trivy</a>, <a href="https://github.com/derailed/k9s" target="_blank" rel="noopener">k9s</a>
 </footer>
 
 <script>

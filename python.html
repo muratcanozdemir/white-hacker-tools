@@ -3,11 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Python Packaging &amp; CI — Cheat Sheet</title>
-<meta name="description" content="Filterable cheat sheet for Python packaging and CI — env management, packaging, quality, mixed Rust/Python, publishing, and CI patterns.">
+<title>Python Packaging &amp; CI: Cheat Sheet</title>
+<meta name="description" content="Filterable cheat sheet for Python packaging and CI: env management, packaging, quality, mixed Rust/Python, publishing, and CI patterns.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <style>
+/* Hallmark · checked: 2026-11-24 · genre: modern-minimal (inferred)
+ * floor: 0 FAIL · fixed: 2a, 3, 7a, 10a, 19, 26a, 27, 34, 40, 48, 54, 63, 67 · structural: 58 printed
+ * built: the project · redesign: polish · v2.0.0 */
+/* Hallmark · answered F1 · straight quotes sit beside shell, JSON and SQL fragments readers copy, so they stay straight */
+/* Hallmark · answered F2 · three-dot ellipses mark elided arguments in commands and are kept */
+/* Hallmark · waive 38iii · the h1 span appears once, in the header · "& CI Toolkit" in the accent is how the Python Packaging & CI page names its subject across the series */
+/* Hallmark · dismissed 46a · the 100x figure is the uv project's own published claim, kept as found for the owner to verify */
   :root {
     --bg:      #0e0b08;
     --bg2:     #16110c;
@@ -20,6 +27,23 @@
     --cmd:     #7dd3a8;
     --mono:    'JetBrains Mono', monospace;
     --display: 'Syne', sans-serif;
+    --fill-body: rgba(0,0,0,0.04);
+    --ink-h1: #f0dfc0;
+    --fill-badge-env: rgba(96,165,250,.12);
+    --ink-badge-env: #60a5fa;
+    --line-badge-env: rgba(96,165,250,.3);
+    --fill-badge-quality: rgba(45,212,191,.12);
+    --ink-badge-quality: #2dd4bf;
+    --line-badge-quality: rgba(45,212,191,.3);
+    --fill-badge-ffi: rgba(192,96,255,.12);
+    --ink-badge-ffi: #c060ff;
+    --line-badge-ffi: rgba(192,96,255,.3);
+    --fill-badge-publish: rgba(57,255,130,.10);
+    --ink-badge-publish: #39ff82;
+    --line-badge-publish: rgba(57,255,130,.25);
+    --fill-badge-ci: rgba(244,114,182,.12);
+    --ink-badge-ci: #f472b6;
+    --line-badge-ci: rgba(244,114,182,.3);
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -33,7 +57,7 @@
   body::before {
     content: '';
     position: fixed; inset: 0;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, var(--fill-body) 2px, var(--fill-body) 4px);
     pointer-events: none; z-index: 999;
   }
 
@@ -64,12 +88,12 @@
     display: flex; align-items: flex-end;
     justify-content: space-between; gap: 1rem; flex-wrap: wrap;
   }
-  .prompt { font-size: 11px; color: var(--accent); letter-spacing: .1em; margin-bottom: .5rem; }
+  .prompt { font-size: 11px; color: var(--accent); margin-bottom: .5rem; }
   .prompt::before { content: '$ '; color: var(--muted); }
   h1 {
     font-family: var(--display);
     font-size: clamp(1.6rem, 4vw, 2.6rem);
-    font-weight: 800; color: #f0dfc0;
+    font-weight: 800; color: var(--ink-h1);
     letter-spacing: -.02em; line-height: 1.1;
   }
   h1 span { color: var(--accent); }
@@ -84,18 +108,17 @@
     align-items: center; gap: .5rem;
     margin-bottom: 1.25rem;
   }
-  .toolbar-label { font-size: 10px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; margin-right: .25rem; }
+  .toolbar-label { font-size: 10px; color: var(--muted); margin-right: .25rem; }
   .f-btn {
     background: transparent;
     border: 1px solid var(--border2);
     border-radius: 3px; padding: 3px 10px;
     font-family: var(--mono); font-size: 11px;
     color: var(--muted); cursor: pointer;
-    letter-spacing: .06em;
     transition: color .15s, border-color .15s, background .15s;
   }
   .f-btn:hover { color: var(--text); background: var(--bg3); }
-  .f-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(251,146,60,0.07); }
+  .f-btn.active { color: var(--accent); border-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, transparent); }
   .count { margin-left: auto; font-size: 11px; color: var(--muted); }
   .count strong { color: var(--accent); }
 
@@ -104,7 +127,6 @@
   thead th {
     background: var(--bg2); padding: 10px 14px;
     text-align: left; font-size: 10px;
-    letter-spacing: .12em; text-transform: uppercase;
     color: var(--muted); border-bottom: 1px solid var(--border);
     white-space: nowrap; font-weight: 400;
   }
@@ -114,20 +136,19 @@
   tbody tr:last-child { border-bottom: none; }
   tbody tr:hover { background: var(--bg2); }
   td { padding: 10px 14px; vertical-align: top; }
-  td.tool-name { font-weight: 700; font-size: 13px; color: #f0dfc0; white-space: nowrap; min-width: 140px; }
+  td.tool-name { font-weight: 700; font-size: 13px; color: var(--ink-h1); white-space: nowrap; min-width: 140px; }
   td.phase { min-width: 100px; }
 
   .badge {
     display: inline-block; font-size: 10px;
-    padding: 2px 8px; border-radius: 2px;
-    letter-spacing: .06em; font-weight: 500; white-space: nowrap;
+    padding: 2px 8px; border-radius: 2px; font-weight: 500; white-space: nowrap;
   }
-  .badge-env     { background: rgba(96,165,250,.12);  color: #60a5fa; border: 1px solid rgba(96,165,250,.3);  }
-  .badge-pkg     { background: rgba(251,146,60,.12);  color: #fb923c; border: 1px solid rgba(251,146,60,.3);  }
-  .badge-quality { background: rgba(45,212,191,.12);  color: #2dd4bf; border: 1px solid rgba(45,212,191,.3);  }
-  .badge-ffi     { background: rgba(192,96,255,.12);  color: #c060ff; border: 1px solid rgba(192,96,255,.3);  }
-  .badge-publish { background: rgba(57,255,130,.10);  color: #39ff82; border: 1px solid rgba(57,255,130,.25); }
-  .badge-ci      { background: rgba(244,114,182,.12); color: #f472b6; border: 1px solid rgba(244,114,182,.3); }
+  .badge-env     { background: var(--fill-badge-env);  color: var(--ink-badge-env); border: 1px solid var(--line-badge-env);  }
+  .badge-pkg     { background: color-mix(in srgb, var(--accent) 12%, transparent);  color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);  }
+  .badge-quality { background: var(--fill-badge-quality);  color: var(--ink-badge-quality); border: 1px solid var(--line-badge-quality);  }
+  .badge-ffi     { background: var(--fill-badge-ffi);  color: var(--ink-badge-ffi); border: 1px solid var(--line-badge-ffi);  }
+  .badge-publish { background: var(--fill-badge-publish);  color: var(--ink-badge-publish); border: 1px solid var(--line-badge-publish); }
+  .badge-ci      { background: var(--fill-badge-ci); color: var(--ink-badge-ci); border: 1px solid var(--line-badge-ci); }
 
   td.commands { min-width: 320px; max-width: 440px; }
   .cmd-block { position: relative; }
@@ -146,7 +167,6 @@
     font-family: var(--mono); font-size: 10px;
     padding: 1px 7px; cursor: pointer;
     opacity: 0; transition: opacity .15s, color .15s;
-    letter-spacing: .05em;
   }
   .cmd-block:hover .copy-btn { opacity: 1; }
   .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
@@ -168,6 +188,12 @@
     h1 { font-size: 1.5rem; }
     .meta { display: none; }
   }
+
+    /* hallmark polish */
+  h1 { text-wrap: balance; }
+  button:active, [role="button"]:active { transform: translateY(1px); }
+  button:disabled, input:disabled, select:disabled { opacity: .5; cursor: not-allowed; }
+  code.raw { font: inherit; color: inherit; background: none; border: 0; padding: 0; }
 
   /* accessibility floor */
   html, body { overflow-x: clip; }
@@ -194,14 +220,14 @@
 <header>
   <div class="header-inner">
     <div>
-      <p class="prompt">uv run --frozen pytest -x</p>
       <h1>Python Packaging<br><span>&amp; CI Toolkit</span></h1>
-      <p class="subtitle">Modern Python toolchain — environment management, packaging standards, quality gates, Rust/Python FFI, publishing, and reproducible CI patterns.</p>
+      <p class="prompt">uv run --frozen pytest -x</p>
+      <p class="subtitle">Modern Python toolchain: environment management, packaging standards, quality gates, Rust/Python FFI, publishing, and reproducible CI patterns.</p>
     </div>
     <div class="meta">
       <strong>16</strong> tools<br>
       <strong>6</strong> phases<br>
-      Python 3.12+ &middot; PEP 517/660/723
+      Python 3.12+, PEP 517/660/723
     </div>
   </div>
 </header>
@@ -241,7 +267,7 @@
             <span class="cmd-line">uv tool install ruff</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Replaces pip, pip-tools, virtualenv, and pyenv in one binary. <code>--frozen</code> enforces the lockfile — use in CI always. <code>uv tool install</code> installs CLI tools in isolated envs without polluting the project. Written in Rust; installs in &lt;1s.</td>
+          <td class="usecase">Replaces pip, pip-tools, virtualenv, and pyenv in one binary. <code>--frozen</code> enforces the lockfile. Use in CI always. <code>uv tool install</code> installs CLI tools in isolated envs without polluting the project. Written in Rust; installs in &lt;1s.</td>
         </tr>
 
         <tr data-cat="env">
@@ -277,7 +303,7 @@
             <span class="cmd-line">python -c "import tomllib; import sys; tomllib.loads(open('pyproject.toml').read())"</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Single source of truth for project metadata, dependencies, tool config (<code>[tool.ruff]</code>, <code>[tool.mypy]</code>, <code>[tool.pytest]</code>). Avoid <code>setup.py</code> and <code>setup.cfg</code> entirely — they're legacy. <code>tomllib</code> is stdlib since 3.11; no extra dep to validate.</td>
+          <td class="usecase">Single source of truth for project metadata, dependencies, tool config (<code>[tool.ruff]</code>, <code>[tool.mypy]</code>, <code>[tool.pytest]</code>). Avoid <code>setup.py</code> and <code>setup.cfg</code> entirely. They're legacy. <code>tomllib</code> is stdlib since 3.11; no extra dep to validate.</td>
         </tr>
 
         <tr data-cat="pkg">
@@ -293,7 +319,7 @@
             <span class="cmd-line">hatch run lint:ruff check .</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">PEP 517 build backend + version management + multi-env runner. <code>hatch version minor</code> bumps and writes back to <code>pyproject.toml</code> without sed hacks. Environments defined declaratively — reproducible across machines. Pairs naturally with uv for dep resolution.</td>
+          <td class="usecase">PEP 517 build backend + version management + multi-env runner. <code>hatch version minor</code> bumps and writes back to <code>pyproject.toml</code> without sed hacks. Environments defined declaratively: reproducible across machines. Pairs naturally with uv for dep resolution.</td>
         </tr>
 
         <tr data-cat="pkg">
@@ -307,7 +333,7 @@
             <span class="cmd-line">pip-audit --ignore-vuln GHSA-xxxx-xxxx-xxxx</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">PyPA-maintained vulnerability scanner against the Python Packaging Advisory Database and OSV. <code>--fix</code> upgrades vulnerable packages in-place. Analogous to <code>govulncheck</code> for Python — only reports exploitable paths, not all transitive deps.</td>
+          <td class="usecase">PyPA-maintained vulnerability scanner against the Python Packaging Advisory Database and OSV. <code>--fix</code> upgrades vulnerable packages in-place. Analogous to <code>govulncheck</code> for Python: only reports exploitable paths, not all transitive deps.</td>
         </tr>
 
         <!-- QUALITY -->
@@ -324,7 +350,7 @@
             <span class="cmd-line comment"># replaces: flake8, isort, pyupgrade, pydocstyle, bandit subsets</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Replaces flake8 + isort + pyupgrade + pydocstyle in one Rust-native binary. 10–100× faster than equivalents. <code>--select ALL</code> then ignore selectively is more maintainable than allowlisting. <code>ruff format</code> replaces black with compatible output.</td>
+          <td class="usecase">Replaces flake8 + isort + pyupgrade + pydocstyle in one Rust-native binary. 10 to 100× faster than equivalents. <code>--select ALL</code> then ignore selectively is more maintainable than allowlisting. <code>ruff format</code> replaces black with compatible output.</td>
         </tr>
 
         <tr data-cat="quality">
@@ -337,10 +363,10 @@
             <span class="cmd-line">mypy src/ --html-report mypy-report/</span>
             <span class="cmd-line">mypy src/ --incremental</span>
             <span class="cmd-line comment"># dmypy for daemon mode (fast re-checks):</span>
-            <span class="cmd-line">dmypy run -- src/</span>
+            <span class="cmd-line"><code class="raw">dmypy run -- src/</code></span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Static type checking. <code>--strict</code> enables all optional checks — use on new projects; too noisy to retrofit all at once on legacy code. <code>dmypy</code> daemon maintains incremental state — re-checks in milliseconds vs seconds for large codebases.</td>
+          <td class="usecase">Static type checking. <code>--strict</code> enables all optional checks. Use on new projects; too noisy to retrofit all at once on legacy code. <code>dmypy</code> daemon maintains incremental state: re-checks in milliseconds vs seconds for large codebases.</td>
         </tr>
 
         <tr data-cat="quality">
@@ -356,7 +382,7 @@
             <span class="cmd-line comment"># --co: collect-only, lists tests without running</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>-n auto</code> (pytest-xdist) parallelises across CPUs — essential for large test suites. <code>--co</code> validates test collection without running; catch import errors in CI fast. <code>--cov-fail-under</code> gates the build on coverage thresholds.</td>
+          <td class="usecase"><code>-n auto</code> (pytest-xdist) parallelises across CPUs: essential for large test suites. <code>--co</code> validates test collection without running; catch import errors in CI fast. <code>--cov-fail-under</code> gates the build on coverage thresholds.</td>
         </tr>
 
         <tr data-cat="quality">
@@ -373,7 +399,7 @@
             <span class="cmd-line">pytest --hypothesis-seed=&lt;reported-seed&gt;</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Property-based testing — generates adversarial inputs automatically. Finds edge cases unit tests never cover. <code>--hypothesis-seed</code> makes failures reproducible. Integrates with pytest; no separate runner needed. Particularly effective on parsers, serialisers, and data pipelines.</td>
+          <td class="usecase">Property-based testing: generates adversarial inputs automatically. Finds edge cases unit tests never cover. <code>--hypothesis-seed</code> makes failures reproducible. Integrates with pytest; no separate runner needed. Particularly effective on parsers, serialisers, and data pipelines.</td>
         </tr>
 
         <!-- FFI / RUST -->
@@ -390,7 +416,7 @@
             <span class="cmd-line comment"># produces a .whl with embedded Rust extension</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Build and publish PyO3/CFFI Rust extensions as Python wheels. <code>maturin develop</code> installs the extension in-place for interactive development — no full rebuild cycle. <code>--strip</code> reduces wheel size significantly. Handles cross-compilation and manylinux compliance.</td>
+          <td class="usecase">Build and publish PyO3/CFFI Rust extensions as Python wheels. <code>maturin develop</code> installs the extension in-place for interactive development: no full rebuild cycle. <code>--strip</code> reduces wheel size significantly. Handles cross-compilation and manylinux compliance.</td>
         </tr>
 
         <tr data-cat="ffi">
@@ -409,7 +435,7 @@
             <span class="cmd-line">maturin develop --release</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Rust bindings for CPython — write performance-critical code in Rust, call it from Python with zero marshalling overhead on primitive types. GIL-aware; supports <code>py.allow_threads()</code> for true parallelism. Pairs with maturin for the build/publish pipeline.</td>
+          <td class="usecase">Rust bindings for CPython: write performance-critical code in Rust, call it from Python with zero marshalling overhead on primitive types. GIL-aware; supports <code>py.allow_threads()</code> for true parallelism. Pairs with maturin for the build/publish pipeline.</td>
         </tr>
 
         <tr data-cat="ffi">
@@ -418,7 +444,7 @@
           <td class="commands"><div class="cmd-block">
             <span class="cmd-line comment"># build a C-compatible shared lib from Rust:</span>
             <span class="cmd-line">cargo build --release --lib</span>
-            <span class="cmd-line comment"># then in Python (ctypes — stdlib):</span>
+            <span class="cmd-line comment"># then in Python (ctypes: stdlib):</span>
             <span class="cmd-line comment">import ctypes</span>
             <span class="cmd-line comment">lib = ctypes.CDLL("./target/release/libmylib.so")</span>
             <span class="cmd-line comment">lib.my_func.restype = ctypes.c_uint64</span>
@@ -427,7 +453,7 @@
             <span class="cmd-line">python -c "import cffi; ffi = cffi.FFI(); ffi.cdef('uint64_t my_func(int);')"</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">When PyO3 is overkill — call any C-ABI shared library directly. <code>ctypes</code> is stdlib; <code>cffi</code> handles complex struct layouts and is faster at runtime. Use for integrating existing C/Rust libs without rewriting them as Python extensions.</td>
+          <td class="usecase">When PyO3 is overkill: call any C-ABI shared library directly. <code>ctypes</code> is stdlib; <code>cffi</code> handles complex struct layouts and is faster at runtime. Use for integrating existing C/Rust libs without rewriting them as Python extensions.</td>
         </tr>
 
         <!-- PUBLISH -->
@@ -443,7 +469,7 @@
             <span class="cmd-line">python -m zipfile -l dist/mypackage-0.1.0-py3-none-any.whl</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">PyPA's PEP 517 frontend — the correct way to build sdist and wheels. Runs in an isolated build env; never pollutes your dev env. Always build both sdist and wheel; sdist is required for PyPI and enables source installs on unsupported platforms.</td>
+          <td class="usecase">PyPA's PEP 517 frontend: the correct way to build sdist and wheels. Runs in an isolated build env; never pollutes your dev env. Always build both sdist and wheel; sdist is required for PyPI and enables source installs on unsupported platforms.</td>
         </tr>
 
         <tr data-cat="publish">
@@ -458,7 +484,7 @@
             <span class="cmd-line comment"># never embed tokens in config files</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>twine check</code> validates dist files before upload — catches malformed metadata and README rendering issues. Always upload to TestPyPI first. Use API tokens via env vars, never username/password. <code>--skip-existing</code> makes reruns idempotent in CI.</td>
+          <td class="usecase"><code>twine check</code> validates dist files before upload: catches malformed metadata and README rendering issues. Always upload to TestPyPI first. Use API tokens via env vars, never username/password. <code>--skip-existing</code> makes reruns idempotent in CI.</td>
         </tr>
 
         <!-- CI PATTERNS -->
@@ -476,7 +502,7 @@
             <span class="cmd-line comment">- run: uv run --frozen pytest -x --cov=src --cov-fail-under=80</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Full CI pipeline in ~30s. <code>enable-cache: true</code> caches the uv package cache across runs. <code>--frozen</code> everywhere ensures CI uses the committed lockfile exactly. No virtualenv activation needed — <code>uv run</code> resolves the env automatically.</td>
+          <td class="usecase">Full CI pipeline in ~30s. <code>enable-cache: true</code> caches the uv package cache across runs. <code>--frozen</code> everywhere ensures CI uses the committed lockfile exactly. No virtualenv activation needed: <code>uv run</code> resolves the env automatically.</td>
         </tr>
 
         <tr data-cat="ci">
@@ -509,7 +535,7 @@
             <span class="cmd-line">pre-commit run --all-files --show-diff-on-failure</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Runs hooks (ruff, mypy, gitleaks, hadolint, terraform fmt) on staged files before commit. <code>--from-ref</code>/<code>--to-ref</code> runs only on changed files in CI — fast. <code>pre-commit autoupdate</code> bumps hook versions; run it periodically and commit the result.</td>
+          <td class="usecase">Runs hooks (ruff, mypy, gitleaks, hadolint, terraform fmt) on staged files before commit. <code>--from-ref</code>/<code>--to-ref</code> runs only on changed files in CI: fast. <code>pre-commit autoupdate</code> bumps hook versions; run it periodically and commit the result.</td>
         </tr>
 
       </tbody>
@@ -519,12 +545,7 @@
 </main>
 
 <footer>
-  ops://cheatsheets &mdash;
-  <a href="https://docs.astral.sh/uv/" target="_blank" rel="noopener">uv docs</a> &middot;
-  <a href="https://docs.astral.sh/ruff/" target="_blank" rel="noopener">ruff docs</a> &middot;
-  <a href="https://www.maturin.rs" target="_blank" rel="noopener">maturin</a> &middot;
-  <a href="https://pyo3.rs" target="_blank" rel="noopener">pyo3</a> &middot;
-  <a href="https://packaging.python.org" target="_blank" rel="noopener">PyPA guide</a>
+  ops://cheatsheets: <a href="https://docs.astral.sh/uv/" target="_blank" rel="noopener">uv docs</a>, <a href="https://docs.astral.sh/ruff/" target="_blank" rel="noopener">ruff docs</a>, <a href="https://www.maturin.rs" target="_blank" rel="noopener">maturin</a>, <a href="https://pyo3.rs" target="_blank" rel="noopener">pyo3</a>, <a href="https://packaging.python.org" target="_blank" rel="noopener">PyPA guide</a>
 </footer>
 
 <script>

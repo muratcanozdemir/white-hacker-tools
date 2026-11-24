@@ -3,11 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Network Diagnostics — Cheat Sheet</title>
-<meta name="description" content="Filterable cheat sheet for network diagnostics — DNS, TCP/UDP, HTTP, gRPC, TLS inspection, and load testing.">
+<title>Network Diagnostics: Cheat Sheet</title>
+<meta name="description" content="Filterable cheat sheet for network diagnostics: DNS, TCP/UDP, HTTP, gRPC, TLS inspection, and load testing.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <style>
+/* Hallmark · checked: 2026-11-24 · genre: modern-minimal (inferred)
+ * floor: 0 FAIL · fixed: 2a, 3, 7a, 10a, 19, 26a, 27, 34, 40, 48, 54, 63, 67 · structural: 58 printed
+ * built: the project · redesign: polish · v2.0.0 */
+/* Hallmark · answered F1 · straight quotes sit beside shell, JSON and SQL fragments readers copy, so they stay straight */
+/* Hallmark · answered F2 · three-dot ellipses mark elided arguments in commands and are kept */
+/* Hallmark · waive 38iii · the h1 span appears once, in the header · "Diagnostics" in the accent is how the Network Diagnostics page names its subject across the series */
   :root {
     --bg:      #08100f;
     --bg2:     #0d1816;
@@ -20,6 +26,23 @@
     --cmd:     #7dd3a8;
     --mono:    'JetBrains Mono', monospace;
     --display: 'Syne', sans-serif;
+    --fill-body: rgba(0,0,0,0.04);
+    --ink-h1: #c8f0f8;
+    --fill-badge-dns: rgba(240,180,41,.12);
+    --ink-badge-dns: #f0b429;
+    --line-badge-dns: rgba(240,180,41,.3);
+    --fill-badge-tcp: rgba(57,255,130,.10);
+    --ink-badge-tcp: #39ff82;
+    --line-badge-tcp: rgba(57,255,130,.25);
+    --fill-badge-grpc: rgba(192,96,255,.12);
+    --ink-badge-grpc: #c060ff;
+    --line-badge-grpc: rgba(192,96,255,.3);
+    --fill-badge-tls: rgba(255,95,87,.12);
+    --ink-badge-tls: #ff7b75;
+    --line-badge-tls: rgba(255,95,87,.3);
+    --fill-badge-load: rgba(96,165,250,.12);
+    --ink-badge-load: #60a5fa;
+    --line-badge-load: rgba(96,165,250,.3);
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -33,7 +56,7 @@
   body::before {
     content: '';
     position: fixed; inset: 0;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.04) 2px, rgba(0,0,0,0.04) 4px);
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, var(--fill-body) 2px, var(--fill-body) 4px);
     pointer-events: none; z-index: 999;
   }
 
@@ -64,12 +87,12 @@
     display: flex; align-items: flex-end;
     justify-content: space-between; gap: 1rem; flex-wrap: wrap;
   }
-  .prompt { font-size: 11px; color: var(--accent); letter-spacing: .1em; margin-bottom: .5rem; }
+  .prompt { font-size: 11px; color: var(--accent); margin-bottom: .5rem; }
   .prompt::before { content: '$ '; color: var(--muted); }
   h1 {
     font-family: var(--display);
     font-size: clamp(1.6rem, 4vw, 2.6rem);
-    font-weight: 800; color: #c8f0f8;
+    font-weight: 800; color: var(--ink-h1);
     letter-spacing: -.02em; line-height: 1.1;
   }
   h1 span { color: var(--accent); }
@@ -84,18 +107,17 @@
     align-items: center; gap: .5rem;
     margin-bottom: 1.25rem;
   }
-  .toolbar-label { font-size: 10px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; margin-right: .25rem; }
+  .toolbar-label { font-size: 10px; color: var(--muted); margin-right: .25rem; }
   .f-btn {
     background: transparent;
     border: 1px solid var(--border2);
     border-radius: 3px; padding: 3px 10px;
     font-family: var(--mono); font-size: 11px;
     color: var(--muted); cursor: pointer;
-    letter-spacing: .06em;
     transition: color .15s, border-color .15s, background .15s;
   }
   .f-btn:hover { color: var(--text); background: var(--bg3); }
-  .f-btn.active { color: var(--accent); border-color: var(--accent); background: rgba(34,211,238,0.07); }
+  .f-btn.active { color: var(--accent); border-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, transparent); }
   .count { margin-left: auto; font-size: 11px; color: var(--muted); }
   .count strong { color: var(--accent); }
 
@@ -104,7 +126,6 @@
   thead th {
     background: var(--bg2); padding: 10px 14px;
     text-align: left; font-size: 10px;
-    letter-spacing: .12em; text-transform: uppercase;
     color: var(--muted); border-bottom: 1px solid var(--border);
     white-space: nowrap; font-weight: 400;
   }
@@ -114,20 +135,19 @@
   tbody tr:last-child { border-bottom: none; }
   tbody tr:hover { background: var(--bg2); }
   td { padding: 10px 14px; vertical-align: top; }
-  td.tool-name { font-weight: 700; font-size: 13px; color: #c8f0f8; white-space: nowrap; min-width: 140px; }
+  td.tool-name { font-weight: 700; font-size: 13px; color: var(--ink-h1); white-space: nowrap; min-width: 140px; }
   td.phase { min-width: 95px; }
 
   .badge {
     display: inline-block; font-size: 10px;
-    padding: 2px 8px; border-radius: 2px;
-    letter-spacing: .06em; font-weight: 500; white-space: nowrap;
+    padding: 2px 8px; border-radius: 2px; font-weight: 500; white-space: nowrap;
   }
-  .badge-dns   { background: rgba(240,180,41,.12);  color: #f0b429; border: 1px solid rgba(240,180,41,.3);  }
-  .badge-tcp   { background: rgba(57,255,130,.10);  color: #39ff82; border: 1px solid rgba(57,255,130,.25); }
-  .badge-http  { background: rgba(34,211,238,.12);  color: #22d3ee; border: 1px solid rgba(34,211,238,.3);  }
-  .badge-grpc  { background: rgba(192,96,255,.12);  color: #c060ff; border: 1px solid rgba(192,96,255,.3);  }
-  .badge-tls   { background: rgba(255,95,87,.12);   color: #ff7b75; border: 1px solid rgba(255,95,87,.3);   }
-  .badge-load  { background: rgba(96,165,250,.12);  color: #60a5fa; border: 1px solid rgba(96,165,250,.3);  }
+  .badge-dns   { background: var(--fill-badge-dns);  color: var(--ink-badge-dns); border: 1px solid var(--line-badge-dns);  }
+  .badge-tcp   { background: var(--fill-badge-tcp);  color: var(--ink-badge-tcp); border: 1px solid var(--line-badge-tcp); }
+  .badge-http  { background: color-mix(in srgb, var(--accent) 12%, transparent);  color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);  }
+  .badge-grpc  { background: var(--fill-badge-grpc);  color: var(--ink-badge-grpc); border: 1px solid var(--line-badge-grpc);  }
+  .badge-tls   { background: var(--fill-badge-tls);   color: var(--ink-badge-tls); border: 1px solid var(--line-badge-tls);   }
+  .badge-load  { background: var(--fill-badge-load);  color: var(--ink-badge-load); border: 1px solid var(--line-badge-load);  }
 
   td.commands { min-width: 320px; max-width: 440px; }
   .cmd-block { position: relative; }
@@ -146,7 +166,6 @@
     font-family: var(--mono); font-size: 10px;
     padding: 1px 7px; cursor: pointer;
     opacity: 0; transition: opacity .15s, color .15s;
-    letter-spacing: .05em;
   }
   .cmd-block:hover .copy-btn { opacity: 1; }
   .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
@@ -168,6 +187,12 @@
     h1 { font-size: 1.5rem; }
     .meta { display: none; }
   }
+
+    /* hallmark polish */
+  h1 { text-wrap: balance; }
+  button:active, [role="button"]:active { transform: translateY(1px); }
+  button:disabled, input:disabled, select:disabled { opacity: .5; cursor: not-allowed; }
+  code.raw { font: inherit; color: inherit; background: none; border: 0; padding: 0; }
 
   /* accessibility floor */
   html, body { overflow-x: clip; }
@@ -194,14 +219,14 @@
 <header>
   <div class="header-inner">
     <div>
-      <p class="prompt">ss -tlnp | grep LISTEN</p>
       <h1>Network<br><span>Diagnostics</span></h1>
+      <p class="prompt">ss -tlnp | grep LISTEN</p>
       <p class="subtitle">DNS resolution, TCP/UDP inspection, HTTP deep-dive, gRPC testing, TLS certificate analysis, and load testing. Protocol-first, tool-second.</p>
     </div>
     <div class="meta">
       <strong>18</strong> tools / commands<br>
       <strong>6</strong> phases<br>
-      Linux &middot; macOS &middot; in-cluster
+      Linux, macOS, in-cluster
     </div>
   </div>
 </header>
@@ -240,7 +265,7 @@
             <span class="cmd-line">dig _http._tcp.example.com SRV</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>+trace</code> follows the full delegation chain from root — the definitive way to diagnose propagation issues. <code>@8.8.8.8</code> bypasses local resolver to test upstream. <code>SRV</code> lookups are essential for Kubernetes service discovery and Consul health checks.</td>
+          <td class="usecase"><code>+trace</code> follows the full delegation chain from root: the definitive way to diagnose propagation issues. <code>@8.8.8.8</code> bypasses local resolver to test upstream. <code>SRV</code> lookups are essential for Kubernetes service discovery and Consul health checks.</td>
         </tr>
 
         <tr data-cat="dns">
@@ -254,7 +279,7 @@
             <span class="cmd-line">drill @1.1.1.1 example.com AAAA</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">DNSSEC-aware alternative to dig from ldns. <code>-T</code> traces the full chain; <code>-D</code> validates DNSSEC signatures. Preferred over dig when debugging DNSSEC validation failures — clearer chain-of-trust output.</td>
+          <td class="usecase">DNSSEC-aware alternative to dig from ldns. <code>-T</code> traces the full chain; <code>-D</code> validates DNSSEC signatures. Preferred over dig when debugging DNSSEC validation failures: clearer chain-of-trust output.</td>
         </tr>
 
         <tr data-cat="dns">
@@ -269,7 +294,7 @@
             <span class="cmd-line">resolvectl monitor</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Inspect and control systemd-resolved on Linux — see per-interface DNS servers, flush the cache, watch live query traffic with <code>monitor</code>. Essential first stop when DNS behaves differently from <code>dig</code> vs application — the stub resolver may be the culprit.</td>
+          <td class="usecase">Inspect and control systemd-resolved on Linux: see per-interface DNS servers, flush the cache, watch live query traffic with <code>monitor</code>. Essential first stop when DNS behaves differently from <code>dig</code> vs application: the stub resolver may be the culprit.</td>
         </tr>
 
         <!-- TCP / UDP -->
@@ -285,7 +310,7 @@
             <span class="cmd-line">ss -tlnp | awk 'NR>1 {print $5, $7}'</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Replaces <code>netstat</code> — faster, more detailed socket stats. <code>-tlnp</code>: TCP, listening, numeric, process. <code>-s</code> gives aggregate socket statistics (TIME_WAIT count etc). Filters by state, src, dst without grep.</td>
+          <td class="usecase">Replaces <code>netstat</code>: faster, more detailed socket stats. <code>-tlnp</code>: TCP, listening, numeric, process. <code>-s</code> gives aggregate socket statistics (TIME_WAIT count etc). Filters by state, src, dst without grep.</td>
         </tr>
 
         <tr data-cat="tcp">
@@ -299,7 +324,7 @@
             <span class="cmd-line">mtr --json example.com | jq '.report.hubs[] | select(.Loss > 0)'</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Combines traceroute and ping — shows per-hop latency and packet loss continuously. <code>--tcp</code> mode tests reachability at the application layer (not just ICMP), which many firewalls pass differently. <code>--json</code> output feeds automated latency regression checks.</td>
+          <td class="usecase">Combines traceroute and ping: shows per-hop latency and packet loss continuously. <code>--tcp</code> mode tests reachability at the application layer (not just ICMP), which many firewalls pass differently. <code>--json</code> output feeds automated latency regression checks.</td>
         </tr>
 
         <tr data-cat="tcp">
@@ -315,7 +340,7 @@
             <span class="cmd-line">ip netns exec &lt;ns&gt; ss -tlnp</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>route get</code> shows the exact route a packet will take — which interface, gateway, src IP. <code>netns exec</code> runs any command inside a network namespace — essential for debugging container networking without entering the container.</td>
+          <td class="usecase"><code>route get</code> shows the exact route a packet will take, which interface, gateway, src IP. <code>netns exec</code> runs any command inside a network namespace: essential for debugging container networking without entering the container.</td>
         </tr>
 
         <tr data-cat="tcp">
@@ -348,7 +373,7 @@
             <span class="cmd-line">curl --compressed -H "Accept-Encoding: gzip" https://example.com/api</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase"><code>-w "@curl-format.txt"</code> with a timing template gives DNS, TCP, TLS, TTFB breakdown per request — the right tool before reaching for a profiler. <code>--resolve</code> overrides DNS for a specific host:port — test a new backend IP without touching /etc/hosts. <code>-D -</code> dumps response headers to stdout.</td>
+          <td class="usecase"><code>-w "@curl-format.txt"</code> with a timing template gives DNS, TCP, TLS, TTFB breakdown per request: the right tool before reaching for a profiler. <code>--resolve</code> overrides DNS for a specific host:port; test a new backend IP without touching /etc/hosts. <code>-D -</code> dumps response headers to stdout.</td>
         </tr>
 
         <tr data-cat="http">
@@ -383,7 +408,7 @@
             <span class="cmd-line">http --offline GET https://example.com/api</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Human-readable HTTP client — syntax highlighting, JSON auto-formatting, session persistence. <code>--print=HhBb</code> controls what's shown: request/response headers and body. <code>--offline</code> prints the request without sending — useful for debugging request construction.</td>
+          <td class="usecase">Human-readable HTTP client: syntax highlighting, JSON auto-formatting, session persistence. <code>--print=HhBb</code> controls what's shown: request/response headers and body. <code>--offline</code> prints the request without sending: useful for debugging request construction.</td>
         </tr>
 
         <tr data-cat="http">
@@ -397,7 +422,7 @@
             <span class="cmd-line">websocat --ping-interval=5 wss://api.example.com/ws</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">curl for WebSockets — connect, send messages, and inspect frames from the terminal. The gap most teams hit when they can't debug WebSocket traffic via curl alone. <code>-v</code> shows the HTTP upgrade handshake and raw frames.</td>
+          <td class="usecase">curl for WebSockets: connect, send messages, and inspect frames from the terminal. The gap most teams hit when they can't debug WebSocket traffic via curl alone. <code>-v</code> shows the HTTP upgrade handshake and raw frames.</td>
         </tr>
 
         <!-- GRPC -->
@@ -413,7 +438,7 @@
             <span class="cmd-line">grpcurl -v -plaintext localhost:50051 grpc.health.v1.Health/Check</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">curl for gRPC — list services, describe methods, send requests. Works with server reflection (no proto files needed) or <code>-proto</code> flag. <code>grpc.health.v1.Health/Check</code> tests the standard health protocol that K8s probes use. <code>-d @</code> reads payload from stdin.</td>
+          <td class="usecase">curl for gRPC: list services, describe methods, send requests. Works with server reflection (no proto files needed) or <code>-proto</code> flag. <code>grpc.health.v1.Health/Check</code> tests the standard health protocol that K8s probes use. <code>-d @</code> reads payload from stdin.</td>
         </tr>
 
         <tr data-cat="grpc">
@@ -427,7 +452,7 @@
             <span class="cmd-line comment"># exec: { command: ["/bin/grpc-health-probe", "-addr=:50051"] }</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Implements the gRPC health checking protocol as a standalone binary — used as a K8s <code>exec</code> liveness/readiness probe for gRPC services that can't use HTTP probes. Copy the static binary into your container image at build time.</td>
+          <td class="usecase">Implements the gRPC health checking protocol as a standalone binary: used as a K8s <code>exec</code> liveness/readiness probe for gRPC services that can't use HTTP probes. Copy the static binary into your container image at build time.</td>
         </tr>
 
         <!-- TLS -->
@@ -443,7 +468,7 @@
             <span class="cmd-line">echo | openssl s_client -connect example.com:443 2>&amp;1 | grep "Cipher is"</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Raw TLS handshake inspection — verify cert chain, expiry, negotiated cipher and protocol version, ALPN. <code>-servername</code> sends SNI (required for vhosts). <code>-starttls smtp</code> works for STARTTLS protocols. Pipe through <code>x509</code> for clean cert parsing.</td>
+          <td class="usecase">Raw TLS handshake inspection. Verify cert chain, expiry, negotiated cipher and protocol version, ALPN. <code>-servername</code> sends SNI (required for vhosts). <code>-starttls smtp</code> works for STARTTLS protocols. Pipe through <code>x509</code> for clean cert parsing.</td>
         </tr>
 
         <tr data-cat="tls">
@@ -458,7 +483,7 @@
             <span class="cmd-line">testssl.sh --client-simulation example.com</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Comprehensive TLS/SSL server assessment — cipher suites, protocol versions, HSTS, certificate transparency, OCSP stapling, known vulnerabilities (POODLE, BEAST, ROBOT). <code>--client-simulation</code> shows what each real browser would negotiate. Self-contained bash script; no install needed.</td>
+          <td class="usecase">Comprehensive TLS/SSL server assessment: cipher suites, protocol versions, HSTS, certificate transparency, OCSP stapling, known vulnerabilities (POODLE, BEAST, ROBOT). <code>--client-simulation</code> shows what each real browser would negotiate. Self-contained bash script; no install needed.</td>
         </tr>
 
         <tr data-cat="tls">
@@ -473,7 +498,7 @@
             <span class="cmd-line">step certificate create myservice cert.pem key.pem --profile leaf --ca ca.crt --ca-key ca.key --not-after 24h</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Human-friendly PKI toolchain — inspect certs at a URL or from file, verify chains, issue short-lived certs from a local CA. Replaces ad-hoc <code>openssl x509</code> pipelines. <code>step ca init</code> bootstraps a full internal CA in minutes — useful for mTLS in dev/test environments.</td>
+          <td class="usecase">Human-friendly PKI toolchain: inspect certs at a URL or from file, verify chains, issue short-lived certs from a local CA. Replaces ad-hoc <code>openssl x509</code> pipelines. <code>step ca init</code> bootstraps a full internal CA in minutes: useful for mTLS in dev/test environments.</td>
         </tr>
 
         <!-- LOAD -->
@@ -490,7 +515,7 @@
             <span class="cmd-line comment"># stages: [{duration:'2m',target:100},{duration:'5m',target:100},{duration:'2m',target:0}]</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Scripted load testing with ramp-up/ramp-down stages, thresholds, and checks. Scripts in JS but executes in Go — no browser overhead. <code>--out influxdb</code> streams metrics to Grafana in real time. Define SLO thresholds in the script; k6 exits non-zero when breached.</td>
+          <td class="usecase">Scripted load testing with ramp-up/ramp-down stages, thresholds, and checks. Scripts in JS but executes in Go: no browser overhead. <code>--out influxdb</code> streams metrics to Grafana in real time. Define SLO thresholds in the script; k6 exits non-zero when breached.</td>
         </tr>
 
         <tr data-cat="load">
@@ -503,7 +528,7 @@
             <span class="cmd-line">echo "GET https://example.com/" | vegeta attack -rate=100 -duration=30s | vegeta plot > plot.html</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Constant-rate HTTP load testing — unlike k6 or wrk, vegeta holds an exact request rate regardless of latency. This is the correct model for SLO validation: test whether the service meets p99 latency at the target RPS, not how fast it can go.</td>
+          <td class="usecase">Constant-rate HTTP load testing: unlike k6 or wrk, vegeta holds an exact request rate regardless of latency. This is the correct model for SLO validation: test whether the service meets p99 latency at the target RPS, not how fast it can go.</td>
         </tr>
 
         <tr data-cat="load">
@@ -517,7 +542,7 @@
             <span class="cmd-line">oha -m POST -H "Content-Type: application/json" -d '{"k":"v"}' https://api.example.com/</span>
             <button class="copy-btn" onclick="copyAll(this)">copy</button>
           </div></td>
-          <td class="usecase">Written in Rust — real-time TUI with live latency histogram, p50/p95/p99, and requests/sec display as the test runs. HTTP/2 support. Replaces <code>hey</code> and <code>wrk</code> for quick ad-hoc benchmarks where you want visual feedback without writing a script.</td>
+          <td class="usecase">Written in Rust: real-time TUI with live latency histogram, p50/p95/p99, and requests/sec display as the test runs. HTTP/2 support. Replaces <code>hey</code> and <code>wrk</code> for quick ad-hoc benchmarks where you want visual feedback without writing a script.</td>
         </tr>
 
       </tbody>
@@ -527,12 +552,7 @@
 </main>
 
 <footer>
-  ops://cheatsheets &mdash;
-  <a href="https://curl.se/docs/manpage.html" target="_blank" rel="noopener">curl man</a> &middot;
-  <a href="https://github.com/fullstorydev/grpcurl" target="_blank" rel="noopener">grpcurl</a> &middot;
-  <a href="https://testssl.sh" target="_blank" rel="noopener">testssl.sh</a> &middot;
-  <a href="https://smallstep.com/cli/" target="_blank" rel="noopener">step CLI</a> &middot;
-  <a href="https://k6.io/docs/" target="_blank" rel="noopener">k6 docs</a>
+  ops://cheatsheets: <a href="https://curl.se/docs/manpage.html" target="_blank" rel="noopener">curl man</a>, <a href="https://github.com/fullstorydev/grpcurl" target="_blank" rel="noopener">grpcurl</a>, <a href="https://testssl.sh" target="_blank" rel="noopener">testssl.sh</a>, <a href="https://smallstep.com/cli/" target="_blank" rel="noopener">step CLI</a>, <a href="https://k6.io/docs/" target="_blank" rel="noopener">k6 docs</a>
 </footer>
 
 <script>
