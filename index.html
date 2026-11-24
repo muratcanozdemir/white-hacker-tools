@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ops://cheatsheets</title>
+<meta name="description" content="Practitioner cheat sheets for security, infrastructure, and platform engineering.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500&family=Atkinson+Hyperlegible+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+@import url("./tokens.css");
+@import url("./base.css");
+
+/* ---------- chrome ---------- */
+.nav { border-bottom: var(--rule-hair) solid var(--color-rule); }
+.nav .container { display: flex; align-items: center; justify-content: space-between; gap: var(--space-lg); min-height: 64px; }
+.wordmark { font-weight: 500; font-size: var(--text-lg); letter-spacing: -0.02em; text-decoration: none; color: var(--color-ink); }
+.nav ul { display: flex; gap: var(--space-lg); margin: 0; padding: 0; list-style: none; }
+.nav ul a { color: var(--color-muted); text-decoration: none; font-size: var(--text-sm); font-weight: 500; transition: color var(--dur-short) var(--ease-out); }
+.nav ul a:hover { color: var(--color-ink); }
+
+/* ---------- hero: the index starts on the first screen ---------- */
+.hero { padding-block: var(--space-3xl) var(--space-2xl); }
+.hero + .group { padding-top: var(--space-2xl); }
+.hero .container { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--space-lg) var(--gap-columns); align-items: end; }
+.hero h1 { grid-column: 1 / span 7; font-size: var(--text-display); max-width: 14ch; }
+.hero .lead { grid-column: 1 / span 6; color: var(--color-ink-2); }
+.finder { grid-column: 8 / span 5; grid-row: 1 / span 2; align-self: end; display: grid; gap: var(--space-xs); }
+.finder label { font-size: var(--text-sm); font-weight: 500; color: var(--color-muted); }
+.finder__row { display: flex; align-items: center; gap: var(--space-sm); }
+.finder input { flex: 1; min-width: 0; min-height: 52px; padding: 0 var(--space-md); border: var(--rule-hair) solid var(--color-muted); border-radius: var(--radius-pill); background: var(--color-paper-3); color: var(--color-ink); font: 400 var(--text-md)/1 var(--font-body); }
+.finder input::placeholder { color: var(--color-muted); }
+.finder input:hover { border-color: var(--color-ink-2); }
+.finder input:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -1px; border-color: var(--color-focus); }
+.finder kbd { font-family: var(--font-outlier); font-size: var(--text-sm); color: var(--color-muted); border: var(--rule-hair) solid var(--color-rule); border-radius: 4px; padding: var(--space-3xs) var(--space-xs); }
+.finder__status { min-height: 1lh; font-family: var(--font-outlier); font-size: var(--text-sm); color: var(--color-muted); font-variant-numeric: tabular-nums slashed-zero; }
+.finder__status strong { color: var(--color-ink); font-weight: 500; }
+
+/* ---------- groups ---------- */
+.group { padding-block: var(--space-3xl); border-top: var(--rule-hair) solid var(--color-rule); }
+.group--band { background: var(--color-paper-3); color: var(--color-ink); border-top: 0; padding-block: var(--section-gap-s); }
+.group__head { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gap-columns); align-items: baseline; margin-bottom: var(--space-2xl); }
+.group__head h2 { grid-column: 1 / span 8; }
+.group__head p { grid-column: 9 / span 4; justify-self: end; font-family: var(--font-outlier); font-size: var(--text-sm); color: var(--color-muted); font-variant-numeric: tabular-nums; }
+
+.measured { font-family: var(--font-outlier); font-variant-numeric: tabular-nums slashed-zero; }
+.entry { display: block; color: inherit; text-decoration: none; }
+.entry__title { font-family: var(--font-display); font-weight: 500; font-size: var(--text-title); letter-spacing: -0.015em; line-height: 1.2; color: var(--color-ink); text-decoration: underline; text-decoration-color: transparent; text-decoration-thickness: 1px; text-underline-offset: 0.2em; transition: text-decoration-color var(--dur-short) var(--ease-out); }
+.entry:hover .entry__title { text-decoration-color: var(--color-accent); }
+.entry:active .entry__title { color: var(--color-ink-2); }
+.finder input:disabled { opacity: 0.55; cursor: not-allowed; }
+@media (pointer: coarse) { .finder kbd { display: none; } }
+.entry:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 4px; border-radius: 2px; }
+.entry__desc { color: var(--color-muted); max-width: 62ch; }
+.entry__facts { font-family: var(--font-outlier); font-size: var(--text-sm); color: var(--color-muted); font-variant-numeric: tabular-nums slashed-zero; }
+.entry__facts strong { color: var(--color-ink); font-weight: 500; }
+
+/* rows: title, line, facts */
+.rows { list-style: none; margin: 0; padding: 0; border-bottom: var(--rule-hair) solid var(--color-rule); }
+.rows li { border-top: var(--rule-hair) solid var(--color-rule); }
+.rows .entry { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--space-xs) var(--gap-columns); padding-block: var(--space-lg); align-items: baseline; }
+.rows .entry__title { grid-column: 1 / span 4; }
+.rows .entry__desc { grid-column: 5 / span 5; }
+.rows .entry__facts { grid-column: 10 / span 3; text-align: right; display: grid; gap: var(--space-2xs); }
+.rows li:first-child .entry { padding-block: var(--space-xl); }
+.rows li:first-child .entry__title { font-size: var(--text-2xl); letter-spacing: -0.025em; line-height: 1.1; }
+
+/* panels: one surface, cut by 1px seams */
+.panels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--rule-hair); margin: 0; padding: 0; list-style: none; background: var(--color-rule); color: var(--color-ink); border: var(--rule-hair) solid var(--color-rule); border-radius: var(--radius-card); overflow: hidden; }
+.panels li { background: var(--color-paper-2); color: var(--color-ink); }
+.panels .entry { height: 100%; display: grid; grid-template-rows: auto auto 1fr; gap: var(--space-md); padding: var(--space-xl); transition: background-color var(--dur-short) var(--ease-out); }
+.panels .entry:hover { background: color-mix(in oklab, var(--color-paper-2) 70%, var(--color-rule)); }
+.panels .entry:focus-visible { outline-offset: -3px; border-radius: var(--radius-card); }
+.reading { display: flex; align-items: baseline; gap: var(--space-sm); font-family: var(--font-outlier); color: var(--color-muted); font-size: var(--text-sm); font-variant-numeric: tabular-nums slashed-zero; }
+.reading b { font-weight: 400; font-size: var(--text-3xl); letter-spacing: -0.04em; line-height: 1; color: var(--color-ink); }
+.panels .entry__desc { align-self: end; }
+
+/* index: two columns of compact entries */
+.index { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 var(--gap-columns); margin: 0; padding: 0; list-style: none; }
+.index li { border-top: var(--rule-hair) solid var(--color-rule); }
+.index .entry { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--space-xs) var(--space-lg); padding-block: var(--space-lg); }
+.index .entry__title { grid-column: 1; }
+.index .entry__facts { grid-column: 2; grid-row: 1; text-align: right; }
+.index .entry__desc { grid-column: 1 / -1; }
+
+/* commentary: two long reads side by side */
+.essays { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gap-columns); margin: 0; padding: 0; list-style: none; }
+.essays .entry { display: grid; gap: var(--space-md); padding-top: var(--space-lg); border-top: var(--rule-hair) solid var(--color-rule-2); }
+.essays .entry__title { font-size: var(--text-section); letter-spacing: var(--tracking-display); line-height: 1.04; max-width: 16ch; }
+.essays .entry__desc { color: var(--color-ink-2); font-size: var(--text-lead); line-height: 1.45; max-width: 46ch; }
+
+.empty { padding-block: var(--space-3xl); color: var(--color-muted); font-size: var(--text-lead); }
+.empty strong { color: var(--color-ink); font-weight: 500; }
+
+/* ---------- footer: a statement ---------- */
+.foot { border-top: var(--rule-hair) solid var(--color-rule); padding-block: var(--space-3xl) var(--space-xl); }
+.foot__line { font-family: var(--font-display); font-weight: 500; font-size: var(--text-section); letter-spacing: var(--tracking-display); line-height: 1.04; max-width: 18ch; text-wrap: balance; }
+.foot__base { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--space-md); margin-top: var(--space-2xl); padding-top: var(--space-lg); border-top: var(--rule-hair) solid var(--color-rule); color: var(--color-muted); font-size: var(--text-sm); }
+.foot__base ul { display: flex; flex-wrap: wrap; gap: var(--space-lg); margin: 0; padding: 0; list-style: none; }
+.foot__base a { color: var(--color-muted); text-decoration-color: var(--color-rule-2); transition: color var(--dur-short) var(--ease-out); }
+.foot__base a:hover { color: var(--color-ink); text-decoration-color: var(--color-accent); }
+
+/* ---------- smaller screens ---------- */
+@media (max-width: 60rem) {
+  .hero { padding-block: var(--space-2xl) var(--space-xl); }
+  .hero h1, .hero .lead, .finder { grid-column: 1 / -1; grid-row: auto; }
+  .finder { margin-top: var(--space-md); }
+  .rows .entry { grid-template-columns: minmax(0, 1fr) auto; }
+  .rows .entry__title { grid-column: 1; }
+  .rows .entry__facts { grid-column: 2; grid-row: 1; }
+  .rows .entry__desc { grid-column: 1 / -1; }
+  .panels { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .index, .essays { grid-template-columns: minmax(0, 1fr); }
+  .essays { gap: var(--space-2xl); }
+  .group__head h2 { grid-column: 1 / span 9; }
+  .group__head p { grid-column: 10 / span 3; }
+}
+@media (max-width: 40rem) {
+  .nav ul { gap: var(--space-md); }
+  .nav li:not(:last-child) { display: none; }
+  .rows .entry { grid-template-columns: minmax(0, 1fr); }
+  .rows .entry__facts { grid-column: 1; grid-row: auto; text-align: left; display: flex; flex-wrap: wrap; gap: var(--space-md); }
+  .panels { grid-template-columns: minmax(0, 1fr); }
+  .panels .entry { padding: var(--space-lg); }
+  .group__head { display: block; }
+  .group__head p { margin-top: var(--space-xs); text-align: left; }
+  .rows li:first-child .entry__title { font-size: var(--text-xl); }
+}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="container">
+    <a class="wordmark" href="index.html" aria-label="ops://cheatsheets, home">ops://cheatsheets</a>
+    <nav aria-label="Sections">
+      <ul>
+        <li><a href="#cloud">Cloud</a></li>
+        <li><a href="#platform">Platform</a></li>
+        <li><a href="#commentary">Commentary</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="container">
+      <h1 id="hero-title">Commands with production scars</h1>
+      <p class="lead">Practitioner-grade command references for security, infrastructure, and platform engineering. No fluff.</p>
+      <form class="finder" role="search" hidden onsubmit="return false">
+        <label for="q">Find a cheat sheet</label>
+        <div class="finder__row">
+          <input id="q" name="q" type="search" autocomplete="off" spellcheck="false" placeholder="kubectl, tls, terraform…" aria-describedby="q-status">
+          <kbd aria-hidden="true">/</kbd>
+        </div>
+        <p class="finder__status" id="q-status" role="status"><strong id="q-n">25</strong> of 25 cheat sheets</p>
+      </form>
+    </div>
+  </section>
+
+  <section class="group" id="security" aria-labelledby="security-title" data-group>
+    <div class="container">
+      <div class="group__head">
+        <h2 id="security-title">Security and AI</h2>
+        <p>5 sheets</p>
+      </div>
+      <ul class="rows">
+        <li data-entry><a href="pentest.html" class="entry">
+          <span class="entry__title">White Hat Hacker Tools</span>
+          <span class="entry__desc">Filterable reference for penetration testing: recon, web, network, exploit, post-exploit, password cracking, and wireless.</span>
+          <span class="entry__facts"><span><strong>23</strong> tools, 7 phases</span><time datetime="2026-05-09">2026-05-09</time></span>
+        </a></li>
+        <li data-entry><a href="llm-attack-surface.html" class="entry">
+          <span class="entry__title">LLM Attack Surface</span>
+          <span class="entry__desc">Red-team reference for LLM-powered systems: prompt injection, RAG poisoning, agent abuse, context attacks, evasion, and hardening counter-measures. OWASP LLM Top 10 mapped.</span>
+          <span class="entry__facts"><span><strong>40</strong> techniques, 7 phases</span><time datetime="2026-05-09">2026-05-09</time></span>
+        </a></li>
+        <li data-entry><a href="agent-eval.html" class="entry">
+          <span class="entry__title">Agent Evaluation</span>
+          <span class="entry__desc">Three-layer reference: eval frameworks (Inspect AI, DeepEval, Braintrust), benchmark suites (AgentBench, &tau;&sup2;-Bench, GAIA), and eval patterns; outcome, trajectory, online, and cost-bounded.</span>
+          <span class="entry__facts"><span><strong>34</strong> techniques, 3 layers, 6 patterns</span><time datetime="2026-05-12">2026-05-12</time></span>
+        </a></li>
+        <li data-entry><a href="vps-hardening.html" class="entry">
+          <span class="entry__title">VPS Hardening: Fresh to Secure</span>
+          <span class="entry__desc">From a blank Debian/Ubuntu VPS to a machine you&rsquo;d trust running production workloads. 22+1 ordered steps, filterable by phase, with a progress bar and checkboxes.</span>
+          <span class="entry__facts"><span><strong>23</strong> steps, 7 phases, ordered</span><time datetime="2026-05-12">2026-05-12</time></span>
+        </a></li>
+        <li data-entry><a href="container-security.html" class="entry">
+          <span class="entry__title">Container Security Toolkit</span>
+          <span class="entry__desc">Filterable reference for container security: image scanning, build linting, registry ops, image signing, runtime detection, and supply chain.</span>
+          <span class="entry__facts"><span><strong>15</strong> tools, 6 phases</span><time datetime="2026-05-10">2026-05-10</time></span>
+        </a></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="group group--band" id="cloud" aria-labelledby="cloud-title" data-group>
+    <div class="container">
+      <div class="group__head">
+        <h2 id="cloud-title">Six clouds, one shell</h2>
+        <p>6 sheets</p>
+      </div>
+      <ul class="panels">
+        <li data-entry><a href="aws.html" class="entry">
+          <span class="entry__title">AWS CLI: Production Surface</span>
+          <span class="reading"><b>28</b> entries, 7 phases</span>
+          <span class="entry__desc">~30 services distilled to what engineers with production scars reach for daily. Auth, compute, storage, networking, secrets, observability, and platform.</span>
+        </a></li>
+        <li data-entry><a href="azure.html" class="entry">
+          <span class="entry__title">Azure CLI: Production Surface</span>
+          <span class="reading"><b>28</b> entries, 7 phases</span>
+          <span class="entry__desc">~28 entries distilled to what engineers with production scars reach for daily. Auth, compute, storage, networking, secrets, observability, data/platform.</span>
+        </a></li>
+        <li data-entry><a href="gcp.html" class="entry">
+          <span class="entry__title">GCP CLI: Production Surface</span>
+          <span class="reading"><b>28</b> entries, 7 phases</span>
+          <span class="entry__desc">~28 entries distilled to what engineers with production scars reach for. Auth, compute, storage, networking, secrets, observability, data/platform.</span>
+        </a></li>
+        <li data-entry><a href="digitalocean.html" class="entry">
+          <span class="entry__title">DigitalOcean CLI: Production Surface</span>
+          <span class="reading"><b>24</b> entries, 7 phases</span>
+          <span class="entry__desc">doctl reference for engineers with production scars: droplets, DOKS, Spaces, networking, managed databases, App Platform, and Container Registry.</span>
+        </a></li>
+        <li data-entry><a href="linode.html" class="entry">
+          <span class="entry__title">Linode CLI: Production Surface</span>
+          <span class="reading"><b>22</b> entries, 6 phases</span>
+          <span class="entry__desc">linode-cli reference for engineers with production scars: Linodes, LKE, Object Storage, volumes, firewalls, NodeBalancers, managed databases.</span>
+        </a></li>
+        <li data-entry><a href="hetzner.html" class="entry">
+          <span class="entry__title">Hetzner CLI: Production Surface</span>
+          <span class="reading"><b>22</b> entries, 6 phases</span>
+          <span class="entry__desc">hcloud reference for engineers with production scars: servers, private networks, volumes, load balancers, firewalls, floating IPs, and Object Storage.</span>
+        </a></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="group" id="platform" aria-labelledby="platform-title" data-group>
+    <div class="container">
+      <div class="group__head">
+        <h2 id="platform-title">Platform and infrastructure</h2>
+        <p>10 sheets</p>
+      </div>
+      <ul class="index">
+        <li data-entry><a href="kubernetes.html" class="entry">
+          <span class="entry__title">Kubernetes Debugging Toolkit</span>
+          <span class="entry__facts"><strong>18</strong> tools</span>
+          <span class="entry__desc">Filterable reference for K8s debugging: inspect, network, security audit, cluster health, RBAC, and storage.</span>
+        </a></li>
+        <li data-entry><a href="spark-k8s.html" class="entry">
+          <span class="entry__title">Spark on Kubernetes</span>
+          <span class="entry__facts"><strong>24</strong> entries</span>
+          <span class="entry__desc">The cursed timeline. Operator setup, JVM vs cgroup memory fights, shuffle-spill survival on heterogeneous VM clusters, gang scheduling, and debugging OOMKilled executors.</span>
+        </a></li>
+        <li data-entry><a href="terraform.html" class="entry">
+          <span class="entry__title">IaC &amp; Terraform Ecosystem</span>
+          <span class="entry__facts"><strong>14</strong> tools</span>
+          <span class="entry__desc">Filterable reference for the Terraform toolchain: validate, plan, security scanning, cost estimation, state surgery, and docs.</span>
+        </a></li>
+        <li data-entry><a href="observability.html" class="entry">
+          <span class="entry__title">Observability &amp; SRE Toolkit</span>
+          <span class="entry__facts"><strong>17</strong> tools</span>
+          <span class="entry__desc">Filterable reference for the full observability stack: metrics, logs, traces, profiling, eBPF system analysis, and incident response.</span>
+        </a></li>
+        <li data-entry><a href="container-images.html" class="entry">
+          <span class="entry__title">Container Base Images</span>
+          <span class="entry__facts"><strong>22</strong> entries</span>
+          <span class="entry__desc">Filterable reference for base image selection: scratch, BusyBox, Alpine, Wolfi, Distroless, Debian slim. Build patterns, musl/glibc compat traps, hardening, and debugging minimal containers.</span>
+        </a></li>
+        <li data-entry><a href="network.html" class="entry">
+          <span class="entry__title">Network Diagnostics</span>
+          <span class="entry__facts"><strong>18</strong> tools</span>
+          <span class="entry__desc">DNS resolution, TCP/UDP inspection, HTTP deep-dive, gRPC testing, TLS certificate analysis, and load testing. Protocol-first, tool-second.</span>
+        </a></li>
+        <li data-entry><a href="nginx.html" class="entry">
+          <span class="entry__title">Nginx as API Gateway</span>
+          <span class="entry__facts"><strong>20</strong> patterns</span>
+          <span class="entry__desc">Config-centric reference: upstream blocks, rate limiting, JWT via auth_request, mTLS, TLS hardening, and observability patterns. nginx OSS and nginx Plus.</span>
+        </a></li>
+        <li data-entry><a href="kong.html" class="entry">
+          <span class="entry__title">Kong API Gateway</span>
+          <span class="entry__facts"><strong>22</strong> entries</span>
+          <span class="entry__desc">Admin API patterns, deck config-as-code, plugin management, routing, upstreams, and operational inspection for Kong OSS and Kong Gateway.</span>
+        </a></li>
+        <li data-entry><a href="mulesoft.html" class="entry">
+          <span class="entry__title">MuleSoft: Production Surface</span>
+          <span class="entry__facts"><strong>20</strong> entries</span>
+          <span class="entry__desc">anypoint-cli for interactive ops and environment promotion. Mule Maven Plugin for CI/CD deployments. Deploy, promote, API Manager, runtime, observability, governance.</span>
+        </a></li>
+        <li data-entry><a href="slurm.html" class="entry">
+          <span class="entry__title">SLURM &amp; HPC Toolkit</span>
+          <span class="entry__facts"><strong>17</strong> commands</span>
+          <span class="entry__desc">Job submission, queue monitoring, failure debugging, array jobs, dependency chains, and resource profiling. CPU-only and GPU clusters.</span>
+        </a></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="group" id="languages" aria-labelledby="languages-title" data-group>
+    <div class="container">
+      <div class="group__head">
+        <h2 id="languages-title">Data, languages and repos</h2>
+        <p>4 sheets</p>
+      </div>
+      <ul class="rows">
+        <li data-entry><a href="postgres.html" class="entry">
+          <span class="entry__title">PostgreSQL Operations</span>
+          <span class="entry__desc">psql meta-commands, backup and restore, query analysis, maintenance, access control, and replication monitoring. Self-hosted, production-grade.</span>
+          <span class="entry__facts"><span><strong>18</strong> tools, 6 phases</span><time datetime="2026-05-11">2026-05-11</time></span>
+        </a></li>
+        <li data-entry><a href="go.html" class="entry">
+          <span class="entry__title">Go Developer Toolkit</span>
+          <span class="entry__desc">Standard toolchain first: build, test, profile, debug, lint, modules, and release. Third-party tools where they genuinely add value.</span>
+          <span class="entry__facts"><span><strong>18</strong> tools, 7 phases</span><time datetime="2026-05-10">2026-05-10</time></span>
+        </a></li>
+        <li data-entry><a href="python.html" class="entry">
+          <span class="entry__title">Python Packaging &amp; CI Toolkit</span>
+          <span class="entry__desc">Modern Python toolchain: env management, packaging standards, quality gates, Rust/Python FFI, publishing, and reproducible CI patterns.</span>
+          <span class="entry__facts"><span><strong>16</strong> tools, 6 phases</span><time datetime="2026-05-10">2026-05-10</time></span>
+        </a></li>
+        <li data-entry><a href="git.html" class="entry">
+          <span class="entry__title">Git &amp; Repo Hygiene</span>
+          <span class="entry__desc">History rewriting, forensic archaeology, secret scanning, hook automation, and large-repo tooling. Beyond the daily commit cycle.</span>
+          <span class="entry__facts"><span><strong>17</strong> tools, 6 phases</span><time datetime="2026-05-10">2026-05-10</time></span>
+        </a></li>
+      </ul>
+    </div>
+  </section>
+
+  <p class="empty container" id="q-empty" hidden>No cheat sheet mentions <strong id="q-term"></strong>. Try a tool name or a protocol.</p>
+
+  <section class="group" id="commentary" aria-labelledby="commentary-title" data-group>
+    <div class="container">
+      <div class="group__head">
+        <h2 id="commentary-title">Commentary</h2>
+        <p>2 essays</p>
+      </div>
+      <ul class="essays">
+        <li data-entry><a href="commentary-ai-encyclical.html" class="entry">
+          <span class="entry__facts"><time datetime="2026-05-26">2026-05-26</time>, ~3,200 words, 13 min read</span>
+          <span class="entry__title">The Vatican&rsquo;s AI Encyclical</span>
+          <span class="entry__desc">Pope Leo XIV&rsquo;s <em>Magnifica Humanitas</em> decoded: what the encyclical actually demands from AI labs, governments, and platform companies, stripped of the theology.</span>
+        </a></li>
+        <li data-entry><a href="commentary-anthropic-response.html" class="entry">
+          <span class="entry__facts"><time datetime="2026-05-26">2026-05-26</time>, ~1,900 words, 8 min read</span>
+          <span class="entry__title">Anthropic at the Vatican</span>
+          <span class="entry__desc">Chris Olah&rsquo;s remarks to the Holy See: what&rsquo;s unusually candid, what&rsquo;s strategically absent, and why sincerity and structural compulsion coexist perfectly in a race dynamic nobody can exit.</span>
+        </a></li>
+      </ul>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="container">
+    <p class="foot__line">More to come. Suggestions welcome.</p>
+    <div class="foot__base">
+      <p>ops://cheatsheets; use responsibly and legally.</p>
+      <ul>
+        <li><a href="#security">Security and AI</a></li>
+        <li><a href="#cloud">Cloud</a></li>
+        <li><a href="#platform">Platform</a></li>
+        <li><a href="#languages">Data and languages</a></li>
+        <li><a href="#commentary">Commentary</a></li>
+      </ul>
+    </div>
+  </div>
+</footer>
+
+<script>
+(() => {
+  const form = document.querySelector('.finder');
+  const q = document.getElementById('q');
+  const n = document.getElementById('q-n');
+  const empty = document.getElementById('q-empty');
+  const term = document.getElementById('q-term');
+  const entries = [...document.querySelectorAll('[data-entry]')];
+  const groups = [...document.querySelectorAll('[data-group]')];
+  const sheets = entries.filter((e) => !e.closest('#commentary')).length;
+  form.hidden = false;
+  const index = entries.map((e) => [e, e.textContent.toLowerCase().replace(/\s+/g, ' ')]);
+  const run = () => {
+    const words = q.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    let shown = 0;
+    for (const [el, text] of index) {
+      const hit = words.every((w) => text.includes(w));
+      el.hidden = !hit;
+      if (hit && !el.closest('#commentary')) shown++;
+    }
+    for (const g of groups) g.hidden = !g.querySelector('[data-entry]:not([hidden])');
+    n.textContent = shown;
+    n.parentNode.lastChild.textContent = ' of ' + sheets + ' cheat sheets';
+    const none = words.length && !groups.some((g) => !g.hidden);
+    empty.hidden = !none;
+    if (none) term.textContent = '“' + q.value.trim() + '”';
+  };
+  q.addEventListener('input', run);
+  q.addEventListener('keydown', (e) => { if (e.key === 'Escape') { q.value = ''; run(); } });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === '/' && document.activeElement !== q && !/input|textarea|select/i.test(document.activeElement.tagName)) { e.preventDefault(); q.focus(); }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+
+/* Loaded after each sheet's own <style>, with tokens.css and base.css before it.
+   It maps the sheets' old token names onto Console and restyles the shared classes;
+   every page keeps its markup, its filters and its scripts. */
+
+:root {
+  --bg: var(--color-paper);
+  --bg2: var(--color-paper-2);
+  --bg3: oklch(24% 0.01 250);
+  --bg4: oklch(27% 0.011 250);
+  --border: var(--color-rule);
+  --border2: var(--color-rule-2);
+  --text: var(--color-ink-2);
+  --muted: var(--color-muted);
+  --accent: var(--color-accent);
+  --accent2: var(--color-accent);
+  --amber: var(--color-accent);
+  --blue: var(--color-cool);
+  --red: var(--color-bad);
+  --cmd: var(--color-ink);
+  --conf: var(--color-cool);
+  --mono: var(--font-outlier);
+  --display: var(--font-display);
+  --fill-body: transparent;
+  --ink-h1: var(--color-ink);
+  --ink-strong: var(--color-ink);
+  --ink-blockquote: var(--color-ink-2);
+  --ink-td-tool-name: var(--color-ink);
+  --ink-cmd-line-cmd: var(--color-ink);
+}
+
+/* ---------- the reading face ---------- */
+body { font-family: var(--font-body); font-size: var(--text-md); line-height: 1.55; color: var(--color-ink-2); background: var(--color-paper); }
+body::before, header::after { content: none; display: none; }
+strong { color: var(--color-ink); font-weight: 500; }
+code, kbd, pre, samp { font-family: var(--font-outlier); }
+
+/* ---------- breadcrumb (inline-styled in each sheet, so it needs the override flag) ---------- */
+body > nav[style] { padding: var(--space-md) 2rem !important; font-size: var(--text-sm) !important; gap: var(--space-xs) !important; }
+body > nav[style] a { letter-spacing: 0 !important; text-decoration: none; transition: color var(--dur-short) var(--ease-out); }
+body > nav[style] a:hover { color: var(--color-ink) !important; }
+
+/* ---------- header ---------- */
+header { padding-block: var(--space-2xl) var(--space-xl); }
+h1 { font-family: var(--font-display); font-weight: 500; font-size: var(--text-display-s); letter-spacing: var(--tracking-display); line-height: 1.04; color: var(--color-ink); max-width: 18ch; overflow-wrap: break-word; min-width: 0; text-wrap: balance; }
+h1 span { color: inherit; }
+.prompt { font-family: var(--font-outlier); font-size: var(--text-sm); color: var(--color-muted); margin-top: var(--space-md); margin-bottom: 0; }
+.prompt::before { color: var(--color-rule-2); }
+.title-block { display: flex; flex-direction: column; }
+.title-block .prompt { order: 2; }
+.title-block .subtitle { order: 3; }
+.subtitle, .deck { font-size: var(--text-lead); line-height: 1.45; color: var(--color-ink-2); max-width: 52ch; margin-top: var(--space-md); }
+.meta { font-family: var(--font-body); font-size: var(--text-sm); color: var(--color-muted); line-height: 1.9; }
+.meta strong { font-family: var(--font-outlier); font-weight: 500; color: var(--color-ink); font-variant-numeric: tabular-nums slashed-zero; }
+
+/* ---------- notes above the table ---------- */
+.disclaimer, .callout { font-family: var(--font-body); font-size: var(--text-sm); line-height: 1.6; color: var(--color-ink-2); border-radius: var(--radius-pill); }
+.disclaimer { background: var(--color-bad-soft); border-color: color-mix(in oklab, var(--color-bad) 40%, var(--color-paper)); }
+.disclaimer strong, .disclaimer::before { color: var(--color-bad); }
+.callout { background: var(--color-paper-2); border-color: var(--color-rule); }
+.callout::before { color: var(--color-accent); }
+.callout code, .disclaimer code { font-size: 0.875em; color: var(--color-ink); }
+
+/* ---------- filters: chips carry state, the chosen one on the cool tint ---------- */
+.toolbar { gap: var(--space-xs); row-gap: var(--space-xs); }
+.toolbar-label { font-family: var(--font-body); font-size: var(--text-sm); font-weight: 500; color: var(--color-muted); }
+.f-btn { font-family: var(--font-body); font-size: var(--text-sm); font-weight: 500; line-height: 1; min-height: 44px; padding: 0 var(--space-sm); border: var(--rule-hair) solid var(--color-rule-2); border-radius: var(--radius-pill); background: var(--color-paper-2); color: var(--color-ink-2); letter-spacing: 0; transition: background-color var(--dur-short) var(--ease-out), color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out); }
+.f-btn:hover { color: var(--color-ink); border-color: var(--color-muted); background: var(--color-paper-2); }
+.f-btn.active, .f-btn[aria-pressed="true"] { background: var(--color-cool-soft); color: var(--color-cool); border-color: color-mix(in oklab, var(--color-cool) 55%, var(--color-paper)); }
+.f-btn:active { transform: translateY(1px); }
+.count { font-family: var(--font-outlier); font-size: var(--text-sm); color: var(--color-muted); font-variant-numeric: tabular-nums slashed-zero; }
+.count strong { color: var(--color-ink); }
+
+/* ---------- the table ---------- */
+.table-wrap { border-color: var(--color-rule); border-radius: var(--radius-card); background: var(--color-paper-2); }
+table { font-size: var(--text-sm); }
+thead th { font-family: var(--font-body); font-size: var(--text-sm); font-weight: 500; color: var(--color-muted); text-transform: none; letter-spacing: 0; background: var(--color-paper-3); border-color: var(--color-rule); }
+tbody tr { border-color: var(--color-rule); }
+tbody tr:hover { background: color-mix(in oklab, var(--color-paper-2) 60%, var(--color-rule)); }
+td { color: var(--color-ink-2); }
+td.tool-name { font-family: var(--font-outlier); font-size: var(--text-sm); font-weight: 500; color: var(--color-ink); }
+td.usecase { font-family: var(--font-body); font-size: 0.9375rem; line-height: 1.55; color: var(--color-ink-2); }
+.cmd-line { font-family: var(--font-outlier); font-size: var(--text-xs); line-height: 1.85; color: var(--color-ink); font-variant-numeric: slashed-zero; }
+.cmd-line::before { color: var(--color-rule-2); }
+.cmd-line.comment, .pinned-cell .cmd-line.comment { color: var(--color-muted); }
+.cmd-line.comment::before { color: var(--color-muted); }
+code.raw { font-family: var(--font-outlier); color: var(--color-ink); }
+
+/* phase chips: one neutral chip, the word carries the meaning */
+.badge, [class*="badge-"] { font-family: var(--font-body); font-size: var(--text-xs); font-weight: 500; letter-spacing: 0; text-transform: none; padding: var(--space-3xs) var(--space-xs); border-radius: 4px; background: transparent; color: var(--color-ink-2); border: var(--rule-hair) solid var(--color-rule-2); }
+
+.copy-btn { font-family: var(--font-body); font-size: var(--text-xs); font-weight: 500; border-radius: 4px; border-color: var(--color-rule-2); background: var(--color-paper-2); color: var(--color-ink-2); }
+.copy-btn:hover { color: var(--color-ink); border-color: var(--color-muted); }
+.copy-btn.copied { color: var(--color-ok); border-color: color-mix(in oklab, var(--color-ok) 50%, var(--color-paper)); }
+.no-results { font-family: var(--font-body); font-size: var(--text-md); color: var(--color-muted); }
+
+/* pinned quick references */
+.pinned, .pinned-grid { border-radius: var(--radius-card); }
+.pinned-header, .pinned-label { font-family: var(--font-body); font-size: var(--text-sm); font-weight: 500; color: var(--color-ink); letter-spacing: 0; text-transform: none; }
+.pinned-label { font-family: var(--font-outlier); }
+.pinned-header::before { content: none; }
+.pinned-cell .cmd-line { font-size: var(--text-xs); color: var(--color-ink); }
+.legend { font-family: var(--font-body); font-size: var(--text-sm); color: var(--color-muted); }
+
+/* ---------- long reads ---------- */
+.back-link { font-family: var(--font-body); font-size: var(--text-sm); color: var(--color-muted); }
+.article-tag { font-family: var(--font-body); font-size: var(--text-xs); padding: var(--space-3xs) var(--space-xs); border-radius: 4px; background: transparent; color: var(--color-ink-2); border: var(--rule-hair) solid var(--color-rule-2); }
+.article-meta { font-family: var(--font-outlier); font-size: var(--text-sm); color: var(--color-muted); }
+article { font-family: var(--font-body); font-size: 1.125rem; line-height: 1.7; color: var(--color-ink-2); }
+article p, article li { max-width: 65ch; }
+article h2 { font-family: var(--font-display); font-weight: 500; font-size: var(--text-2xl); letter-spacing: -0.025em; line-height: 1.1; color: var(--color-ink); border-color: var(--color-rule); }
+article h3 { font-family: var(--font-display); font-weight: 500; font-size: var(--text-xl); letter-spacing: -0.015em; color: var(--color-ink); }
+article blockquote { color: var(--color-ink); border-color: var(--color-accent); font-size: var(--text-lead); line-height: 1.5; }
+article a { color: var(--color-ink); text-decoration-color: var(--color-rule-2); }
+article a:hover { text-decoration-color: var(--color-accent); }
+
+/* ---------- footer ---------- */
+footer { font-family: var(--font-body); font-size: var(--text-sm); color: var(--color-muted); border-color: var(--color-rule); }
+footer a { color: var(--color-ink-2); text-decoration-color: var(--color-rule-2); }
+footer a:hover { color: var(--color-ink); text-decoration-color: var(--color-accent); }
+
+/* ---------- states the sheets share ---------- */
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+input:disabled, button:disabled, select:disabled { opacity: 0.55; cursor: not-allowed; }
+::selection { background: color-mix(in oklab, var(--color-accent) 25%, transparent); }
+
+/* fixes the new faces need: mono runs a little wider than the old one */
+.pinned-cell { min-width: 0; }
+.pinned-cell .cmd-line, .pinned-cell .conf { white-space: break-spaces; word-break: normal; overflow-wrap: break-word; }
+.cmd-line { white-space: break-spaces; word-break: normal; overflow-wrap: break-word; }
+.cmd-block { padding-right: var(--space-2xl); }
+.copy-btn { min-height: 32px; padding: 0 var(--space-xs); }
+.table-scroll { overflow-x: auto; }
+
+/* small tags the sheets define for themselves */
+.layer-tag, .phase-tag, .theatre, .owasp, .tag { font-family: var(--font-body); font-size: var(--text-xs); font-weight: 500; letter-spacing: 0; text-transform: none; }
+footer a, .refs a { white-space: nowrap; }
+th, b, strong, td.tool-name { font-weight: 500; }
+
+@media (max-width: 40rem) {
+  .table-wrap tbody td:first-child, .table-wrap thead th:first-child { position: sticky; left: 0; z-index: var(--z-raised); background: var(--color-paper-2); box-shadow: 1px 0 0 var(--color-rule); }
+  .table-wrap thead th:first-child { background: var(--color-paper-3); }
+}
+
+@media (max-width: 60rem) {
+  h1 { font-size: var(--text-3xl); }
+  body > nav[style] { padding-inline: 1.25rem !important; }
+}
