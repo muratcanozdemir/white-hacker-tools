@@ -1,4 +1,9 @@
-name: Deploy to GitHub Pages
+name: Publish site
+
+# Publishes the site by force-pushing a fresh snapshot to the `gh-pages`
+# branch, which GitHub Pages serves directly (Settings → Pages → Deploy from
+# a branch → gh-pages, /). There is no artifact upload/download handoff, so
+# re-runs and artifact-API hiccups cannot break a deploy.
 
 on:
   push:
@@ -6,32 +11,57 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
-  id-token: write
 
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: publish-site
+  cancel-in-progress: true
 
 jobs:
-  deploy:
+  publish:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: Configure Pages
-        uses: actions/configure-pages@v6
+      - name: Assemble site
+        run: |
+          set -euo pipefail
+          rm -rf _site && mkdir _site
+          cp ./*.html _site/
+          touch _site/.nojekyll
+          test -f _site/index.html || { echo "::error::index.html missing"; exit 1; }
+          echo "Assembled $(ls _site/*.html | wc -l) pages"
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: .
+      - name: Check internal links
+        run: |
+          set -euo pipefail
+          broken=0
+          for page in _site/*.html; do
+            for target in $(grep -oE '(href|src)="[^"]*"' "$page" \
+                | sed -E 's/^(href|src)="//; s/"$//; s/[#?].*$//' \
+                | grep -vE '^$|^[a-zA-Z][a-zA-Z0-9+.-]*:|^//' | sort -u); do
+              if [ ! -e "_site/$target" ]; then
+                echo "::error file=${page#_site/}::broken link to $target"
+                broken=1
+              fi
+            done
+          done
+          exit $broken
 
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v5
+      - name: Push to gh-pages
+        working-directory: _site
+        run: |
+          set -euo pipefail
+          git init -q -b gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Publish ${GITHUB_SHA::7}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" gh-pages
+
+      - name: Request Pages build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST "repos/${{ github.repository }}/pages/builds" --jq .status
