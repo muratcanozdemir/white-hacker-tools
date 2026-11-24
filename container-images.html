@@ -6,14 +6,9 @@
 <title>Container Base Images: Cheat Sheet</title>
 <meta name="description" content="Filterable cheat sheet for container base images: scratch, Alpine, Wolfi, Distroless, multi-stage builds, compatibility, hardening, and debugging minimal containers.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500&family=Atkinson+Hyperlegible+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* Hallmark · checked: 2026-11-24 · genre: modern-minimal (inferred)
- * floor: 0 FAIL · fixed: 2a, 3, 7a, 10a, 19, 26a, 27, 34, 40, 48, 54, 63, 67 · structural: 58 printed
- * built: the project · redesign: polish · v2.0.0 */
-/* Hallmark · answered F1 · straight quotes sit beside shell, JSON and SQL fragments readers copy, so they stay straight */
-/* Hallmark · answered F2 · three-dot ellipses mark elided arguments in commands and are kept */
-/* Hallmark · waive 38iii · the h1 span appears once, in the header · "Images" in the accent is how the Container Base Images page names its subject across the series */
   :root {
     --bg:      #0d0f12;
     --bg2:     #13161b;
@@ -42,7 +37,7 @@
     background: var(--bg);
     color: var(--text);
     font-family: var(--mono);
-    font-size: 13px;
+    font-size: var(--text-sm);
     line-height: 1.6;
     min-height: 100vh;
   }
@@ -53,8 +48,8 @@
     padding: .6rem 2rem;
     display: flex;
     align-items: center;
-    gap: .5rem;
-    font-size: 11px;
+    gap: var(--space-xs);
+    font-size: var(--text-xs);
   }
   nav a {
     color: var(--muted);
@@ -67,7 +62,7 @@
   /* ── HEADER ── */
   header {
     border-bottom: 1px solid var(--border);
-    padding: 2rem 2.5rem 1.75rem;
+    padding: 2rem var(--space-xl) 1.75rem;
   }
 
   .header-inner {
@@ -80,7 +75,7 @@
   }
 
   .prompt {
-    font-size: 11px;
+    font-size: var(--text-xs);
     color: var(--muted);
     margin-bottom: .6rem;
   }
@@ -88,17 +83,17 @@
 
   h1 {
     font-size: 2rem;
-    font-weight: 700;
+    font-weight: 500;
     letter-spacing: -.02em;
     line-height: 1.15;
     color: var(--ink-h1);
-    margin-bottom: .5rem;
+    margin-bottom: var(--space-xs);
   }
-  h1 span { color: var(--accent); }
+  h1 span { color: inherit; }
 
   .subtitle {
     color: var(--muted);
-    font-size: 11.5px;
+    font-size: var(--text-xs);
     max-width: 540px;
     line-height: 1.7;
   }
@@ -106,7 +101,7 @@
   .meta {
     text-align: right;
     color: var(--muted);
-    font-size: 11px;
+    font-size: var(--text-xs);
     line-height: 2;
     white-space: nowrap;
     flex-shrink: 0;
@@ -117,24 +112,24 @@
   .callout {
     max-width: 1260px;
     margin: 1.25rem auto 0;
-    padding: 1rem 2.5rem;
+    padding: var(--space-md) var(--space-xl);
   }
   .callout-box {
     background: var(--bg2);
     border: 1px solid var(--border);
     border-left-color: var(--accent);
     border-radius: 4px;
-    padding: 1rem 1.25rem;
-    font-size: 11.5px;
+    padding: var(--space-md) 1.25rem;
+    font-size: var(--text-xs);
     color: var(--muted);
     line-height: 1.8;
   }
   .callout-box strong { color: var(--text); }
   .callout-box code {
     background: var(--bg3);
-    padding: 1px 5px;
+    padding: var(--space-3xs) var(--space-2xs);
     border-radius: 3px;
-    font-size: 11px;
+    font-size: var(--text-xs);
     color: var(--accent);
   }
 
@@ -142,21 +137,21 @@
   main {
     max-width: 1260px;
     margin: 0 auto;
-    padding: 0 2.5rem 3rem;
+    padding: 0 var(--space-xl) 3rem;
   }
 
   .toolbar {
     display: flex;
     align-items: center;
-    gap: .5rem;
-    padding: 1.25rem 0 1rem;
+    gap: var(--space-xs);
+    padding: 1.25rem 0 var(--space-md);
     flex-wrap: wrap;
   }
 
   .toolbar-label {
-    font-size: 10px;
+    font-size: var(--text-xs);
     color: var(--muted);
-    margin-right: .25rem;
+    margin-right: var(--space-2xs);
   }
 
   .f-btn {
@@ -164,18 +159,18 @@
     border: 1px solid var(--border);
     color: var(--muted);
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: var(--text-xs);
     padding: .3rem .7rem;
     border-radius: 4px;
     cursor: pointer;
     transition: color .15s, background-color .15s, border-color .15s;
   }
   .f-btn:hover { border-color: var(--border2); color: var(--text); }
-  .f-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 700; }
+  .f-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 500; }
 
   .count {
     margin-left: auto;
-    font-size: 11px;
+    font-size: var(--text-xs);
     color: var(--muted);
   }
 
@@ -190,16 +185,14 @@
 
   thead th {
     text-align: left;
-    font-size: 10px;
-    font-weight: 700;
+    font-size: var(--text-xs);
+    font-weight: 500;
     color: var(--muted);
-    padding: .6rem .75rem;
+    padding: .6rem var(--space-sm);
     border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 0;
     background: var(--bg);
-    z-index: 2;
   }
+  thead { position: sticky; top: 0; z-index: 2; }
   th:nth-child(1) { width: 14%; }
   th:nth-child(2) { width: 9%; }
   th:nth-child(3) { width: 38%; }
@@ -212,14 +205,14 @@
   tbody tr:hover { background: var(--bg2); }
 
   td {
-    padding: .75rem;
+    padding: var(--space-sm);
     vertical-align: top;
   }
 
   .tool-name {
-    font-weight: 700;
+    font-weight: 500;
     color: var(--ink-h1);
-    font-size: 12.5px;
+    font-size: var(--text-sm);
     white-space: nowrap;
   }
 
@@ -227,9 +220,9 @@
 
   .badge {
     display: inline-block;
-    font-size: 10px;
-    font-weight: 700;
-    padding: 2px 8px;
+    font-size: var(--text-xs);
+    font-weight: 500;
+    padding: var(--space-3xs) var(--space-xs);
     border-radius: 3px;
   }
   .badge-base    { background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--base);    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent); }
@@ -239,14 +232,14 @@
   .badge-harden  { background: color-mix(in srgb, var(--harden) 12%, transparent);  color: var(--harden);  border: 1px solid color-mix(in srgb, var(--harden) 30%, transparent); }
   .badge-debug   { background: color-mix(in srgb, var(--debug) 12%, transparent);  color: var(--debug);   border: 1px solid color-mix(in srgb, var(--debug) 30%, transparent); }
 
-  .commands { font-size: 12px; }
+  .commands { font-size: var(--text-sm); }
 
   .cmd-block {
     background: var(--bg3);
     color: var(--text);
     border: 1px solid var(--border);
     border-radius: 4px;
-    padding: .6rem .75rem;
+    padding: .6rem var(--space-sm);
     position: relative;
   }
 
@@ -254,7 +247,7 @@
     display: block;
     white-space: pre-wrap;
     word-break: break-all;
-    padding: 1px 0;
+    padding: var(--space-3xs) 0;
     color: var(--text);
   }
 
@@ -271,8 +264,8 @@
     border: 1px solid var(--border2);
     color: var(--muted);
     font-family: var(--mono);
-    font-size: 10px;
-    padding: 2px 8px;
+    font-size: var(--text-xs);
+    padding: var(--space-3xs) var(--space-xs);
     border-radius: 3px;
     cursor: pointer;
     transition: color .15s, background-color .15s, border-color .15s;
@@ -281,15 +274,15 @@
   .copy-btn.copied { color: var(--harden); border-color: var(--harden); }
 
   .usecase {
-    font-size: 12px;
+    font-size: var(--text-sm);
     line-height: 1.7;
     color: var(--text);
   }
   .usecase code {
     background: var(--bg3);
-    padding: 1px 5px;
+    padding: var(--space-3xs) var(--space-2xs);
     border-radius: 3px;
-    font-size: 11px;
+    font-size: var(--text-xs);
     color: var(--accent);
   }
 
@@ -303,7 +296,7 @@
   footer {
     text-align: center;
     padding: 2rem;
-    font-size: 11px;
+    font-size: var(--text-xs);
     color: var(--muted);
     border-top: 1px solid var(--border);
   }
@@ -314,17 +307,16 @@
   footer a:hover { text-decoration: underline; }
 
   @media (max-width: 900px) {
-    header { padding: 1.5rem 1rem 1.25rem; }
+    header { padding: var(--space-lg) var(--space-md) 1.25rem; }
     .header-inner { flex-direction: column; }
     .meta { text-align: left; }
-    main { padding: 0 1rem 2rem; }
-    .callout { padding: .75rem 1rem; }
-    table { font-size: 11.5px; }
+    main { padding: 0 var(--space-md) 2rem; }
+    .callout { padding: var(--space-sm) var(--space-md); }
+    table { font-size: var(--text-xs); }
     th:nth-child(1) { width: 18%; }
     th:nth-child(2) { width: 12%; }
   }
 
-    /* hallmark polish */
   h1 { text-wrap: balance; }
   button:active, [role="button"]:active { transform: translateY(1px); }
   button:disabled, input:disabled, select:disabled { opacity: .5; cursor: not-allowed; }
@@ -343,6 +335,9 @@
     }
   }
 </style>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="restyle.css">
 </head>
 <body>
 
