@@ -6,14 +6,9 @@
 <title>Kubernetes Debugging Toolkit: Cheat Sheet</title>
 <meta name="description" content="Filterable cheat sheet of Kubernetes debugging tools with key commands and use cases.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500&family=Atkinson+Hyperlegible+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* Hallmark · checked: 2026-11-24 · genre: modern-minimal (inferred)
- * floor: 0 FAIL · fixed: 2a, 3, 7a, 10a, 19, 26a, 27, 34, 40, 48, 54, 63, 67 · structural: 58 printed
- * built: the project · redesign: polish · v2.0.0 */
-/* Hallmark · answered F1 · straight quotes sit beside shell, JSON and SQL fragments readers copy, so they stay straight */
-/* Hallmark · answered F2 · three-dot ellipses mark elided arguments in commands and are kept */
-/* Hallmark · waive 38iii · the h1 span appears once, in the header · "Debug Toolkit" in the accent is how the Kubernetes Debugging Toolkit page names its subject across the series */
   :root {
     --bg:      #0d0f0e;
     --bg2:     #141715;
@@ -50,7 +45,7 @@
     background: var(--bg);
     color: var(--text);
     font-family: var(--mono);
-    font-size: 13px;
+    font-size: var(--text-sm);
     line-height: 1.6;
     min-height: 100vh;
   }
@@ -66,8 +61,8 @@
     padding: .6rem 2rem;
     display: flex;
     align-items: center;
-    gap: .5rem;
-    font-size: 11px;
+    gap: var(--space-xs);
+    font-size: var(--text-xs);
   }
   nav a { color: var(--muted); text-decoration: none; transition: color .15s; }
   nav a:hover { color: var(--accent); }
@@ -76,7 +71,7 @@
 
   header {
     border-bottom: 1px solid var(--border);
-    padding: 2.5rem 2rem 2rem;
+    padding: var(--space-xl) 2rem 2rem;
     position: relative;
     overflow: hidden;
   }
@@ -89,43 +84,43 @@
   .header-inner {
     max-width: 1200px; margin: 0 auto;
     display: flex; align-items: flex-end;
-    justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    justify-content: space-between; gap: var(--space-md); flex-wrap: wrap;
   }
-  .prompt { font-size: 11px; color: var(--accent); margin-bottom: .5rem; }
+  .prompt { font-size: var(--text-xs); color: var(--accent); margin-bottom: var(--space-xs); }
   .prompt::before { content: '$ '; color: var(--muted); }
   h1 {
     font-family: var(--display);
     font-size: clamp(1.6rem, 4vw, 2.6rem);
-    font-weight: 800; color: var(--ink-h1);
+    font-weight: 500; color: var(--ink-h1);
     letter-spacing: -.02em; line-height: 1.1;
   }
-  h1 span { color: var(--accent); }
-  .subtitle { margin-top: .6rem; font-size: 12px; color: var(--muted); max-width: 520px; }
-  .meta { text-align: right; font-size: 11px; color: var(--muted); line-height: 2; }
+  h1 span { color: inherit; }
+  .subtitle { margin-top: .6rem; font-size: var(--text-sm); color: var(--muted); max-width: 520px; }
+  .meta { text-align: right; font-size: var(--text-xs); color: var(--muted); line-height: 2; }
   .meta strong { color: var(--text); }
 
   main { max-width: 1200px; margin: 0 auto; padding: 2rem; }
 
   .toolbar {
     display: flex; flex-wrap: wrap;
-    align-items: center; gap: .5rem;
+    align-items: center; gap: var(--space-xs);
     margin-bottom: 1.25rem;
   }
   .toolbar-label {
-    font-size: 10px;
-    color: var(--muted); margin-right: .25rem;
+    font-size: var(--text-xs);
+    color: var(--muted); margin-right: var(--space-2xs);
   }
   .f-btn {
     background: transparent;
     border: 1px solid var(--border2);
-    border-radius: 3px; padding: 3px 10px;
-    font-family: var(--mono); font-size: 11px;
+    border-radius: 3px; padding: var(--space-2xs) var(--space-sm);
+    font-family: var(--mono); font-size: var(--text-xs);
     color: var(--muted); cursor: pointer;
     transition: color .15s, border-color .15s, background .15s;
   }
   .f-btn:hover { color: var(--text); background: var(--bg3); }
   .f-btn.active { color: var(--accent); border-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, transparent); }
-  .count { margin-left: auto; font-size: 11px; color: var(--muted); }
+  .count { margin-left: auto; font-size: var(--text-xs); color: var(--muted); }
   .count strong { color: var(--accent); }
 
   .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 6px; }
@@ -133,8 +128,8 @@
   table { width: 100%; border-collapse: collapse; min-width: 800px; }
 
   thead th {
-    background: var(--bg2); padding: 10px 14px;
-    text-align: left; font-size: 10px;
+    background: var(--bg2); padding: var(--space-sm) var(--space-md);
+    text-align: left; font-size: var(--text-xs);
     color: var(--muted); border-bottom: 1px solid var(--border);
     white-space: nowrap; font-weight: 400;
   }
@@ -145,13 +140,13 @@
   tbody tr:last-child { border-bottom: none; }
   tbody tr:hover { background: var(--bg2); }
 
-  td { padding: 10px 14px; vertical-align: top; }
-  td.tool-name { font-weight: 700; font-size: 13px; color: var(--ink-td-tool-name); white-space: nowrap; min-width: 130px; }
+  td { padding: var(--space-sm) var(--space-md); vertical-align: top; }
+  td.tool-name { font-weight: 500; font-size: var(--text-sm); color: var(--ink-td-tool-name); white-space: nowrap; min-width: 130px; }
   td.phase { min-width: 100px; }
 
   .badge {
-    display: inline-block; font-size: 10px;
-    padding: 2px 8px; border-radius: 2px; font-weight: 500; white-space: nowrap;
+    display: inline-block; font-size: var(--text-xs);
+    padding: var(--space-3xs) var(--space-xs); border-radius: 2px; font-weight: 500; white-space: nowrap;
   }
   .badge-inspect  { background: color-mix(in srgb, var(--accent) 12%, transparent);  color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);  }
   .badge-network  { background: var(--fill-badge-network);  color: var(--ink-badge-network); border: 1px solid var(--line-badge-network);  }
@@ -164,7 +159,7 @@
   .cmd-block { position: relative; }
   .cmd-line {
     display: block; color: var(--cmd);
-    font-size: 11.5px; line-height: 1.9;
+    font-size: var(--text-xs); line-height: 1.9;
     word-break: break-all;
   }
   .cmd-line::before { content: '$ '; color: var(--muted); user-select: none; }
@@ -175,22 +170,22 @@
     position: absolute; top: 0; right: 0;
     background: var(--bg3); border: 1px solid var(--border2);
     border-radius: 3px; color: var(--muted);
-    font-family: var(--mono); font-size: 10px;
-    padding: 1px 7px; cursor: pointer;
+    font-family: var(--mono); font-size: var(--text-xs);
+    padding: var(--space-3xs) var(--space-xs); cursor: pointer;
     opacity: 0; transition: opacity .15s, color .15s;
   }
   .cmd-block:hover .copy-btn { opacity: 1; }
   .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
   .copy-btn.copied { color: var(--accent); border-color: var(--accent); }
 
-  td.usecase { font-size: 12px; color: var(--muted); min-width: 220px; }
+  td.usecase { font-size: var(--text-sm); color: var(--muted); min-width: 220px; }
 
-  .no-results { text-align: center; padding: 3rem; color: var(--muted); font-size: 12px; display: none; }
+  .no-results { text-align: center; padding: 3rem; color: var(--muted); font-size: var(--text-sm); display: none; }
 
   footer {
     border-top: 1px solid var(--border);
-    padding: 1.5rem 2rem;
-    text-align: center; font-size: 11px; color: var(--muted);
+    padding: var(--space-lg) 2rem;
+    text-align: center; font-size: var(--text-xs); color: var(--muted);
   }
   footer a { color: var(--muted); text-decoration: none; }
   footer a:hover { color: var(--text); }
@@ -201,7 +196,6 @@
     .meta { display: none; }
   }
 
-    /* hallmark polish */
   h1 { text-wrap: balance; }
   button:active, [role="button"]:active { transform: translateY(1px); }
   button:disabled, input:disabled, select:disabled { opacity: .5; cursor: not-allowed; }
@@ -220,6 +214,9 @@
     }
   }
 </style>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="restyle.css">
 </head>
 <body>
 

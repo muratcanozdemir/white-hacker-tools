@@ -6,13 +6,9 @@
 <title>The Vatican's AI Encyclical | ops://cheatsheets</title>
 <meta name="description" content="Pope Leo XIV's Magnifica Humanitas decoded: what the encyclical actually demands from AI labs, governments, and platform companies.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500&family=Atkinson+Hyperlegible+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* Hallmark · checked: 2026-11-24 · genre: editorial (inferred)
- * floor: 0 FAIL · fixed: 2a, 3, 7a, 10a, 19, 26a, 27, 34, 40, 48, 54, 63, 67 · structural: 58 printed
- * built: the project · redesign: polish · v2.0.0 */
-/* Hallmark · answered F1 · straight quotes sit beside shell, JSON and SQL fragments readers copy, so they stay straight */
-/* Hallmark · answered F2 · three-dot ellipses mark elided arguments in commands and are kept */
 :root {
   --bg: #0d0f0e;
   --bg2: #141715;
@@ -53,7 +49,7 @@ body::before {
 /* ── header ── */
 header {
   border-bottom: 1px solid var(--border);
-  padding: 2.5rem 2rem 2rem;
+  padding: var(--space-xl) 2rem 2rem;
   position: relative;
 }
 
@@ -69,7 +65,7 @@ header::after {
 
 .back-link {
   display: inline-block;
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--muted);
   text-decoration: none;
   margin-bottom: 1.25rem;
@@ -80,8 +76,8 @@ header::after {
 
 .article-tag {
   display: inline-block;
-  font-size: 10px;
-  padding: 1px 7px;
+  font-size: var(--text-xs);
+  padding: var(--space-3xs) var(--space-xs);
   border-radius: 2px;
   font-weight: 500;
   background: color-mix(in srgb, var(--accent) 12%, transparent);
@@ -93,7 +89,7 @@ header::after {
 h1 {
   font-family: var(--display);
   font-size: clamp(1.6rem, 4vw, 2.4rem);
-  font-weight: 800;
+  font-weight: 500;
   color: var(--ink-h1);
   letter-spacing: -.03em;
   line-height: 1.1;
@@ -101,15 +97,15 @@ h1 {
 }
 
 .deck {
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--muted);
   max-width: 560px;
   line-height: 1.65;
-  margin-bottom: .75rem;
+  margin-bottom: var(--space-sm);
 }
 
 .article-meta {
-  font-size: 10px;
+  font-size: var(--text-xs);
   color: var(--muted);
 }
 
@@ -117,7 +113,7 @@ h1 {
 article {
   max-width: 680px;
   margin: 0 auto;
-  padding: 3rem 2rem 4rem;
+  padding: 3rem 2rem var(--space-2xl);
 }
 
 article p {
@@ -129,11 +125,11 @@ article p {
 article h2 {
   font-family: var(--display);
   font-size: 1.2rem;
-  font-weight: 700;
+  font-weight: 500;
   color: var(--ink-h1);
   letter-spacing: -.02em;
   margin: 2.75rem 0 .85rem;
-  padding-bottom: .5rem;
+  padding-bottom: var(--space-xs);
   border-bottom: 1px solid var(--border);
 }
 
@@ -143,7 +139,7 @@ article blockquote {
   padding: .8rem 1.25rem;
   background: var(--bg2);
   border-radius: 0 4px 4px 0;
-  font-size: 13px;
+  font-size: var(--text-sm);
   color: var(--ink-blockquote);
   font-style: italic;
   line-height: 1.75;
@@ -167,8 +163,8 @@ article em     { font-style: italic; }
 
 .list-item {
   display: flex;
-  gap: .75rem;
-  font-size: 13px;
+  gap: var(--space-sm);
+  font-size: var(--text-sm);
   color: var(--text);
   line-height: 1.7;
 }
@@ -183,9 +179,9 @@ article em     { font-style: italic; }
 /* ── footer ── */
 footer {
   border-top: 1px solid var(--border);
-  padding: 1.5rem 2rem;
+  padding: var(--space-lg) 2rem;
   text-align: center;
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--muted);
 }
 
@@ -197,7 +193,6 @@ footer a:hover { color: var(--text); }
   h1 { font-size: 1.5rem; }
 }
 
-    /* hallmark polish */
   h1 { text-wrap: balance; }
   button:active, [role="button"]:active { transform: translateY(1px); }
   button:disabled, input:disabled, select:disabled { opacity: .5; cursor: not-allowed; }
@@ -216,6 +211,9 @@ footer a:hover { color: var(--text); }
     }
   }
 </style>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="restyle.css">
 </head>
 <body>
 
