@@ -15,7 +15,7 @@
     --border:  #182a1c;
     --border2: #213b27;
     --text:    #aed4b8;
-    --muted:   #487858;
+    --muted:   #639071;
     --accent:  #34d058;
     --cmd:     #7dd3a8;
     --mono:    'JetBrains Mono', monospace;
@@ -226,6 +226,19 @@
     h1 { font-size: 1.5rem; }
     .meta { display: none; }
     .pinned-grid { grid-template-columns: 1fr; }
+  }
+
+  /* accessibility floor */
+  html, body { overflow-x: clip; }
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible,
+  textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px; transition: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+      transition-duration: .01ms !important; scroll-behavior: auto !important;
+    }
   }
 </style>
 </head>

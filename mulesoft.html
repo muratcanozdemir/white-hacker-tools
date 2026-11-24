@@ -15,7 +15,7 @@
     --border:  #14243c;
     --border2: #1c3254;
     --text:    #a8c4e0;
-    --muted:   #406080;
+    --muted:   #6886a4;
     --accent:  #00a1df;
     --cmd:     #7dd3a8;
     --mvn:     #f97316;
@@ -109,6 +109,19 @@
   footer a { color: var(--muted); text-decoration: none; }
   footer a:hover { color: var(--text); }
   @media (max-width: 640px) { header, main { padding: 1.25rem; } h1 { font-size: 1.5rem; } .meta { display: none; } .pinned-grid { grid-template-columns: 1fr; } }
+
+  /* accessibility floor */
+  html, body { overflow-x: clip; }
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible,
+  textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px; transition: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+      transition-duration: .01ms !important; scroll-behavior: auto !important;
+    }
+  }
 </style>
 </head>
 <body>

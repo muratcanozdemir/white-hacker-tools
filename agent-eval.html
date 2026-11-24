@@ -13,7 +13,7 @@
     --border:  #252a34;
     --border2: #2e3440;
     --text:    #cdd6e0;
-    --muted:   #556070;
+    --muted:   #858f9d;
     --accent:  #58a6ff;
     --mono:    'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
 
@@ -331,6 +331,19 @@
     h1 { font-size: 1.5rem; }
     .meta { display: none; }
     .taxonomy-inner { gap: 1rem; }
+  }
+
+  /* accessibility floor */
+  html, body { overflow-x: clip; }
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible,
+  textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px; transition: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+      transition-duration: .01ms !important; scroll-behavior: auto !important;
+    }
   }
 </style>
 </head>

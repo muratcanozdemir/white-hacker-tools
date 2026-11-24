@@ -15,7 +15,7 @@
     --border:  #2c2710;
     --border2: #3c3618;
     --text:    #d4c89a;
-    --muted:   #7a6e40;
+    --muted:   #908456;
     --accent:  #fbbf24;
     --cmd:     #7dd3a8;
     --mono:    'JetBrains Mono', monospace;
@@ -167,6 +167,19 @@
     header, main { padding: 1.25rem; }
     h1 { font-size: 1.5rem; }
     .meta { display: none; }
+  }
+
+  /* accessibility floor */
+  html, body { overflow-x: clip; }
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible,
+  textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px; transition: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+      transition-duration: .01ms !important; scroll-behavior: auto !important;
+    }
   }
 </style>
 </head>
